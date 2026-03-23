@@ -24,6 +24,13 @@ I reccomend colima + docker cli - `brew install docker colima`. After you have t
 9. SSH into your Pi
 10. `./MARA -a 0.0.0.0 -p 50000`
 
+# Quicker building & deploying
+This is the way I do it - but it's not connected to the official tutorial, so that's why it's in a different header. Apple has released it's own containers, and I found it around 30% faster than the colima + docker cli. And also, when you build the deployement, you don't need to scp it from the container itself - it's connected as a volume, so all the files are also availble no your "host" system. 
+1. ```container run --arch amd64 -u "`id -u`:`id -g`" -v "$(pwd):/project" ghcr.io/filipjsowa/fprime-arm:latest -c "fprime-util build aarch64-linux"```
+1. Or, if you need the build folder to be regenerated (for example, you've added new libraries ussing settings.ini) ```container run --arch amd64 --cpus 6 --memory 8g -u "`id -u`:`id -g`" -v "$(pwd):/project" ghcr.io/filipjsowa/fprime-arm:latest -c "fprime-util generate -f aarch64-linux && fprime-util build aarch64-linux"``` . This one has also more cpu and ram, customize it to your own laptop. 
+2. `ssh pi-fsowa.local "./MARA -a 0.0.0.0 -p 50000"`
+3. `fprime-gds -n --dictionary build-artifacts/aarch64-linux/Mara_MaraRPiIP/dict/MaraRPiIPTopologyDictionary.json --ip-client --ip-address $(python3 -c "import socket; print(socket.gethostbyname('pi-fsowa.local'))")`
+
 # On Python and Homebrew (section only for people starting with programming)
 As you can see above, we're usually using python for activating / creating the virtual environments, and brew for installing packages.
 
