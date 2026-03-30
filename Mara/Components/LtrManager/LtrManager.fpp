@@ -2,35 +2,39 @@ module Mara {
     @ Used to get data from the light sensor LTR-303
     active component LtrManager {
 
-        # One async command/port is required for active components
-        # This should be overridden by the developers with a useful command/port
-        @ TODO
-        async command TODO opcode 0
-
-        ##############################################################################
-        #### Uncomment the following examples to start customizing your component ####
-        ##############################################################################
-
-        # @ Example async command
-        # async command COMMAND_NAME(param_name: U32)
-
-        # @ Example telemetry counter
-        # telemetry ExampleCounter: U64
-
-        # @ Example event
-        # event ExampleStateEvent(example_state: Fw.On) severity activity high id 0 format "State set to {}"
-
-        # @ Example port: receiving calls from the rate group
-        # sync input port run: Svc.Sched
-
-        # @ Example parameter
-        # param PARAMETER_NAME: U32
-
-        ###############################################################################
-        # Standard AC Ports: Required for Channels, Events, Commands, and Parameters  #
-        ###############################################################################
+        @ Port for I2C bus communication
+        output port busWriteRead: Drv.I2cWriteRead
+        
+        @ Port for I2C bus communication
+        output port busWrite: Drv.I2c
+        
         @ Port for requesting the current time
+        @ Idk if that's needed, it was here by default
         time get port timeCaller
+
+        @ Scheduling port for reading from IMU and writing to telemetry
+        @ Stolen from the Mpu, maybe not needed? Idk
+        sync input port run: Svc.Sched
+        
+        # @ Telemetry channel for the raw Ltr data
+        telemetry Reading: LtrData
+
+        @ Then they also defined a bunch of events for reconfiguring or configuring
+        @ I'm not sure about those yet, cause I don't know what can be configured
+        @ That seems like it could be outsourced somewhere
+        @ It seems that event cannont be put into a common file?
+        event I2cError(
+            address: U32,
+            status: Drv.I2cStatus
+        ) severity warning high format "I2C error on address {} with status {}" throttle 5
+
+
+        # Another important ToDo, they have a bunch of parameters for doing the configuration
+        @ Command to force a RESET
+        async command RESET()
+
+        @ I2CSensor SM instance
+        state machine instance imuStateMachine: Mara.I2CSensorStateMachine
 
         @ Enables command handling
         import Fw.Command
