@@ -5,6 +5,7 @@
 // ======================================================================
 
 #include "Mara/Components/LtrManager/LtrManager.hpp"
+#include "Fw/Logger/Logger.hpp"
 
 namespace Mara {
 
@@ -12,7 +13,8 @@ namespace Mara {
 // Component construction and destruction
 // ----------------------------------------------------------------------
 
-LtrManager ::LtrManager(const char* const compName) : LtrManagerComponentBase(compName), m_address(Ltr::DEVICE_DEFAULT_ADDRESS) {}
+LtrManager ::LtrManager(const char* const compName)
+    : LtrManagerComponentBase(compName), m_address(Ltr::DEVICE_DEFAULT_ADDRESS) {}
 
 LtrManager ::~LtrManager() {}
 
@@ -46,6 +48,9 @@ void LtrManager ::RESET_cmdHandler(FwOpcodeType opCode, U32 cmdSeq) {
 void LtrManager ::Mara_I2CSensorStateMachine_action_doReset(SmId smId, Mara_I2CSensorStateMachine::Signal signal) {
     // This function is implemented only for the specific instance "LtrStateMachine"
     FW_ASSERT(smId == SmId::LtrStateMachine);
+    // Fw::Logger::log("In the reset state");
+    // Above is left as a comment, because this component serves also as a reference
+    // for other sensors. That is how you can do logging in F'
     Drv::I2cStatus status = this->reset();
     // Transition to RESET state on failure
     if (status != Drv::I2cStatus::I2C_OK) {
@@ -82,7 +87,8 @@ void LtrManager ::Mara_I2CSensorStateMachine_action_doEnable(SmId smId, Mara_I2C
     }
 }
 
-// void LtrManager ::Mara_I2CSensorStateMachine_action_doConfigure(SmId smId, Mara_I2CSensorStateMachine::Signal signal) {
+// void LtrManager ::Mara_I2CSensorStateMachine_action_doConfigure(SmId smId, Mara_I2CSensorStateMachine::Signal signal)
+// {
 //     // TODO
 // }
 
