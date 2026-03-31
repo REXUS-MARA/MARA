@@ -26,7 +26,7 @@ class LtrManager final : public LtrManagerComponentBase {
     ~LtrManager();
 
     //! Configure the device address
-    void configure(U8 device_address=Ltr::DEVICE_DEFAULT_ADDRESS);
+    void configure(U8 device_address = Ltr::DEVICE_DEFAULT_ADDRESS);
 
   private:
     // ----------------------------------------------------------------------
@@ -115,6 +115,11 @@ class LtrManager final : public LtrManagerComponentBase {
     //! Write to the Ltr bus and handle errors
     Drv::I2cStatus bus_write(Fw::Buffer& writeBuffer, Fw::Buffer& readBuffer);
 
+    //! Deserializes raw data from the bus
+    Ltr::RawLtrData deserialize_raw_data(Fw::Buffer& buffer);
+
+    //! Convert raw data into more meaningfull result for telemetry.
+    LtrData convert_raw_data(Ltr::RawLtrData& rawData);
 
   private:
     U8 m_address;
