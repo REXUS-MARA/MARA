@@ -19,6 +19,7 @@ register_fprime_library(
         "${CMAKE_CURRENT_LIST_DIR}/LtrManager.fpp"
     SOURCES
         "${CMAKE_CURRENT_LIST_DIR}/LtrManager.cpp"
+        "${CMAKE_CURRENT_LIST_DIR}/LtrHelpers.cpp"
 #   DEPENDS
 #       MyPackage_MyOtherModule
 )
