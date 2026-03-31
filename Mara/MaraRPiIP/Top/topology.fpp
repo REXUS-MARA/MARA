@@ -35,6 +35,8 @@ module Mara {
     instance timer
     instance comDriver
     instance cmdSeq
+    instance ltrManager
+    instance I2CDriver
 
   # ----------------------------------------------------------------------
   # Pattern graph specifiers
@@ -112,6 +114,7 @@ module Mara {
       rateGroup1.RateGroupMemberOut[4] -> ComCcsds.aggregator.timeout
       rateGroup1.RateGroupMemberOut[5] -> MpuImu.imuManager.run
       rateGroup1.RateGroupMemberOut[6] -> cmdSeq.schedIn
+      rateGroup1.RateGroupMemberOut[7] -> ltrManager.run
 
       # Rate group 2
       rateGroupDriver.CycleOut[Ports_RateGroups.rateGroup2] -> rateGroup2.CycleIn
@@ -135,7 +138,8 @@ module Mara {
     }
 
     connections MaraRPiIP {
-
+      ltrManager.busWriteRead -> I2CDriver.writeRead
+      ltrManager.busWrite -> I2CDriver.write
     }
 
   }
