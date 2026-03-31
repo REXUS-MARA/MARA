@@ -1,6 +1,6 @@
 module Mara {
     @ Used to get data from the light sensor LTR-303
-    active component LtrManager {
+    queued component LtrManager {
 
         @ Port for I2C bus communication
         output port busWriteRead: Drv.I2cWriteRead
@@ -35,7 +35,7 @@ module Mara {
         async command RESET()
 
         @ I2CSensor SM instance
-        state machine instance imuStateMachine: Mara.I2CSensorStateMachine
+        state machine instance LtrStateMachine: Mara.I2CSensorStateMachine
 
         @ Enables command handling
         import Fw.Command
