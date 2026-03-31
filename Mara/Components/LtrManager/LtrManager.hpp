@@ -8,6 +8,7 @@
 #define Mara_LtrManager_HPP
 
 #include "Mara/Components/LtrManager/LtrManagerComponentAc.hpp"
+#include "Mara/Components/LtrManager/LtrTypes.hpp"
 
 namespace Mara {
 
@@ -23,6 +24,9 @@ class LtrManager final : public LtrManagerComponentBase {
 
     //! Destroy LtrManager object
     ~LtrManager();
+
+    //! Configure the device address
+    void configure(U8 device_address=Ltr::DEVICE_DEFAULT_ADDRESS);
 
   private:
     // ----------------------------------------------------------------------
@@ -78,9 +82,9 @@ class LtrManager final : public LtrManagerComponentBase {
     //! Implementation for action doConfigure of state machine Mara_I2CSensorStateMachine
     //!
     //! Perform configure commands
-    void Mara_I2CSensorStateMachine_action_doConfigure(SmId smId,  //!< The state machine id
-                                                       Mara_I2CSensorStateMachine::Signal signal  //!< The signal
-                                                       ) override;
+    // void Mara_I2CSensorStateMachine_action_doConfigure(SmId smId,  //!< The state machine id
+    //                                                    Mara_I2CSensorStateMachine::Signal signal  //!< The signal
+    //                                                    ) override;
 
     //! Implementation for action doRead of state machine Mara_I2CSensorStateMachine
     //!
@@ -88,6 +92,32 @@ class LtrManager final : public LtrManagerComponentBase {
     void Mara_I2CSensorStateMachine_action_doRead(SmId smId,                                 //!< The state machine id
                                                   Mara_I2CSensorStateMachine::Signal signal  //!< The signal
                                                   ) override;
+
+    // ----------------------------------------------------------------------
+    // Helper functions
+    // ----------------------------------------------------------------------
+
+    //! Reset the Ltr
+    Drv::I2cStatus reset();
+
+    //! Read the ALS_CONTR register value
+    Drv::I2cStatus read_ALS_CONTR(U8& value);
+
+    //! Enable on the Ltr
+    Drv::I2cStatus enable();
+
+    //! Configure the Ltr
+    // Drv::I2cStatus configure_device();
+
+    //! Read Ltr data
+    Drv::I2cStatus read(LtrData& LtrData);
+
+    //! Write to the Ltr bus and handle errors
+    Drv::I2cStatus bus_write(Fw::Buffer& writeBuffer, Fw::Buffer& readBuffer);
+
+
+  private:
+    U8 m_address;
 };
 
 }  // namespace Mara
