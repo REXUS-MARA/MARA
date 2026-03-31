@@ -30,6 +30,7 @@ module Mara {
 
 
         # Another important ToDo, they have a bunch of parameters for doing the configuration
+        # But maybe I'll do that later
         @ Command to force a RESET
         async command RESET()
 
