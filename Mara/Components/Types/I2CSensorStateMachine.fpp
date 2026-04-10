@@ -9,7 +9,7 @@ module Mara {
         signal tick
 
         # @ Reconfigure signal
-        # signal reconfigure
+        signal reconfigure
 
         @ Current state passed successfully
         signal success
@@ -26,8 +26,8 @@ module Mara {
         @ Perform enable commands
         action doEnable
 
-        # @ Perform configure commands
-        # action doConfigure
+        @ Perform configure commands
+        action doConfigure
 
         @ Read the sensor
         action doRead
@@ -47,22 +47,21 @@ module Mara {
         @ Enable sensor data flows
         state ENABLE {
             on tick do { doEnable }
-            # on success enter CONFIGURE
-            on success enter RUN
+            on success enter CONFIGURE
             on error enter RESET
         }
 
         # @ Configure sensor
-        # state CONFIGURE {
-        #     on tick do { doConfigure }
-        #     on success enter RUN
-        #     on error enter RESET
-        # }
+        state CONFIGURE {
+            on tick do { doConfigure }
+            on success enter RUN
+            on error enter RESET
+        }
 
         @ Run the sensor
         state RUN {
             on tick do { doRead }
-            # on reconfigure enter CONFIGURE
+            on reconfigure enter CONFIGURE
             on error enter RESET
         }
     }
