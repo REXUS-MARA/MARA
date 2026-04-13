@@ -108,6 +108,8 @@ class LtrManager final : public LtrManagerComponentBase {
     Drv::I2cStatus configure_device();
 
     //! Read Ltr data
+    //! I don't know if that's important - we don't actually check whether the device produced new data
+    //! I think it may be irrelevant
     Drv::I2cStatus read(LtrData& LtrData);
 
     //! Write to the Ltr bus and handle errors
@@ -117,7 +119,7 @@ class LtrManager final : public LtrManagerComponentBase {
     Ltr::RawLtrData deserialize_raw_data(Fw::Buffer& buffer);
 
     //! Convert raw data into more meaningfull result for telemetry.
-    LtrData convert_raw_data(Ltr::RawLtrData& rawData);
+    LtrData convert_raw_data(Ltr::RawLtrData& rawData, const LtrGain& gain);
 
     //! Acceleration range to register value
     static U8 gain_to_register(LtrGain gain);

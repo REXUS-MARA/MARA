@@ -36,11 +36,19 @@ Drv::I2cStatus LtrManager::read(LtrData& LtrData) {
     }
     Ltr::RawLtrData raw = this->deserialize_raw_data(readBuffer);
 
-    // To Do
-    // We need to get the current gain, and then pass that into convert_raw_data
-    // That will be done together with adding the configurating
+    // Now, we need to get the gain to pass to the convert_raw_data
+    // Because we need it to make sense of the reading
+    // I'm following the imu implemetation here in reading out the parameter
+    // Safer choice I think would be to read the gain from the device
+    // and double check here to make sure that those values are the same
+    // but I'll only leave thise comment instead of doing that (cause it's also slower)
+    // I'm not sure how much tho
+    
+    Fw::ParamValid paramValid;
+    const LtrGain gain = this->paramGet_GAIN(paramValid);
+    FW_ASSERT(paramValid != Fw::ParamValid::INVALID, static_cast<FwAssertArgType>(paramValid));
 
-    LtrData = convert_raw_data(raw);
+    LtrData = convert_raw_data(raw, gain);
     return status;
 }
 
@@ -54,13 +62,15 @@ Ltr::RawLtrData LtrManager::deserialize_raw_data(Fw::Buffer& buffer) {
     return raw;
 }
 
-LtrData LtrManager::convert_raw_data(Ltr::RawLtrData& rawData) {
+LtrData LtrManager::convert_raw_data(Ltr::RawLtrData& rawData, [[maybe_unused]]const LtrGain& gain) {
     LtrData ltrData;
     ltrData.set_channel_1(rawData.ch_1);
     ltrData.set_channel_0(rawData.ch_0);
-    // U16 lux;
-    // ltrData.set_calculated_lux(lux);
-    // above will be done when I'll add support for configuration
+    // leaving it as 0 for now
+    // since the formula is quite complicated. And it seems we don't care anyway?
+    // we just want to estimate the RPM from it
+    U16 lux{0};
+    ltrData.set_calculated_lux(lux);
     return ltrData;
 }
 
