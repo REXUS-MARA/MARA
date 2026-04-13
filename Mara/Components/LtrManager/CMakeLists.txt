@@ -27,13 +27,15 @@ register_fprime_library(
 )
 
 ### Unit Tests ###
-# register_fprime_ut(
-#     AUTOCODER_INPUTS
-#         "${CMAKE_CURRENT_LIST_DIR}/LtrManager.fpp"
-#     SOURCES
-#         "${CMAKE_CURRENT_LIST_DIR}/test/ut/LtrManagerTestMain.cpp"
-#         "${CMAKE_CURRENT_LIST_DIR}/test/ut/LtrManagerTester.cpp"
-#     DEPENDS
-#         STest # For rules-based testing
-#     UT_AUTO_HELPERS
-# )
+register_fprime_ut(
+    AUTOCODER_INPUTS
+        "${CMAKE_CURRENT_LIST_DIR}/LtrManager.fpp"
+        "${CMAKE_CURRENT_LIST_DIR}/Types.fpp"
+        "${CMAKE_CURRENT_LIST_DIR}/LtrStateMachine.fpp"
+    SOURCES
+        "${CMAKE_CURRENT_LIST_DIR}/test/ut/LtrManagerTestMain.cpp"
+        "${CMAKE_CURRENT_LIST_DIR}/test/ut/LtrManagerTester.cpp"
+    DEPENDS
+        STest # For rules-based testing
+    UT_AUTO_HELPERS
+)
