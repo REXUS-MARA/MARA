@@ -19,23 +19,23 @@ module Mara {
         # @ Telemetry channel for the raw Ltr data
         telemetry Reading: LtrData
 
-        @ Then they also defined a bunch of events for reconfiguring or configuring
-        @ I'm not sure about those yet, cause I don't know what can be configured
-        @ That seems like it could be outsourced somewhere
-        @ It seems that event cannont be put into a common file?
+        event GainUpdated(
+            newGain: LtrGain
+        ) severity activity high format "Ltr gain updated to {}"
+        
+        @ Parameter for setting the Ltr-303 gain
+        param GAIN: LtrGain default LtrGain.GAIN_1X
+
         event I2cError(
             address: U32,
             status: Drv.I2cStatus
         ) severity warning high format "I2C error on address {} with status {}" throttle 5
 
-
-        # Another important ToDo, they have a bunch of parameters for doing the configuration
-        # But maybe I'll do that later
         @ Command to force a RESET
         async command RESET()
 
         @ I2CSensor SM instance
-        state machine instance LtrStateMachine: Mara.I2CSensorStateMachine
+        state machine instance LtrStateMachine: Mara.LtrStateMachine
 
         @ Enables command handling
         import Fw.Command

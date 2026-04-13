@@ -2,4 +2,4 @@
 
 # add_fprime_subdirectory("${CMAKE_CURRENT_LIST_DIR}/MyComponent")
 add_fprime_subdirectory("${CMAKE_CURRENT_LIST_DIR}/LtrManager/")
-add_fprime_subdirectory("${CMAKE_CURRENT_LIST_DIR}/Types/")
+add_fprime_subdirectory("${CMAKE_CURRENT_LIST_DIR}/Common/")
