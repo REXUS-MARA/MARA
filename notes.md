@@ -3,3 +3,11 @@ You have to enable I2C on the pi. At elast on mine, it was done by
 1. `sudo nano /boot/firmware/config.txt`
 2. uncomment and set to on the `dtparam=i2c_arm=off` line in `/boot/firmware/config.txt` and then `sudo reboot`
 3. It's good to install `i2c-tools`. Then, you can use i2cdetect -y 1 (or 2 for a different bus, but you should not need that)
+
+About F' itself
+Definitely needs a better setup on the fprime webpage. One thing is the old image (why????)
+The other is the absolutely terrible setup for Macs, while it can actually be very nice
+The F prime tools - maybe I'm not using them correctly, but when I add for example new type in one file
+And then try to use that type in another file, the tool gets lost, it says the type does not exists. 
+The build passes just fine - and then if I reset VSCode it works fine. Closing and opening the file does not help. And 
+after I moved the whole file with state machine to a new directory - the fprime tools still point to the old directory.

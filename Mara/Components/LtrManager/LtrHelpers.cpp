@@ -23,13 +23,6 @@ Drv::I2cStatus LtrManager::read_ALS_CONTR(U8& value) {
     return bus_write(writeBuffer, readBuffer);
 }
 
-Drv::I2cStatus LtrManager::enable() {
-    U8 active_sequence[] = {Ltr::ALS_CONTR_REGISTER, Ltr::ALS_ACTIVE_MODE_MASK};
-    Fw::Buffer writeBuffer(active_sequence, sizeof(active_sequence));
-    Fw::Buffer readBuffer;
-    return bus_write(writeBuffer, readBuffer);
-}
-
 Drv::I2cStatus LtrManager::read(LtrData& LtrData) {
     U8 data[Ltr::DATA_LEN_CHANNEL];
     U8 registerAddress = Ltr::ALS_DATA_CH1_0_REGISTER;
@@ -81,5 +74,49 @@ Drv::I2cStatus LtrManager::bus_write(Fw::Buffer& writeBuffer, Fw::Buffer& readBu
     }
     return status;
 }
+
+Drv::I2cStatus LtrManager::configure_device() {
+    Fw::ParamValid paramValid;
+    Drv::I2cStatus status = Drv::I2cStatus::I2C_OK;
+    const LtrGain ltrGain = this->paramGet_GAIN(paramValid);
+    FW_ASSERT(paramValid != Fw::ParamValid::INVALID, static_cast<FwAssertArgType>(paramValid));
+    U8 register_gain = this->gain_to_register(ltrGain);
+    U8 control_value = register_gain & Ltr::ALS_ACTIVE_MODE_MASK;
+    U8 control_sequence[] = {Ltr::ALS_CONTR_REGISTER, control_value};
+    Fw::Buffer writeBuffer(control_sequence, sizeof(control_sequence));
+    Fw::Buffer readBuffer;
+    status = this->bus_write(writeBuffer, readBuffer);
+
+    return status;
+}
+
+U8 LtrManager::gain_to_register(LtrGain gain){
+    U8 registerValue = 0;
+    switch (gain.e) {
+        case LtrGain::GAIN_1X:
+            registerValue = Ltr::GAIN_CONFIG_1X;
+            break;
+        case LtrGain::GAIN_2X:
+            registerValue = Ltr::GAIN_CONFIG_2X;
+            break;
+        case LtrGain::GAIN_4X:
+            registerValue = Ltr::GAIN_CONFIG_4X;
+            break;
+        case LtrGain::GAIN_8X:
+            registerValue = Ltr::GAIN_CONFIG_8X;
+            break;
+        case LtrGain::GAIN_48X:
+            registerValue = Ltr::GAIN_CONFIG_48X;
+            break;
+        case LtrGain::GAIN_96X:
+            registerValue = Ltr::GAIN_CONFIG_96X;
+            break;
+        default:
+            FW_ASSERT(0, gain.e);
+            break;
+    }
+    return registerValue;
+}
+
 
 }  // namespace Mara

@@ -32,6 +32,11 @@ class LtrManager final : public LtrManagerComponentBase {
     // ----------------------------------------------------------------------
     // Handler implementations for typed input ports
     // ----------------------------------------------------------------------
+    
+    //! method for reacting on parameter updates
+    //! We're going to use that for reconfiguring the ltr
+    void parameterUpdated(FwPrmIdType id  //!< The parameter ID
+                          ) override;
 
     //! Handler implementation for run
     //!
@@ -58,39 +63,32 @@ class LtrManager final : public LtrManagerComponentBase {
     // Implementations for internal state machine actions
     // ----------------------------------------------------------------------
 
-    //! Implementation for action doReset of state machine Mara_I2CSensorStateMachine
+    //! Implementation for action doReset of state machine Mara_LtrStateMachine
     //!
     //! Perform reset commands
-    void Mara_I2CSensorStateMachine_action_doReset(SmId smId,                                 //!< The state machine id
-                                                   Mara_I2CSensorStateMachine::Signal signal  //!< The signal
+    void Mara_LtrStateMachine_action_doReset(SmId smId,                                 //!< The state machine id
+                                                   Mara_LtrStateMachine::Signal signal  //!< The signal
                                                    ) override;
 
-    //! Implementation for action checkReset of state machine Mara_I2CSensorStateMachine
+    //! Implementation for action checkReset of state machine Mara_LtrStateMachine
     //!
     //! Check reset took place
-    void Mara_I2CSensorStateMachine_action_checkReset(SmId smId,  //!< The state machine id
-                                                      Mara_I2CSensorStateMachine::Signal signal  //!< The signal
+    void Mara_LtrStateMachine_action_checkReset(SmId smId,  //!< The state machine id
+                                                      Mara_LtrStateMachine::Signal signal  //!< The signal
                                                       ) override;
 
-    //! Implementation for action doEnable of state machine Mara_I2CSensorStateMachine
-    //!
-    //! Perform enable commands
-    void Mara_I2CSensorStateMachine_action_doEnable(SmId smId,                                 //!< The state machine id
-                                                    Mara_I2CSensorStateMachine::Signal signal  //!< The signal
-                                                    ) override;
-
-    //! Implementation for action doConfigure of state machine Mara_I2CSensorStateMachine
+    //! Implementation for action doConfigure of state machine Mara_LtrStateMachine
     //!
     //! Perform configure commands
-    // void Mara_I2CSensorStateMachine_action_doConfigure(SmId smId,  //!< The state machine id
-    //                                                    Mara_I2CSensorStateMachine::Signal signal  //!< The signal
-    //                                                    ) override;
+    void Mara_LtrStateMachine_action_doConfigure(SmId smId,  //!< The state machine id
+                                                       Mara_LtrStateMachine::Signal signal  //!< The signal
+                                                       ) override;
 
-    //! Implementation for action doRead of state machine Mara_I2CSensorStateMachine
+    //! Implementation for action doRead of state machine Mara_LtrStateMachine
     //!
     //! Read the sensor
-    void Mara_I2CSensorStateMachine_action_doRead(SmId smId,                                 //!< The state machine id
-                                                  Mara_I2CSensorStateMachine::Signal signal  //!< The signal
+    void Mara_LtrStateMachine_action_doRead(SmId smId,                                 //!< The state machine id
+                                                  Mara_LtrStateMachine::Signal signal  //!< The signal
                                                   ) override;
 
     // ----------------------------------------------------------------------
@@ -103,11 +101,11 @@ class LtrManager final : public LtrManagerComponentBase {
     //! Read the ALS_CONTR register value
     Drv::I2cStatus read_ALS_CONTR(U8& value);
 
-    //! Enable on the Ltr
-    Drv::I2cStatus enable();
-
     //! Configure the Ltr
-    // Drv::I2cStatus configure_device();
+    //! This will both configure the gain and enable SW
+    //! Done this way cause there's only one register controlling
+    //! that behaviour
+    Drv::I2cStatus configure_device();
 
     //! Read Ltr data
     Drv::I2cStatus read(LtrData& LtrData);
@@ -120,6 +118,9 @@ class LtrManager final : public LtrManagerComponentBase {
 
     //! Convert raw data into more meaningfull result for telemetry.
     LtrData convert_raw_data(Ltr::RawLtrData& rawData);
+
+    //! Acceleration range to register value
+    static U8 gain_to_register(LtrGain gain);
 
   private:
     U8 m_address;

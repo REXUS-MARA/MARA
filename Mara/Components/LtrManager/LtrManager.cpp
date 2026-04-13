@@ -45,7 +45,7 @@ void LtrManager ::RESET_cmdHandler(FwOpcodeType opCode, U32 cmdSeq) {
 // Implementations for internal state machine actions
 // ----------------------------------------------------------------------
 
-void LtrManager ::Mara_I2CSensorStateMachine_action_doReset(SmId smId, Mara_I2CSensorStateMachine::Signal signal) {
+void LtrManager ::Mara_LtrStateMachine_action_doReset(SmId smId, Mara_LtrStateMachine::Signal signal) {
     // This function is implemented only for the specific instance "LtrStateMachine"
     FW_ASSERT(smId == SmId::LtrStateMachine);
     // Fw::Logger::log("In the reset state");
@@ -61,7 +61,7 @@ void LtrManager ::Mara_I2CSensorStateMachine_action_doReset(SmId smId, Mara_I2CS
     }
 }
 
-void LtrManager ::Mara_I2CSensorStateMachine_action_checkReset(SmId smId, Mara_I2CSensorStateMachine::Signal signal) {
+void LtrManager ::Mara_LtrStateMachine_action_checkReset(SmId smId, Mara_LtrStateMachine::Signal signal) {
     // This function is implemented only for the specific instance "LtrStateMachine"
     FW_ASSERT(smId == SmId::LtrStateMachine);
     U8 reset_val = 0;
@@ -75,10 +75,11 @@ void LtrManager ::Mara_I2CSensorStateMachine_action_checkReset(SmId smId, Mara_I
     }
 }
 
-void LtrManager ::Mara_I2CSensorStateMachine_action_doEnable(SmId smId, Mara_I2CSensorStateMachine::Signal signal) {
-    // This function is implemented only for the specific instance "LtrStateMachine"
+void LtrManager ::Mara_LtrStateMachine_action_doConfigure(SmId smId, Mara_LtrStateMachine::Signal signal)
+{
+    // This function is implemented only for the specific instance "ltrStateMachine"
     FW_ASSERT(smId == SmId::LtrStateMachine);
-    Drv::I2cStatus status = this->enable();
+    Drv::I2cStatus status = this->configure_device();
     if (status != Drv::I2cStatus::I2C_OK) {
         this->log_WARNING_HI_I2cError(this->m_address, status);
         this->LtrStateMachine_sendSignal_error();
@@ -87,12 +88,7 @@ void LtrManager ::Mara_I2CSensorStateMachine_action_doEnable(SmId smId, Mara_I2C
     }
 }
 
-// void LtrManager ::Mara_I2CSensorStateMachine_action_doConfigure(SmId smId, Mara_I2CSensorStateMachine::Signal signal)
-// {
-//     // TODO
-// }
-
-void LtrManager ::Mara_I2CSensorStateMachine_action_doRead(SmId smId, Mara_I2CSensorStateMachine::Signal signal) {
+void LtrManager ::Mara_LtrStateMachine_action_doRead(SmId smId, Mara_LtrStateMachine::Signal signal) {
     // This function is implemented only for the specific instance "ltrStateMachine"
     FW_ASSERT(smId == SmId::LtrStateMachine);
     LtrData LtrData;
@@ -102,6 +98,24 @@ void LtrManager ::Mara_I2CSensorStateMachine_action_doRead(SmId smId, Mara_I2CSe
         this->LtrStateMachine_sendSignal_error();
     } else {
         this->tlmWrite_Reading(LtrData);
+    }
+}
+
+void LtrManager::parameterUpdated(FwPrmIdType id) {
+    Fw::ParamValid isValid = Fw::ParamValid::INVALID;
+    switch (id) {
+        case PARAMID_GAIN: {
+            // Read back the parameter value
+            const LtrGain gain = this->paramGet_GAIN(isValid);
+            // NOTE: isValid is always VALID in parameterUpdated as it was just properly set
+            FW_ASSERT(isValid == Fw::ParamValid::VALID, static_cast<FwAssertArgType>(isValid));
+            this->log_ACTIVITY_HI_GainUpdated(gain);
+            this->LtrStateMachine_sendSignal_reconfigure();
+            break;
+        }
+        default:
+            FW_ASSERT(0, static_cast<FwAssertArgType>(id));
+            break;
     }
 }
 

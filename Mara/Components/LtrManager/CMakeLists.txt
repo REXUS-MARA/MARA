@@ -17,6 +17,8 @@
 register_fprime_library(
     AUTOCODER_INPUTS
         "${CMAKE_CURRENT_LIST_DIR}/LtrManager.fpp"
+        "${CMAKE_CURRENT_LIST_DIR}/Types.fpp"
+        "${CMAKE_CURRENT_LIST_DIR}/LtrStateMachine.fpp"
     SOURCES
         "${CMAKE_CURRENT_LIST_DIR}/LtrManager.cpp"
         "${CMAKE_CURRENT_LIST_DIR}/LtrHelpers.cpp"
