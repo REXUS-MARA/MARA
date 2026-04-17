@@ -2,50 +2,35 @@ module Mara {
     @ INA-228 Current and voltage sensor with I2C
     active component INA228 {
 
-        # One async command/port is required for active components
-        # This should be overridden by the developers with a useful command/port
-        @ TODO
-        async command TODO opcode 0
+        @ Port for I2C bus communication
+        output port busWriteRead: Drv.I2cWriteRead
 
-        ##############################################################################
-        #### Uncomment the following examples to start customizing your component ####
-        ##############################################################################
+        @ Port for I2C bus communication
+        output port busWrite: Drv.I2c
 
-        # @ Example async command
-        # async command COMMAND_NAME(param_name: U32)
+        @ Sync port, grandfathered in from LTR-303
+        sync input port run: Svc.Sched
 
-        # @ Example telemetry counter
-        # telemetry ExampleCounter: U64
+        @ Telemetry reading for current/voltage data
+        telemetry Reading: INAData
 
-        # @ Example event
-        # event ExampleStateEvent(example_state: Fw.On) severity activity high id 0 format "State set to {}"
+        @ I2C error event, grandfathered in from LTR-303
+        event I2cError(
+            address: U32,
+            status: Drv.I2cStatus
+        ) severity warning high format "I2C error on address {} with status {}" throttle 5
 
-        # @ Example port: receiving calls from the rate group
-        # sync input port run: Svc.Sched
+        @ Command to force a RESET
+        async command RESET()
 
-        # @ Example parameter
-        # param PARAMETER_NAME: U32
+        @ I2CSensor SM instance
+        state machine instance imuStateMachine: Mara.I2CSensorStateMachine
 
-        ###############################################################################
-        # Standard AC Ports: Required for Channels, Events, Commands, and Parameters  #
-        ###############################################################################
-        @ Port for requesting the current time
+        @ Port for current time
         time get port timeCaller
 
         @ Enables command handling
         import Fw.Command
-
-        @ Enables event handling
-        import Fw.Event
-
-        @ Enables telemetry channels handling
-        import Fw.Channel
-
-        @ Port to return the value of a parameter
-        param get port prmGetOut
-
-        @Port to set the value of a parameter
-        param set port prmSetOut
 
     }
 }
