@@ -12,19 +12,24 @@
 namespace Mara {
 
 class ADXL345Manager final : public ADXL345ManagerComponentBase {
+
   public:
-    // ----------------------------------------------------------------------
-    // Component construction and destruction
-    // ----------------------------------------------------------------------
-
-    //! Construct ADXL345Manager object
-    ADXL345Manager(const char* const compName  //!< The component name
-    );
-
-    //! Destroy ADXL345Manager object
+    ADXL345Manager(const char* const compName);
     ~ADXL345Manager();
+
+  private:
+    void run_handler(FwIndexType portNum, U32 context) override;
+    void ADXL345_INIT_cmdHandler(FwOpcodeType opCode, U32 cmdSeq) override;
+    void ADXL345_SET_RANGE_cmdHandler(FwOpcodeType opCode, U32 cmdSeq, U8 range) override;
+    void ADXL345_SET_RATE_cmdHandler(FwOpcodeType opCode, U32 cmdSeq, U8 rate) override;
+
+    Drv::I2cStatus writeRegister(U8 reg, U8 value);
+    Drv::I2cStatus readRegisters(U8 startReg, U8* buffer, U32 size);
+
+    U8 getI2cAddr();
+
+    bool m_initialized = false;
 };
 
 }  // namespace Mara
-
 #endif

@@ -17,17 +17,16 @@ module Mara {
         # ==============================================================
 
         @ Initialize the ADXL345 sensor
-        sync command ADXL345_INIT \
-            opcode 0x00
+        sync command ADXL345_INIT opcode 0x00
 
-        @ Set the measurement range
-        sync command ADXL345_SET_RANGE( \
-            range: U8 @< 0=2g, 1=4g, 2=8g, 3=16g \
+        @ Set the measurement range (0=2g, 1=4g, 2=8g, 3=16g)
+        sync command ADXL345_SET_RANGE(
+            range: U8
         ) opcode 0x01
 
-        @ Set the data rate
-        sync command ADXL345_SET_RATE( \
-            rate: U8 @< Data rate code (e.g. 0x0A = 100Hz) \
+        @ Set the data rate (e.g. 0x0A = 100Hz)
+        sync command ADXL345_SET_RATE(
+            rate: U8
         ) opcode 0x02
 
         # ==============================================================
@@ -53,20 +52,20 @@ module Mara {
             format "ADXL345 initialized successfully"
 
         @ Sensor initialization failed
-        event ADXL345_INIT_FAILED( \
-            status: I32 @< I2C error status \
+        event ADXL345_INIT_FAILED(
+            errStatus: I32
         ) severity warning high \
             format "ADXL345 initialization failed with status {}"
 
         @ I2C read/write error
-        event ADXL345_I2C_ERROR( \
-            status: I32 @< I2C error status \
+        event ADXL345_I2C_ERROR(
+            errStatus: I32
         ) severity warning high \
             format "ADXL345 I2C error: status {}"
 
         @ Device ID mismatch
-        event ADXL345_BAD_DEVICE_ID( \
-            deviceId: U8 @< The ID read from the sensor \
+        event ADXL345_BAD_DEVICE_ID(
+            deviceId: U8
         ) severity warning high \
             format "ADXL345 unexpected device ID: 0x{x}"
 
