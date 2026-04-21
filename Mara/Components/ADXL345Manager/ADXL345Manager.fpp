@@ -1,29 +1,89 @@
 module Mara {
-    @ ADXL345 acc sensor
+    @ ADXL345 accelerometer sensor over I2C
     passive component ADXL345Manager {
 
-        ##############################################################################
-        #### Uncomment the following examples to start customizing your component ####
-        ##############################################################################
+        # ==============================================================
+        # Ports
+        # ==============================================================
 
-        # @ Example async command
-        # async command COMMAND_NAME(param_name: U32)
+        @ Port for receiving calls from the rate group (periodic reads)
+        sync input port run: Svc.Sched
 
-        # @ Example telemetry counter
-        # telemetry ExampleCounter: U64
+        @ I2C port for communicating with the ADXL345
+        output port i2cReadWrite: Drv.I2c
 
-        # @ Example event
-        # event ExampleStateEvent(example_state: Fw.On) severity activity high id 0 format "State set to {}"
+        # ==============================================================
+        # Commands
+        # ==============================================================
 
-        # @ Example port: receiving calls from the rate group
-        # sync input port run: Svc.Sched
+        @ Initialize the ADXL345 sensor
+        sync command ADXL345_INIT \
+            opcode 0x00
 
-        # @ Example parameter
-        # param PARAMETER_NAME: U32
+        @ Set the measurement range
+        sync command ADXL345_SET_RANGE( \
+            range: U8 @< 0=2g, 1=4g, 2=8g, 3=16g \
+        ) opcode 0x01
 
-        ###############################################################################
-        # Standard AC Ports: Required for Channels, Events, Commands, and Parameters  #
-        ###############################################################################
+        @ Set the data rate
+        sync command ADXL345_SET_RATE( \
+            rate: U8 @< Data rate code (e.g. 0x0A = 100Hz) \
+        ) opcode 0x02
+
+        # ==============================================================
+        # Telemetry
+        # ==============================================================
+
+        @ X-axis acceleration (raw)
+        telemetry accelX: I16
+
+        @ Y-axis acceleration (raw)
+        telemetry accelY: I16
+
+        @ Z-axis acceleration (raw)
+        telemetry accelZ: I16
+
+        # ==============================================================
+        # Events
+        # ==============================================================
+
+        @ Sensor initialized successfully
+        event ADXL345_INITIALIZED \
+            severity activity high \
+            format "ADXL345 initialized successfully"
+
+        @ Sensor initialization failed
+        event ADXL345_INIT_FAILED( \
+            status: I32 @< I2C error status \
+        ) severity warning high \
+            format "ADXL345 initialization failed with status {}"
+
+        @ I2C read/write error
+        event ADXL345_I2C_ERROR( \
+            status: I32 @< I2C error status \
+        ) severity warning high \
+            format "ADXL345 I2C error: status {}"
+
+        @ Device ID mismatch
+        event ADXL345_BAD_DEVICE_ID( \
+            deviceId: U8 @< The ID read from the sensor \
+        ) severity warning high \
+            format "ADXL345 unexpected device ID: 0x{x}"
+
+        # ==============================================================
+        # Parameters
+        # ==============================================================
+
+        @ I2C device address (default 0x53)
+        param I2C_ADDR: U8 default 0x53
+
+        @ Measurement range (0=2g, 1=4g, 2=8g, 3=16g)
+        param RANGE: U8 default 0
+
+        # ==============================================================
+        # Standard AC Ports
+        # ==============================================================
+
         @ Port for requesting the current time
         time get port timeCaller
 
@@ -39,8 +99,7 @@ module Mara {
         @ Port to return the value of a parameter
         param get port prmGetOut
 
-        @Port to set the value of a parameter
+        @ Port to set the value of a parameter
         param set port prmSetOut
-
     }
 }
