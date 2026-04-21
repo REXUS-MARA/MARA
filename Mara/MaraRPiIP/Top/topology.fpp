@@ -33,6 +33,7 @@ module Mara {
     instance timer
     instance comDriver
     instance cmdSeq
+    instance adxl345Manager
 
   # ----------------------------------------------------------------------
   # Pattern graph specifiers
@@ -109,6 +110,7 @@ module Mara {
       rateGroup1.RateGroupMemberOut[3] -> ComCcsds.comQueue.run
       rateGroup1.RateGroupMemberOut[4] -> ComCcsds.aggregator.timeout
       rateGroup1.RateGroupMemberOut[5] -> MpuImu.imuManager.run
+      rateGroup1.RateGroupMemberOut[6] -> adxl345Manager.run
 
       # Rate group 2
       rateGroupDriver.CycleOut[Ports_RateGroups.rateGroup2] -> rateGroup2.CycleIn
@@ -131,6 +133,11 @@ module Mara {
 
     connections MaraRPiIP {
 
+    }
+
+    # Connect ADXL345 to I2C driver
+    connections ADXL345 {
+        adxl345Manager.i2cReadWrite -> MpuImu.imuDriver.write
     }
 
   }
