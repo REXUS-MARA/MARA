@@ -92,7 +92,7 @@ Drv::I2cStatus LtrManager::configure_device() {
     FW_ASSERT(paramValid != Fw::ParamValid::INVALID, static_cast<FwAssertArgType>(paramValid));
     U8 register_gain = this->gain_to_register(ltrGain);
     // here we set the gain and we also tell the ltr to be active
-    U8 control_value = register_gain & Ltr::ALS_ACTIVE_MODE_MASK;
+    U8 control_value = register_gain | Ltr::ALS_ACTIVE_MODE_MASK;
     U8 control_sequence[] = {Ltr::ALS_CONTR_REGISTER, control_value};
     Fw::Buffer writeBuffer(control_sequence, sizeof(control_sequence));
     Fw::Buffer readBuffer;
@@ -103,7 +103,7 @@ Drv::I2cStatus LtrManager::configure_device() {
     }
 
     // and now, we should set the measurement rate to the quickest one
-    U8 measurement_value = Ltr::ALS_INTEGRATION_TIME_50MS & Ltr::ALS_MEASUREMENT_RATE_50MS;
+    U8 measurement_value = Ltr::ALS_INTEGRATION_TIME_50MS | Ltr::ALS_MEASUREMENT_RATE_50MS;
     U8 measurement_sequence[] = {Ltr::ALS_MEAS_RATE, measurement_value};
     
     Fw::Buffer writeBuffer_measure(measurement_sequence, sizeof(measurement_sequence));
