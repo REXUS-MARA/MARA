@@ -14,9 +14,10 @@ static constexpr U8 DEVICE_DEFAULT_ADDRESS = 0x29;
 
 static constexpr U8 ALS_CONTR_REGISTER = 0x80;
 static constexpr U8 ALS_DATA_CH1_0_REGISTER = 0x88;
-// static constexpr U8 ALS_DATA_CH1_1_REGISTER = 0x89;
-// static constexpr U8 ALS_DATA_CH0_0_REGISTER = 0x8A;
-// static constexpr U8 ALS_DATA_CH0_1_REGISTER = 0x8B;
+static constexpr U8 ALS_MEAS_RATE = 0x85;
+
+static constexpr U8 ALS_INTEGRATION_TIME_50MS = 0b00001000;
+static constexpr U8 ALS_MEASUREMENT_RATE_50MS = 0b00000000;
 
 // every channel will return 4 bytes
 // the whole channel is to be read in a group
