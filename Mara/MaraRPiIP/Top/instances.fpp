@@ -41,10 +41,15 @@ module Mara {
     stack size Default.STACK_SIZE \
     priority 41
 
-  instance cmdSeq: Svc.CmdSequencer base id 0x10004000 \
+  instance rateGroup4: Svc.ActiveRateGroup base id 0x10004000 \
     queue size Default.QUEUE_SIZE \
     stack size Default.STACK_SIZE \
     priority 40
+
+  instance cmdSeq: Svc.CmdSequencer base id 0x10005000 \
+    queue size Default.QUEUE_SIZE \
+    stack size Default.STACK_SIZE \
+    priority 39
 
   # ----------------------------------------------------------------------
   # Queued component instances
