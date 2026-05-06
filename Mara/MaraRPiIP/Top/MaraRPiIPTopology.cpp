@@ -20,8 +20,8 @@ Fw::MallocAllocator mallocator;
 
 // The reference topology divides the incoming clock signal (1Hz) into sub-signals: 1Hz, 1/2Hz, and 1/4Hz with 0 offset
 // For our current needs, I set up a clock signal of 100Hz (you can change that in the Main.cpp file)
-// That will get spili into sub signals - 1Hz (100 / 100), 1/2hz (100/200), 1/4Hz
-Svc::RateGroupDriver::DividerSet rateGroupDivisorsSet{{{100, 0}, {200, 0}, {400, 0}}};
+// That will get spili into sub signals - 1Hz (100 / 100), 20hz (100/5), 1/4Hz
+Svc::RateGroupDriver::DividerSet rateGroupDivisorsSet{{{100, 0}, {5, 0}, {400, 0}}};
 
 // Rate groups may supply a context token to each of the attached children whose purpose is set by the project. The
 // reference topology sets each token to zero as these contexts are unused in this project.
