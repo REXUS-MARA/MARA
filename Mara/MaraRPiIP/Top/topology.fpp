@@ -8,6 +8,7 @@ module Mara {
     rateGroup1
     rateGroup2
     rateGroup3
+    rateGroup4
   }
 
   topology MaraRPiIP {
@@ -28,6 +29,7 @@ module Mara {
     instance rateGroup1
     instance rateGroup2
     instance rateGroup3
+    instance rateGroup4
     instance rateGroupDriver
     instance systemResources
     instance timer
@@ -109,10 +111,10 @@ module Mara {
       rateGroup1.RateGroupMemberOut[3] -> ComCcsds.comQueue.run
       rateGroup1.RateGroupMemberOut[4] -> ComCcsds.aggregator.timeout
       rateGroup1.RateGroupMemberOut[5] -> MpuImu.imuManager.run
+      rateGroup1.RateGroupMemberOut[6] -> cmdSeq.schedIn
 
       # Rate group 2
       rateGroupDriver.CycleOut[Ports_RateGroups.rateGroup2] -> rateGroup2.CycleIn
-      rateGroup2.RateGroupMemberOut[0] -> cmdSeq.schedIn
 
       # Rate group 3
       rateGroupDriver.CycleOut[Ports_RateGroups.rateGroup3] -> rateGroup3.CycleIn
@@ -121,6 +123,9 @@ module Mara {
       rateGroup3.RateGroupMemberOut[2] -> DataProducts.dpBufferManager.schedIn
       rateGroup3.RateGroupMemberOut[3] -> DataProducts.dpWriter.schedIn
       rateGroup3.RateGroupMemberOut[4] -> DataProducts.dpMgr.schedIn
+
+      # Rate group 4
+      rateGroupDriver.CycleOut[Ports_RateGroups.rateGroup4] -> rateGroup4.CycleIn
     }
 
     connections CdhCore_cmdSeq {

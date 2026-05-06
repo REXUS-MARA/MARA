@@ -89,7 +89,7 @@ int main(int argc, char* argv[]) {
 
     // Setup, cycle, and teardown topology
     Mara::setupTopology(inputs);
-    Mara::startRateGroups(Fw::TimeInterval(1,0));  // Program loop cycling rate groups at 1Hz
+    Mara::startRateGroups(Fw::TimeInterval(0,10000));  // Program loop cycling rate groups at 100Hz
     Mara::teardownTopology(inputs);
     (void)printf("Exiting...\n");
     return 0;
