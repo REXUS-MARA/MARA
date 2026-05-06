@@ -10,6 +10,7 @@
 
 // Necessary project-specified types
 #include <Fw/Types/MallocAllocator.hpp>
+#include <Fw/Logger/Logger.hpp>
 
 // Public functions for use in main program are namespaced with deployment module Mara
 // This is also the namespace where the topology components are instantiated by FPP.
@@ -53,6 +54,16 @@ void configureTopology() {
 
     // Command sequencer needs to allocate memory to hold contents of command sequences
     cmdSeq.allocateBuffer(0, mallocator, 5 * 1024);
+
+
+    if (not I2CDriver.open("/dev/i2c-1")) {
+        Fw::Logger::log("[ERROR] I2C driver open failed\\n");
+    }
+    else {
+        Fw::Logger::log("[INFO] I2C driver open successful\\n");
+    }
+
+    ltrManager.configure(0x29); // Device I2C address from datasheet
 }
 
 void setupTopology(const TopologyState& state) {

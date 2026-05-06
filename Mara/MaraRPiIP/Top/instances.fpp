@@ -54,7 +54,9 @@ module Mara {
   # ----------------------------------------------------------------------
   # Queued component instances
   # ----------------------------------------------------------------------
-
+  
+  instance ltrManager: Mara.LtrManager base id 0x10015000 \
+    queue size Default.QUEUE_SIZE
 
   # ----------------------------------------------------------------------
   # Passive component instances
@@ -69,5 +71,7 @@ module Mara {
   instance timer: Svc.LinuxTimer base id 0x10013000
 
   instance comDriver: Drv.TcpServer base id 0x10014000
+
+  instance I2CDriver: Drv.LinuxI2cDriver base id 0x10016000
 
 }
