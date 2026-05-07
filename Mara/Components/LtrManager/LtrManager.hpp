@@ -14,6 +14,9 @@ namespace Mara {
 
 class LtrManager final : public LtrManagerComponentBase {
   public:
+    
+    constexpr static const FwSizeType RECORD_COUNT = 100;  //!< Number of records of each type in the data product
+
     // ----------------------------------------------------------------------
     // Component construction and destruction
     // ----------------------------------------------------------------------
@@ -126,6 +129,9 @@ class LtrManager final : public LtrManagerComponentBase {
 
   private:
     U8 m_address;
+    FwSizeType m_count;       //!< Count of serialized records
+    DpContainer m_container;  //!< Data product container (currently allocated)
+    bool m_containerValid;    //!< Whether the container is valid
 };
 
 }  // namespace Mara

@@ -52,5 +52,18 @@ module Mara {
         @Port to set the value of a parameter
         param set port prmSetOut
 
+        @data products for storing the light sensor readings
+        product record LtrRecord: LtrDataTimed id 0
+
+        product container LtrContainer id 0 default priority 10
+
+        product get port productGetOut
+        product send port productSendOut
+
+        @ Event indicating failure to allocate memory for data product
+        event DpMemoryFailure(allocationSize: FwSizeType) \
+            severity warning high \
+            format "Memory allocation of size {} for data product container for ltr failed" \
+            throttle 2
     }
 }

@@ -6,6 +6,11 @@ module Mara {
         calculated_lux : U16
     }
 
+    struct LtrDataTimed{
+        time_stamp: Fw.TimeValue
+        data: LtrData
+    }
+
     @ Gain of the Ltr, hex values represent the values in the register
     enum LtrGain : U8 {
         GAIN_1X =  0x00

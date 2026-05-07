@@ -14,7 +14,8 @@ namespace Mara {
 // ----------------------------------------------------------------------
 
 LtrManager ::LtrManager(const char* const compName)
-    : LtrManagerComponentBase(compName), m_address(Ltr::DEVICE_DEFAULT_ADDRESS) {}
+    : LtrManagerComponentBase(compName), m_address(Ltr::DEVICE_DEFAULT_ADDRESS),
+      m_count(0), m_container(), m_containerValid(false) {}
 
 LtrManager ::~LtrManager() {}
 
@@ -92,12 +93,51 @@ void LtrManager ::Mara_LtrStateMachine_action_doRead(SmId smId, Mara_LtrStateMac
     // This function is implemented only for the specific instance "ltrStateMachine"
     FW_ASSERT(smId == SmId::LtrStateMachine);
     LtrData LtrData;
-    Drv::I2cStatus status = this->read(LtrData);
-    if (status != Drv::I2cStatus::I2C_OK) {
-        this->log_WARNING_HI_I2cError(this->m_address, status);
+    Drv::I2cStatus i2c_status = this->read(LtrData);
+    if (i2c_status != Drv::I2cStatus::I2C_OK) {
+        this->log_WARNING_HI_I2cError(this->m_address, i2c_status);
         this->LtrStateMachine_sendSignal_error();
     } else {
         this->tlmWrite_Reading(LtrData);
+        // and now, we can also deal with our data products
+        // i mostly copied that form this example - https://github.com/nasa/fprime-examples/blob/devel/FlightExamples/DataProduct/Producer/Producer.cpp
+        if (not m_containerValid) {
+            // Record count * size of each record * 2 record types
+            const FwSizeType containerSize = RECORD_COUNT * (LtrDataTimed::SERIALIZED_SIZE + sizeof(FwDpIdType));
+
+            // Initialize the data product container
+            Fw::Success status = dpGet_LtrContainer(containerSize, this->m_container);
+            if (status != Fw::Success::SUCCESS) {
+                this->log_WARNING_HI_DpMemoryFailure(containerSize);
+            } else {
+                this->m_containerValid = true;
+                this->m_container.setTimeTag(this->getTime());
+                this->log_WARNING_HI_DpMemoryFailure_ThrottleClear();
+            }
+        }
+        // If we have a valid container, serialize records into it
+        // it's not an else, in the correct flow both if cases can be hit
+        if (this->m_containerValid) {
+            Fw::Time currentFwTime = this->getTime();
+            Fw::TimeValue currentTime = Fw::TimeValue(currentFwTime.getTimeBase(), currentFwTime.getContext(),
+                                                    currentFwTime.getSeconds(), currentFwTime.getUSeconds());
+            // Calculate sine and cosine records
+            LtrDataTimed ltrDataTimed;
+            ltrDataTimed.set_time_stamp(currentTime);
+            ltrDataTimed.set_data(LtrData);
+
+            // Serialize the records into the data product container
+            Fw::SerializeStatus serialize_status = m_container.serializeRecord_LtrRecord(ltrDataTimed);
+            FW_ASSERT(serialize_status == Fw::SerializeStatus::FW_SERIALIZE_OK);
+            this->m_count += 1;
+
+            // If we've reached the record count, send the full product
+            if (this->m_count == RECORD_COUNT) {
+                this->dpSend(this->m_container);
+                this->m_count = 0;
+                this->m_containerValid = false;
+            }
+        }
     }
 }
 
