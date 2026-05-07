@@ -24,6 +24,7 @@ telemetry packets MaraRPiIPPackets {
     Mara.rateGroup1.RgMaxTime
     Mara.rateGroup2.RgMaxTime
     Mara.rateGroup3.RgMaxTime
+    Mara.rateGroup4.RgMaxTime
   }
 
   packet CDHErrors id 2 group 1 {
@@ -40,6 +41,7 @@ telemetry packets MaraRPiIPPackets {
     Mara.rateGroup1.RgCycleSlips
     Mara.rateGroup2.RgCycleSlips
     Mara.rateGroup3.RgCycleSlips
+    Mara.rateGroup4.RgCycleSlips
   }
 
   packet SystemRes1 id 5 group 2 {

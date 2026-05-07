@@ -8,6 +8,7 @@ module Mara {
     rateGroup1
     rateGroup2
     rateGroup3
+    rateGroup4
   }
 
   topology MaraRPiIP {
@@ -19,7 +20,6 @@ module Mara {
     import ComCcsds.Subtopology
     import DataProducts.Subtopology
     import FileHandling.Subtopology
-    import MpuImu.Subtopology
     
   # ----------------------------------------------------------------------
   # Instances used in the topology
@@ -28,12 +28,15 @@ module Mara {
     instance rateGroup1
     instance rateGroup2
     instance rateGroup3
+    instance rateGroup4
     instance rateGroupDriver
     instance systemResources
     instance timer
     instance comDriver
     instance cmdSeq
     instance adxl345Manager
+    instance ltrManager
+    instance I2CDriver
 
   # ----------------------------------------------------------------------
   # Pattern graph specifiers
@@ -109,12 +112,14 @@ module Mara {
       rateGroup1.RateGroupMemberOut[2] -> systemResources.run
       rateGroup1.RateGroupMemberOut[3] -> ComCcsds.comQueue.run
       rateGroup1.RateGroupMemberOut[4] -> ComCcsds.aggregator.timeout
-      rateGroup1.RateGroupMemberOut[5] -> MpuImu.imuManager.run
-      rateGroup1.RateGroupMemberOut[6] -> adxl345Manager.run
+      rateGroup1.RateGroupMemberOut[5] -> cmdSeq.schedIn
+      rateGroup1.RateGroupMemberOut[6] -> MpuImu.imuManager.run
+      rateGroup1.RateGroupMemberOut[7] -> adxl345Manager.run
+      
 
       # Rate group 2
       rateGroupDriver.CycleOut[Ports_RateGroups.rateGroup2] -> rateGroup2.CycleIn
-      rateGroup2.RateGroupMemberOut[0] -> cmdSeq.schedIn
+      rateGroup2.RateGroupMemberOut[0] -> ltrManager.run
 
       # Rate group 3
       rateGroupDriver.CycleOut[Ports_RateGroups.rateGroup3] -> rateGroup3.CycleIn
@@ -123,6 +128,9 @@ module Mara {
       rateGroup3.RateGroupMemberOut[2] -> DataProducts.dpBufferManager.schedIn
       rateGroup3.RateGroupMemberOut[3] -> DataProducts.dpWriter.schedIn
       rateGroup3.RateGroupMemberOut[4] -> DataProducts.dpMgr.schedIn
+
+      # Rate group 4
+      rateGroupDriver.CycleOut[Ports_RateGroups.rateGroup4] -> rateGroup4.CycleIn
     }
 
     connections CdhCore_cmdSeq {
@@ -132,7 +140,10 @@ module Mara {
     }
 
     connections MaraRPiIP {
-
+      ltrManager.busWriteRead      -> I2CDriver.writeRead
+      ltrManager.busWrite          -> I2CDriver.write
+      ltrManager.productGetOut     -> DataProducts.dpMgr.productGetIn
+      ltrManager.productSendOut    -> DataProducts.dpMgr.productSendIn
     }
 
     # Connect ADXL345 to I2C driver

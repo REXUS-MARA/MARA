@@ -25,8 +25,6 @@
 // Include autocoded FPP constants
 #include "Mara/MaraRPiIP/Top/FppConstantsAc.hpp"
 
-// Library includes
-#include "fprime-sensors/MpuImu/Subtopology/SubtopologyTopologyDefs.hpp"
 
 /**
  * \brief required ping constants
@@ -51,6 +49,7 @@ namespace PingEntries {
     namespace Mara_rateGroup1 {enum { WARN = 3, FATAL = 5 };}
     namespace Mara_rateGroup2 {enum { WARN = 3, FATAL = 5 };}
     namespace Mara_rateGroup3 {enum { WARN = 3, FATAL = 5 };}
+    namespace Mara_rateGroup4 {enum { WARN = 3, FATAL = 5 };}
     namespace Mara_cmdSeq {enum { WARN = 3, FATAL = 5 };}
 }  // namespace PingEntries
 
@@ -71,7 +70,6 @@ struct TopologyState {
     ComCcsds::SubtopologyState comCcsds;         //!< Subtopology state for ComCcsds 
     DataProducts::SubtopologyState dataProducts; //!< Subtopology state for DataProducts
     FileHandling::SubtopologyState fileHandling; //!< Subtopology state for FileHandling
-    MpuImu::SubtopologyState mpu;
 };
 
 namespace PingEntries = ::PingEntries;

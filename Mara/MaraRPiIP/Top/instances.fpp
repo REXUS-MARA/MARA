@@ -41,15 +41,22 @@ module Mara {
     stack size Default.STACK_SIZE \
     priority 41
 
-  instance cmdSeq: Svc.CmdSequencer base id 0x10004000 \
+  instance rateGroup4: Svc.ActiveRateGroup base id 0x10004000 \
     queue size Default.QUEUE_SIZE \
     stack size Default.STACK_SIZE \
     priority 40
 
+  instance cmdSeq: Svc.CmdSequencer base id 0x10005000 \
+    queue size Default.QUEUE_SIZE \
+    stack size Default.STACK_SIZE \
+    priority 39
+
   # ----------------------------------------------------------------------
   # Queued component instances
   # ----------------------------------------------------------------------
-
+  
+  instance ltrManager: Mara.LtrManager base id 0x10015000 \
+    queue size Default.QUEUE_SIZE
 
   # ----------------------------------------------------------------------
   # Passive component instances
@@ -66,5 +73,7 @@ module Mara {
   instance comDriver: Drv.TcpServer base id 0x10014000
 
   instance adxl345Manager: Mara.ADXL345Manager base id 0x10015000
+  
+  instance I2CDriver: Drv.LinuxI2cDriver base id 0x10016000
 
 }

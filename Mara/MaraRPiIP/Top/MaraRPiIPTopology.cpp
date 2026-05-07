@@ -10,6 +10,7 @@
 
 // Necessary project-specified types
 #include <Fw/Types/MallocAllocator.hpp>
+#include <Fw/Logger/Logger.hpp>
 
 // Public functions for use in main program are namespaced with deployment module Mara
 // This is also the namespace where the topology components are instantiated by FPP.
@@ -19,13 +20,16 @@ namespace Mara {
 Fw::MallocAllocator mallocator;
 
 // The reference topology divides the incoming clock signal (1Hz) into sub-signals: 1Hz, 1/2Hz, and 1/4Hz with 0 offset
-Svc::RateGroupDriver::DividerSet rateGroupDivisorsSet{{{1, 0}, {2, 0}, {4, 0}}};
+// For our current needs, I set up a clock signal of 100Hz (you can change that in the Main.cpp file)
+// That will get spili into sub signals - 1Hz (100 / 100), 20hz (100/5), 1/4Hz, 100Hz (100/1)
+Svc::RateGroupDriver::DividerSet rateGroupDivisorsSet{{{100, 0}, {5, 0}, {400, 0}, {1, 0}}};
 
 // Rate groups may supply a context token to each of the attached children whose purpose is set by the project. The
 // reference topology sets each token to zero as these contexts are unused in this project.
 U32 rateGroup1Context[Svc::ActiveRateGroup::CONNECTION_COUNT_MAX] = {};
 U32 rateGroup2Context[Svc::ActiveRateGroup::CONNECTION_COUNT_MAX] = {};
 U32 rateGroup3Context[Svc::ActiveRateGroup::CONNECTION_COUNT_MAX] = {};
+U32 rateGroup4Context[Svc::ActiveRateGroup::CONNECTION_COUNT_MAX] = {};
 
 enum TopologyConstants {
     COMM_PRIORITY = 34,
@@ -46,9 +50,20 @@ void configureTopology() {
     rateGroup1.configure(rateGroup1Context, FW_NUM_ARRAY_ELEMENTS(rateGroup1Context));
     rateGroup2.configure(rateGroup2Context, FW_NUM_ARRAY_ELEMENTS(rateGroup2Context));
     rateGroup3.configure(rateGroup3Context, FW_NUM_ARRAY_ELEMENTS(rateGroup3Context));
+    rateGroup4.configure(rateGroup4Context, FW_NUM_ARRAY_ELEMENTS(rateGroup4Context));
 
     // Command sequencer needs to allocate memory to hold contents of command sequences
     cmdSeq.allocateBuffer(0, mallocator, 5 * 1024);
+
+
+    if (not I2CDriver.open("/dev/i2c-1")) {
+        Fw::Logger::log("[ERROR] I2C driver open failed\\n");
+    }
+    else {
+        Fw::Logger::log("[INFO] I2C driver open successful\\n");
+    }
+
+    ltrManager.configure(0x29); // Device I2C address from datasheet
 }
 
 void setupTopology(const TopologyState& state) {
