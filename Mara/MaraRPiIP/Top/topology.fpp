@@ -112,10 +112,10 @@ module Mara {
       rateGroup1.RateGroupMemberOut[3] -> ComCcsds.comQueue.run
       rateGroup1.RateGroupMemberOut[4] -> ComCcsds.aggregator.timeout
       rateGroup1.RateGroupMemberOut[5] -> cmdSeq.schedIn
-      rateGroup1.RateGroupMemberOut[6] -> ltrManager.run
 
       # Rate group 2
       rateGroupDriver.CycleOut[Ports_RateGroups.rateGroup2] -> rateGroup2.CycleIn
+      rateGroup2.RateGroupMemberOut[0] -> ltrManager.run
 
       # Rate group 3
       rateGroupDriver.CycleOut[Ports_RateGroups.rateGroup3] -> rateGroup3.CycleIn
@@ -136,8 +136,10 @@ module Mara {
     }
 
     connections MaraRPiIP {
-      ltrManager.busWriteRead -> I2CDriver.writeRead
-      ltrManager.busWrite -> I2CDriver.write
+      ltrManager.busWriteRead      -> I2CDriver.writeRead
+      ltrManager.busWrite          -> I2CDriver.write
+      ltrManager.productGetOut     -> DataProducts.dpMgr.productGetIn
+      ltrManager.productSendOut    -> DataProducts.dpMgr.productSendIn
     }
 
   }
