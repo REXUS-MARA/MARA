@@ -19,7 +19,43 @@ namespace Mara {
 ADXL345Manager::ADXL345Manager(const char* const compName)
     : ADXL345ManagerComponentBase(compName),
       m_initialized(false)
-{}
+{
+    U8 devId = 0;
+    Drv::I2cStatus status = this->readRegisters(ADXL345_REG_DEVID, &devId, 1);
+
+    if (status != Drv::I2cStatus::I2C_OK) {
+        this->log_WARNING_HI_ADXL345_INIT_FAILED(static_cast<I32>(status));
+        return;
+    }
+
+    if (devId != ADXL345_DEVICE_ID) {
+        this->log_WARNING_HI_ADXL345_BAD_DEVICE_ID(devId);
+        return;
+    }
+
+    Fw::ParamValid valid;
+    U8 range = this->paramGet_RANGE(valid);
+    if (valid != Fw::ParamValid::VALID && valid != Fw::ParamValid::DEFAULT) {
+        range = 0;
+    }
+
+    status = this->writeRegister(ADXL345_REG_DATA_FORMAT, range & 0x03);
+
+    if (status != Drv::I2cStatus::I2C_OK) {
+        this->log_WARNING_HI_ADXL345_INIT_FAILED(static_cast<I32>(status));
+        return;
+    }
+
+    status = this->writeRegister(ADXL345_REG_POWER_CTL, 0x08);
+
+    if (status != Drv::I2cStatus::I2C_OK) {
+        this->log_WARNING_HI_ADXL345_INIT_FAILED(static_cast<I32>(status));
+        return;
+    }
+
+    m_initialized = true;
+    this->log_ACTIVITY_HI_ADXL345_INITIALIZED();
+}
 
 ADXL345Manager::~ADXL345Manager() {}
 
@@ -62,50 +98,6 @@ Drv::I2cStatus ADXL345Manager::readRegisters(U8 startReg, U8* outBuffer, U32 siz
 // ----------------------------------------------------------------------
 // Command Handlers
 // ----------------------------------------------------------------------
-
-void ADXL345Manager::ADXL345_INIT_cmdHandler(
-    FwOpcodeType opCode,
-    U32 cmdSeq
-) {
-    U8 devId = 0;
-    Drv::I2cStatus status = this->readRegisters(ADXL345_REG_DEVID, &devId, 1);
-
-    if (status != Drv::I2cStatus::I2C_OK) {
-        this->log_WARNING_HI_ADXL345_INIT_FAILED(static_cast<I32>(status));
-        this->cmdResponse_out(opCode, cmdSeq, Fw::CmdResponse::EXECUTION_ERROR);
-        return;
-    }
-
-    if (devId != ADXL345_DEVICE_ID) {
-        this->log_WARNING_HI_ADXL345_BAD_DEVICE_ID(devId);
-        this->cmdResponse_out(opCode, cmdSeq, Fw::CmdResponse::EXECUTION_ERROR);
-        return;
-    }
-
-    Fw::ParamValid valid;
-    U8 range = this->paramGet_RANGE(valid);
-    if (valid != Fw::ParamValid::VALID && valid != Fw::ParamValid::DEFAULT) {
-        range = 0;
-    }
-
-    status = this->writeRegister(ADXL345_REG_DATA_FORMAT, range & 0x03);
-    if (status != Drv::I2cStatus::I2C_OK) {
-        this->log_WARNING_HI_ADXL345_INIT_FAILED(static_cast<I32>(status));
-        this->cmdResponse_out(opCode, cmdSeq, Fw::CmdResponse::EXECUTION_ERROR);
-        return;
-    }
-
-    status = this->writeRegister(ADXL345_REG_POWER_CTL, 0x08);
-    if (status != Drv::I2cStatus::I2C_OK) {
-        this->log_WARNING_HI_ADXL345_INIT_FAILED(static_cast<I32>(status));
-        this->cmdResponse_out(opCode, cmdSeq, Fw::CmdResponse::EXECUTION_ERROR);
-        return;
-    }
-
-    m_initialized = true;
-    this->log_ACTIVITY_HI_ADXL345_INITIALIZED();
-    this->cmdResponse_out(opCode, cmdSeq, Fw::CmdResponse::OK);
-}
 
 void ADXL345Manager::ADXL345_SET_RANGE_cmdHandler(
     FwOpcodeType opCode,

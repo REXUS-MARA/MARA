@@ -19,7 +19,6 @@ class ADXL345Manager final : public ADXL345ManagerComponentBase {
 
   private:
     void run_handler(FwIndexType portNum, U32 context) override;
-    void ADXL345_INIT_cmdHandler(FwOpcodeType opCode, U32 cmdSeq) override;
     void ADXL345_SET_RANGE_cmdHandler(FwOpcodeType opCode, U32 cmdSeq, U8 range) override;
     void ADXL345_SET_RATE_cmdHandler(FwOpcodeType opCode, U32 cmdSeq, U8 rate) override;
 
