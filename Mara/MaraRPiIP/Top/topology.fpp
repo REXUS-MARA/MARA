@@ -148,7 +148,7 @@ module Mara {
 
     # Connect ADXL345 to I2C driver
     connections ADXL345 {
-        adxl345Manager.i2cReadWrite -> MpuImu.imuDriver.write
+        adxl345Manager.i2cReadWrite -> I2CDriver.write
     }
 
   }
