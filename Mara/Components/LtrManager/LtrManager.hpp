@@ -14,8 +14,13 @@ namespace Mara {
 
 class LtrManager final : public LtrManagerComponentBase {
   public:
-    
-    constexpr static const FwSizeType RECORD_COUNT = 100;  //!< Number of records of each type in the data product
+    // that number is quite important
+    // it's a tradeoff between the file size and count
+    // also in an event of a reset it's how much data we will loose
+    // Currently this component is connected to a 20Hz rate group
+    // so that will give us 30 seconds of data. But we have no idea in this part of code
+    // about the rate group connection!
+    constexpr static const FwSizeType RECORD_COUNT = 600;  //!< Number of records of each type in the data product
 
     // ----------------------------------------------------------------------
     // Component construction and destruction
