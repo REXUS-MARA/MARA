@@ -1,0 +1,42 @@
+- name: Teardown MARA
+  hosts: pi
+  become: true
+  vars:
+    mara_user: fsowa
+    mara_dir: /home/{{ mara_user }}/mara
+    mara_binary: "{{ mara_dir }}/MARA"
+
+
+  tasks:
+    - name: Check if MARA service exists
+      stat:
+        path: /etc/systemd/system/mara.service
+      register: mara_service
+      
+    - name: Stop and disable MARA service
+      systemd:
+        name: mara
+        state: stopped
+        enabled: false
+      ignore_errors: true
+      when: mara_service.stat.exists
+
+
+    - name: Remove MARA service file
+      file:
+        path: /etc/systemd/system/mara.service
+        state: absent
+
+    - name: Remove MARA directories
+      file:
+        path: "{{ mara_dir }}"
+        state: absent
+
+    - name: Remove deployed binary
+      file:
+        path: "{{ mara_binary }}"
+        state: absent
+
+    - name: Reload systemd
+      systemd:
+        daemon_reload: true

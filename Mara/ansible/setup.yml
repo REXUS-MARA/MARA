@@ -1,0 +1,115 @@
+---
+# setup.yml — Run once on a fresh Pi
+# Sets up the OS-level configuration: packages, RT kernel, I2C, lsyncd, hostname
+# Usage: ansible-playbook -i inventory.ini setup.yml [-e "mara_user=pi"]
+
+- hosts: pi
+  become: yes
+  vars:
+    mara_user: fsowa
+    mara_dir: /home/{{ mara_user }}/mara
+    dp_dir: "{{ mara_dir }}/DpCat"
+    dp_backup_dir: /mnt/sd2/dp-backup
+    logs_dir: "{{ mara_dir }}/logs" 
+    logs_backup_dir: /mnt/sd2/logs-backup
+
+  tasks:
+    - name: Enable I2C
+      command: raspi-config nonint do_i2c 0
+
+    - name: Install packages
+      apt:
+        name:
+          - i2c-tools
+          - python3-smbus2
+          - rpi-update
+          - lsyncd
+        update_cache: yes
+
+    - name: Install RT kernel
+      command: rpi-update
+      environment:
+        BRANCH: next
+
+    - name: Mount second SD card
+      mount:
+        path: /mnt/sd2
+        src: UUID={{ sd2_uuid | default('changeme') }}
+        fstype: ext4
+        opts: defaults,nofail
+        state: mounted
+      when: sd2_uuid is defined
+
+    - name: Create MARA directories
+      file:
+        path: "{{ item }}"
+        state: directory
+        owner: "{{ mara_user }}"
+        group: "{{ mara_user }}"
+        mode: '0755'
+      loop:
+        - "{{ mara_dir }}"
+        - "{{ dp_dir }}"
+        - "{{ logs_dir }}"
+      become: true
+
+    - name: Create MARA backup directories
+      file:
+        path: "{{ item }}"
+        state: directory
+        owner: "{{ mara_user }}"
+        group: "{{ mara_user }}"
+        mode: '0755'
+      loop:
+        - "{{ dp_backup_dir }}"
+        - "{{ logs_backup_dir }}"
+      become: true
+      when: sd2_uuid is defined
+
+    - name: Deploy lsyncd config
+      copy:
+        dest: /etc/lsyncd/lsyncd.conf.lua
+        content: |
+          settings {
+              logfile    = "/var/log/lsyncd.log",
+              statusFile = "/var/log/lsyncd-status.log",
+          }
+          sync {
+              default.rsync,
+              source = "{{ dp_dir }}/",
+              target = "{{ dp_backup_dir }}/",
+              delay  = 5,
+              rsync  = {
+                  archive  = true,
+                  compress = false,
+              }
+          }
+          sync {
+              default.rsync,
+              source = "{{ logs_dir }}/",
+              target = "{{ logs_backup_dir }}/",
+              delay  = 5,
+              rsync  = {
+                  archive  = true,
+                  compress = false,
+              }
+          }
+      when: sd2_uuid is defined
+      notify: Restart lsyncd
+
+    - name: Enable lsyncd
+      systemd:
+        name: lsyncd
+        enabled: yes
+        daemon_reload: yes
+      when: sd2_uuid is defined
+
+    - name: Reboot for RT kernel
+      reboot:
+        msg: "Rebooting to apply RT kernel"
+
+  handlers:
+    - name: Restart lsyncd
+      systemd:
+        name: lsyncd
+        state: restarted
