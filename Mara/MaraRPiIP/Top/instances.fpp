@@ -19,7 +19,7 @@ module Mara {
 
   module Default {
     constant QUEUE_SIZE = 10
-    constant STACK_SIZE = 64 * 1024
+    constant STACK_SIZE = 256 * 1024
   }
 
   # ----------------------------------------------------------------------
