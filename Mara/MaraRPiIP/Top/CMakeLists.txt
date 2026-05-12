@@ -18,4 +18,5 @@ register_fprime_module(
         "${CMAKE_CURRENT_LIST_DIR}/MaraRPiIPTopology.cpp"
     DEPENDS
         Fw_Logger
+        "DataProductsConfigOverride"
 )
