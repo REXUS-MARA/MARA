@@ -113,8 +113,7 @@ module Mara {
       rateGroup1.RateGroupMemberOut[3] -> ComCcsds.comQueue.run
       rateGroup1.RateGroupMemberOut[4] -> ComCcsds.aggregator.timeout
       rateGroup1.RateGroupMemberOut[5] -> cmdSeq.schedIn
-      rateGroup1.RateGroupMemberOut[6] -> MpuImu.imuManager.run
-      rateGroup1.RateGroupMemberOut[7] -> adxl345Manager.run
+      rateGroup1.RateGroupMemberOut[6] -> adxl345Manager.run
       
 
       # Rate group 2
