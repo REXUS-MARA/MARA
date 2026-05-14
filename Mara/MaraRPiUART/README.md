@@ -26,6 +26,20 @@ fprime-gds
 ```
 
 
+To run the ground system without starting the MaraRPiUART app:
+```
+
+cd MaraRPiUART
+fprime-gds --no-app
+```
+
+The application binary may then be run independently from the created 'bin' directory.
+
+```
+cd MaraRPiUART/build-artifacts/<platform>/bin/
+./MaraRPiUART -a 127.0.0.1 -p 50000
+```
+
 
 ## This deployment uses F' **core subtopologies** for a modular, reusable architecture:
 

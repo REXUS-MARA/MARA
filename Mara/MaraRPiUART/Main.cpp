@@ -22,7 +22,7 @@
  * @param app: name of application
  */
 void print_usage(const char* app) {
-    (void)printf("Usage: ./%s [options]\n-b\tBaud rate\n-d\tUART Device\n", app);
+    (void)printf("Usage: ./%s [options]\n-a\thostname/IP address\n-p\tport_number\n", app);
 }
 
 /**
@@ -49,21 +49,21 @@ static void signalHandler(int signum) {
  */
 int main(int argc, char* argv[]) {
     I32 option = 0;
-    CHAR* uart_device = nullptr;
-    U32 baud_rate = 0;
+    CHAR* hostname = nullptr;
+    U16 port_number = 0;
 
     Os::init();
 
     // Loop while reading the getopt supplied options
-    while ((option = getopt(argc, argv, "hb:d:")) != -1) {
+    while ((option = getopt(argc, argv, "hp:a:")) != -1) {
         switch (option) {
-            // Handle the -b baud rate argument
-            case 'b':
-                baud_rate = static_cast<U32>(atoi(optarg));
+            // Handle the -a argument for address/hostname
+            case 'a':
+                hostname = optarg;
                 break;
-            // Handle the -d device argument
-            case 'd':
-                uart_device = optarg;
+            // Handle the -p port number argument
+            case 'p':
+                port_number = static_cast<U16>(atoi(optarg));
                 break;
             // Cascade intended: help output
             case 'h':
@@ -77,8 +77,8 @@ int main(int argc, char* argv[]) {
     }
     // Object for communicating state to the topology
     MaraUART::TopologyState inputs;
-    inputs.uartDevice = uart_device;
-    inputs.baudRate = baud_rate;
+    inputs.hostname = hostname;
+    inputs.port = port_number;
 
     // Setup program shutdown via Ctrl-C
     signal(SIGINT, signalHandler);

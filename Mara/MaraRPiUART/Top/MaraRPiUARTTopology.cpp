@@ -62,21 +62,20 @@ void setupTopology(const TopologyState& state) {
     regCommands();
     // Autocoded configuration. Function provided by autocoder.
     configComponents(state);
+    if (state.hostname != nullptr && state.port != 0) {
+        comDriver.configure(state.hostname, state.port);
+    }
     // Project-specific component configuration. Function provided above. May be inlined, if desired.
     configureTopology();
     // Autocoded parameter loading. Function provided by autocoder.
     loadParameters();
     // Autocoded task kick-off (active components). Function provided by autocoder.
     startTasks(state);
-    if (state.uartDevice != nullptr) {
+    // Initialize socket communication if and only if there is a valid specification
+    if (state.hostname != nullptr && state.port != 0) {
         Os::TaskString name("ReceiveTask");
         // Uplink is configured for receive so a socket task is started
-        if (comDriver.open(state.uartDevice, static_cast<Drv::LinuxUartDriver::UartBaudRate>(state.baudRate), 
-                           Drv::LinuxUartDriver::NO_FLOW, Drv::LinuxUartDriver::PARITY_NONE, 2048)) {
-            comDriver.start(COMM_PRIORITY, Default::STACK_SIZE);
-        } else {
-            printf("Failed to open UART device %s at baud rate %" PRIu32 "\n", state.uartDevice, state.baudRate);
-        }
+        comDriver.start(name, COMM_PRIORITY, Default::STACK_SIZE);
     }
 }
 
@@ -98,7 +97,8 @@ void teardownTopology(const TopologyState& state) {
     freeThreads(state);
 
     // Other task clean-up.
-    comDriver.quitReadThread();
+    comDriver.terminate();
+    comDriver.stop();
     (void)comDriver.join();
 
     // Resource deallocation

@@ -163,6 +163,4 @@ telemetry packets MaraRPiUARTPackets {
 
 } omit {
   CdhCore.cmdDisp.CommandErrors
-  comDriver.BytesRecv
-  comDriver.BytesSent
 }

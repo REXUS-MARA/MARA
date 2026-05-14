@@ -62,8 +62,8 @@ namespace MaraUART {
  * contents are entirely up to the definition of the project. This deployment uses subtopologies.
  */
 struct TopologyState {
-    const char* uartDevice; //!< UART device path for communication
-    U32 baudRate;          //!< Baud rate for UART communication
+    const char* hostname;   //!< Hostname for TCP communication
+    U16 port;              //!< Port for TCP communication
     CdhCore::SubtopologyState cdhCore;           //!< Subtopology state for CdhCore
     ComCcsds::SubtopologyState comCcsds;         //!< Subtopology state for ComCcsds 
     DataProducts::SubtopologyState dataProducts; //!< Subtopology state for DataProducts
