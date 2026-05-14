@@ -148,6 +148,8 @@ module Mara {
     # Connect ADXL345 to I2C driver
     connections ADXL345 {
         adxl345Manager.i2cReadWrite -> I2CDriver.writeRead
+        adxl345Manager.productGetOut  -> DataProducts.dpMgr.productGetIn
+        adxl345Manager.productSendOut -> DataProducts.dpMgr.productSendIn
     }
 
   }

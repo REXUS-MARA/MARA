@@ -18,7 +18,10 @@ namespace Mara {
 
 ADXL345Manager::ADXL345Manager(const char* const compName)
     : ADXL345ManagerComponentBase(compName),
-      m_initialized(false)
+      m_initialized(false),
+      m_count(0),
+      m_container(),
+      m_containerValid(false)
 {
     U8 devId = 0;
     Drv::I2cStatus status = this->readRegisters(ADXL345_REG_DEVID, &devId, 1);
@@ -78,21 +81,16 @@ U8 ADXL345Manager::getI2cAddr() {
 // ----------------------------------------------------------------------
 
 Drv::I2cStatus ADXL345Manager::writeRegister(U8 reg, U8 value) {
-    U8 data[2] = {reg, value};
-    Fw::Buffer buffer(data, sizeof(data));
-    return this->i2cReadWrite_out(0, this->getI2cAddr(), buffer);
+    U8 writeData[2] = {reg, value};
+    Fw::Buffer writeBuffer(writeData, sizeof(writeData));
+    Fw::Buffer readBuffer;
+    return this->i2cReadWrite_out(0, this->getI2cAddr(), writeBuffer, readBuffer);
 }
 
 Drv::I2cStatus ADXL345Manager::readRegisters(U8 startReg, U8* outBuffer, U32 size) {
-    // Write the register address
-    Fw::Buffer regBuf(&startReg, 1);
-    Drv::I2cStatus status = this->i2cReadWrite_out(0, this->getI2cAddr(), regBuf);
-    if (status != Drv::I2cStatus::I2C_OK) {
-        return status;
-    }
-    // Read back the data using the same port
-    Fw::Buffer readBuf(outBuffer, size);
-    return this->i2cReadWrite_out(0, this->getI2cAddr(), readBuf);
+    Fw::Buffer writeBuffer(&startReg, 1);
+    Fw::Buffer readBuffer(outBuffer, size);
+    return this->i2cReadWrite_out(0, this->getI2cAddr(), writeBuffer, readBuffer);
 }
 
 // ----------------------------------------------------------------------
@@ -154,6 +152,45 @@ void ADXL345Manager::run_handler(
     this->tlmWrite_accelX(accelX);
     this->tlmWrite_accelY(accelY);
     this->tlmWrite_accelZ(accelZ);
+
+    AccelData accelData;
+    
+    if (not this->m_containerValid) {
+        
+        const FwSizeType containerSize = RECORD_COUNT * (AccelDataTimed::SERIALIZED_SIZE + sizeof(FwDpIdType));
+
+        // Initialize the data product container
+        Fw::Success status = dpGet_AccelContainer(containerSize, this->m_container);
+        if (status != Fw::Success::SUCCESS) {
+            this->log_WARNING_HI_DpMemoryFailure(containerSize);
+        } else {
+            this->m_containerValid = true;
+            this->m_container.setTimeTag(this->getTime());
+            this->log_WARNING_HI_DpMemoryFailure_ThrottleClear();
+        }
+    }
+
+    if (this->m_containerValid) {
+        Fw::Time currentFwTime = this->getTime();
+        Fw::TimeValue currentTime = Fw::TimeValue(currentFwTime.getTimeBase(), currentFwTime.getContext(),
+                                                currentFwTime.getSeconds(), currentFwTime.getUSeconds());
+        // Calculate sine and cosine records
+        AccelDataTimed accelDataTimed;
+        accelDataTimed.set_time_stamp(currentTime);
+        accelDataTimed.set_data(accelData);
+
+        // Serialize the records into the data product container
+        Fw::SerializeStatus serialize_status = m_container.serializeRecord_AccelRecord(accelDataTimed);
+        FW_ASSERT(serialize_status == Fw::SerializeStatus::FW_SERIALIZE_OK);
+        this->m_count += 1;
+
+        // If we've reached the record count, send the full product
+        if (this->m_count == RECORD_COUNT) {
+            this->dpSend(this->m_container);
+            this->m_count = 0;
+            this->m_containerValid = false;
+        }
+    }
 }
 
 }  // namespace Mara

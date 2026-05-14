@@ -10,24 +10,21 @@ module Mara {
         sync input port run: Svc.Sched
 
         @ I2C port for communicating with the ADXL345
-        output port i2cReadWrite: Drv.I2c
+        output port i2cReadWrite: Drv.I2cWriteRead
 
         # ==============================================================
         # Commands
         # ==============================================================
 
-        @ Initialize the ADXL345 sensor
-        sync command ADXL345_INIT opcode 0x00
-
         @ Set the measurement range (0=2g, 1=4g, 2=8g, 3=16g)
         sync command ADXL345_SET_RANGE(
             range: U8
-        ) opcode 0x01
+        ) opcode 0x00
 
         @ Set the data rate (e.g. 0x0A = 100Hz)
         sync command ADXL345_SET_RATE(
             rate: U8
-        ) opcode 0x02
+        ) opcode 0x01
 
         # ==============================================================
         # Telemetry
@@ -68,6 +65,11 @@ module Mara {
             deviceId: U8
         ) severity warning high \
             format "ADXL345 unexpected device ID: 0x{x}"
+        
+        event DpMemoryFailure(allocationSize: FwSizeType) \
+            severity warning high \
+            format "Memory allocation of size {} for ADXL345 data product failed" \
+            throttle 2
 
         # ==============================================================
         # Parameters
@@ -78,6 +80,13 @@ module Mara {
 
         @ Measurement range (0=2g, 1=4g, 2=8g, 3=16g)
         param RANGE: U8 default 0
+
+
+        product record AccelRecord: AccelDataTimed id 0
+        product container AccelContainer id 0 default priority 10
+        product get port productGetOut
+        product send port productSendOut
+
 
         # ==============================================================
         # Standard AC Ports

@@ -72,7 +72,7 @@ module Mara {
 
   instance comDriver: Drv.TcpServer base id 0x10014000
 
-  instance adxl345Manager: Mara.ADXL345Manager base id 0x10015000
+  instance adxl345Manager: Mara.ADXL345Manager base id 0x10017000
   
   instance I2CDriver: Drv.LinuxI2cDriver base id 0x10016000
 
