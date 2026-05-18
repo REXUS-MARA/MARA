@@ -87,8 +87,7 @@ Drv::I2cStatus ADXL345Manager::initialize_helper(){
 Drv::I2cStatus ADXL345Manager::writeRegister(U8 reg, U8 value) {
     U8 writeData[2] = {reg, value};
     Fw::Buffer writeBuffer(writeData, sizeof(writeData));
-    Fw::Buffer readBuffer;
-    return this->i2cReadWrite_out(0, this->getI2cAddr(), writeBuffer, readBuffer);
+    return this->i2cWrite_out(0, this->getI2cAddr(), writeBuffer);
 }
 
 Drv::I2cStatus ADXL345Manager::readRegisters(U8 startReg, U8* outBuffer, U32 size) {
@@ -138,6 +137,7 @@ void ADXL345Manager::run_handler(
     U32 context
 ) {
     if (!m_initialized) {
+
         Drv::I2cStatus initialize_status = initialize_helper();
         if(initialize_status != Drv::I2cStatus::I2C_OK){
             this->log_WARNING_HI_ADXL345_I2C_ERROR(static_cast<I32>(initialize_status));
