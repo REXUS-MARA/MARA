@@ -22,43 +22,7 @@ ADXL345Manager::ADXL345Manager(const char* const compName)
       m_count(0),
       m_container(),
       m_containerValid(false)
-{
-    U8 devId = 0;
-    Drv::I2cStatus status = this->readRegisters(ADXL345_REG_DEVID, &devId, 1);
-
-    if (status != Drv::I2cStatus::I2C_OK) {
-        this->log_WARNING_HI_ADXL345_INIT_FAILED(static_cast<I32>(status));
-        return;
-    }
-
-    if (devId != ADXL345_DEVICE_ID) {
-        this->log_WARNING_HI_ADXL345_BAD_DEVICE_ID(devId);
-        return;
-    }
-
-    Fw::ParamValid valid;
-    U8 range = this->paramGet_RANGE(valid);
-    if (valid != Fw::ParamValid::VALID && valid != Fw::ParamValid::DEFAULT) {
-        range = 0;
-    }
-
-    status = this->writeRegister(ADXL345_REG_DATA_FORMAT, range & 0x03);
-
-    if (status != Drv::I2cStatus::I2C_OK) {
-        this->log_WARNING_HI_ADXL345_INIT_FAILED(static_cast<I32>(status));
-        return;
-    }
-
-    status = this->writeRegister(ADXL345_REG_POWER_CTL, 0x08);
-
-    if (status != Drv::I2cStatus::I2C_OK) {
-        this->log_WARNING_HI_ADXL345_INIT_FAILED(static_cast<I32>(status));
-        return;
-    }
-
-    m_initialized = true;
-    this->log_ACTIVITY_HI_ADXL345_INITIALIZED();
-}
+{}
 
 ADXL345Manager::~ADXL345Manager() {}
 
@@ -75,6 +39,46 @@ U8 ADXL345Manager::getI2cAddr() {
     }
     return addr;
 }
+
+Drv::I2cStatus ADXL345Manager::initialize_helper(){
+    U8 devId = 0;
+    Drv::I2cStatus status = this->readRegisters(ADXL345_REG_DEVID, &devId, 1);
+
+    if (status != Drv::I2cStatus::I2C_OK) {
+        this->log_WARNING_HI_ADXL345_INIT_FAILED(static_cast<I32>(status));
+        return status;
+    }
+
+    if (devId != ADXL345_DEVICE_ID) {
+        this->log_WARNING_HI_ADXL345_BAD_DEVICE_ID(devId);
+        return status;
+    }
+
+    Fw::ParamValid valid;
+    U8 range = this->paramGet_RANGE(valid);
+    if (valid != Fw::ParamValid::VALID && valid != Fw::ParamValid::DEFAULT) {
+        range = 0;
+    }
+
+    status = this->writeRegister(ADXL345_REG_DATA_FORMAT, range & 0x03);
+
+    if (status != Drv::I2cStatus::I2C_OK) {
+        this->log_WARNING_HI_ADXL345_INIT_FAILED(static_cast<I32>(status));
+        return status;
+    }
+
+    status = this->writeRegister(ADXL345_REG_POWER_CTL, 0x08);
+
+    if (status != Drv::I2cStatus::I2C_OK) {
+        this->log_WARNING_HI_ADXL345_INIT_FAILED(static_cast<I32>(status));
+        return status;
+    }
+
+    m_initialized = true;
+    this->log_ACTIVITY_HI_ADXL345_INITIALIZED();
+    return status;
+}
+
 
 // ----------------------------------------------------------------------
 // I2C Helpers
@@ -134,7 +138,11 @@ void ADXL345Manager::run_handler(
     U32 context
 ) {
     if (!m_initialized) {
-        return;
+        Drv::I2cStatus initialize_status = initialize_helper();
+        if(initialize_status != Drv::I2cStatus::I2C_OK){
+            this->log_WARNING_HI_ADXL345_I2C_ERROR(static_cast<I32>(initialize_status));
+            return;
+        }
     }
 
     U8 data[6] = {0};
