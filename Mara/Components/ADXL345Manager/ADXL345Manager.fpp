@@ -12,6 +12,8 @@ module Mara {
         @ I2C port for communicating with the ADXL345
         output port i2cReadWrite: Drv.I2cWriteRead
 
+        output port i2cWrite: Drv.I2c
+
         # ==============================================================
         # Commands
         # ==============================================================
