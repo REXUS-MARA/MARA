@@ -17,6 +17,8 @@
 register_fprime_library(
     AUTOCODER_INPUTS
         "${CMAKE_CURRENT_LIST_DIR}/INA228.fpp"
+        "${CMAKE_CURRENT_LIST_DIR}/Types.fpp"
+        "${CMAKE_CURRENT_LIST_DIR}/INAStateMachine.fpp"
     SOURCES
         "${CMAKE_CURRENT_LIST_DIR}/INA228.cpp"
 #   DEPENDS

@@ -59,7 +59,6 @@ void configureTopology() {
         Fw::Logger::log("[INFO] I2C driver open successful\\n");
     }
 
-    ltrManager.configure(0x29); // Device I2C address from datasheet
 }
 
 void setupTopology(const TopologyState& state) {

@@ -49,8 +49,8 @@ module Mara {
   # ----------------------------------------------------------------------
   # Queued component instances
   # ----------------------------------------------------------------------
-  
-  instance ltrManager: Mara.LtrManager base id 0x10015000 \
+
+  instance ina228: Mara.INA228 base id 0x10019000 \
     queue size Default.QUEUE_SIZE
 
   # ----------------------------------------------------------------------

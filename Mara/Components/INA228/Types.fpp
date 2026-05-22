@@ -4,5 +4,10 @@ module Mara {
     struct INAData {
         voltage : I32
         current : I32
-    }
+    };
+
+    struct INADataTimed{
+        time_stamp: Fw.TimeValue
+        data: INAData
+    };
 }
