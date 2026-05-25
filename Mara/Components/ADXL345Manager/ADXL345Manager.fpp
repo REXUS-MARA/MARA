@@ -32,14 +32,14 @@ module Mara {
         # Telemetry
         # ==============================================================
 
-        @ X-axis acceleration (raw)
-        telemetry accelX: I16
+        @ X-axis acceleration in g
+        telemetry accelX: F32
 
-        @ Y-axis acceleration (raw)
-        telemetry accelY: I16
+        @ Y-axis acceleration in g
+        telemetry accelY: F32
 
-        @ Z-axis acceleration (raw)
-        telemetry accelZ: I16
+        @ Z-axis acceleration in g
+        telemetry accelZ: F32
 
         # ==============================================================
         # Events

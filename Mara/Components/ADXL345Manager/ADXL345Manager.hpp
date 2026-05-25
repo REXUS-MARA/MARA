@@ -36,8 +36,10 @@ class ADXL345Manager final : public ADXL345ManagerComponentBase {
     Drv::I2cStatus initialize_helper();
 
     U8 getI2cAddr();
+    F32 getScaleFactor();
 
     bool m_initialized = false;
+    U8 m_range = 0;
 };
 
 }  // namespace Mara
