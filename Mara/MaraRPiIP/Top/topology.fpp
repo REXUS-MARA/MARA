@@ -37,6 +37,9 @@ module Mara {
     instance adxl345Manager
     instance ltrManager
     instance I2CDriver
+    instance max31855
+    instance spiDriver
+
 
   # ----------------------------------------------------------------------
   # Pattern graph specifiers
@@ -119,6 +122,7 @@ module Mara {
       # Rate group 2
       rateGroupDriver.CycleOut[Ports_RateGroups.rateGroup2] -> rateGroup2.CycleIn
       rateGroup2.RateGroupMemberOut[0] -> ltrManager.run
+      rateGroup2.RateGroupMemberOut[1] -> max31855.run
 
       # Rate group 3
       rateGroupDriver.CycleOut[Ports_RateGroups.rateGroup3] -> rateGroup3.CycleIn
@@ -152,6 +156,12 @@ module Mara {
         adxl345Manager.productGetOut  -> DataProducts.dpMgr.productGetIn
         adxl345Manager.productSendOut -> DataProducts.dpMgr.productSendIn
     }
+
+    connections MAX31855 {
+    max31855.spiReadWrite -> spiDriver.SpiReadWrite
+    max31855.productGetOut  -> DataProducts.dpMgr.productGetIn
+    max31855.productSendOut -> DataProducts.dpMgr.productSendIn
+}
 
   }
 

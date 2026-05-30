@@ -36,7 +36,6 @@ class ADXL345Manager final : public ADXL345ManagerComponentBase {
     Drv::I2cStatus initialize_helper();
 
     U8 getI2cAddr();
-
     bool m_initialized = false;
 };
 

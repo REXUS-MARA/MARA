@@ -76,4 +76,7 @@ module Mara {
   
   instance I2CDriver: Drv.LinuxI2cDriver base id 0x10016000
 
+  instance max31855: Mara.MAX31855Manager base id 0x10018000
+
+  instance spiDriver: Drv.LinuxSpiDriver base id 0x10019000
 }
