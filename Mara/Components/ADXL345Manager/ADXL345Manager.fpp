@@ -41,6 +41,9 @@ module Mara {
         @ Z-axis acceleration in g
         telemetry accelZ: F32
 
+        @ acceleration in g
+        telemetry acceleration: AccelData
+
         # ==============================================================
         # Events
         # ==============================================================

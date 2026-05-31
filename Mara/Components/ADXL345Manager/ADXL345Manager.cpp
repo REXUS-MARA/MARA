@@ -42,14 +42,18 @@ U8 ADXL345Manager::getI2cAddr() {
 }
 
 Drv::I2cStatus ADXL345Manager::initialize_helper(){
-    U8 devId = 0;
-    Drv::I2cStatus status = this->readRegisters(ADXL345_REG_DEVID, &devId, 1);
+    const size_t devIdLen = 1;
+    U8 data[devIdLen];
+    Fw::Buffer readBuffer(data, devIdLen);
+    Drv::I2cStatus status = this->readRegisters(ADXL345_REG_DEVID, readBuffer);
 
     if (status != Drv::I2cStatus::I2C_OK) {
         this->log_WARNING_HI_ADXL345_INIT_FAILED(static_cast<I32>(status));
         return status;
     }
 
+    U8 devId = 0;
+    readBuffer.getDeserializer().deserializeTo(devId);
     if (devId != ADXL345_DEVICE_ID) {
         this->log_WARNING_HI_ADXL345_BAD_DEVICE_ID(devId);
         return status;
@@ -93,9 +97,8 @@ Drv::I2cStatus ADXL345Manager::writeRegister(U8 reg, U8 value) {
     return this->i2cWrite_out(0, this->getI2cAddr(), writeBuffer);
 }
 
-Drv::I2cStatus ADXL345Manager::readRegisters(U8 startReg, U8* outBuffer, U32 size) {
+Drv::I2cStatus ADXL345Manager::readRegisters(U8 startReg, Fw::Buffer& readBuffer) {
     Fw::Buffer writeBuffer(&startReg, 1);
-    Fw::Buffer readBuffer(outBuffer, size);
     return this->i2cReadWrite_out(0, this->getI2cAddr(), writeBuffer, readBuffer);
 }
 
@@ -152,7 +155,6 @@ void ADXL345Manager::run_handler(
     U32 context
 ) {
     if (!m_initialized) {
-
         Drv::I2cStatus initialize_status = initialize_helper();
         if(initialize_status != Drv::I2cStatus::I2C_OK){
             this->log_WARNING_HI_ADXL345_I2C_ERROR(static_cast<I32>(initialize_status));
@@ -160,8 +162,10 @@ void ADXL345Manager::run_handler(
         }
     }
 
-    U8 data[6] = {0};
-    Drv::I2cStatus read_status = this->readRegisters(ADXL345_REG_DATAX0, data, 6);
+    const size_t accelDataLen = 6;
+    U8 data[accelDataLen];
+    Fw::Buffer readBuffer(data, accelDataLen);;
+    Drv::I2cStatus read_status = this->readRegisters(ADXL345_REG_DATAX0, readBuffer);
 
     if (read_status != Drv::I2cStatus::I2C_OK) {
         this->log_WARNING_HI_ADXL345_I2C_ERROR(static_cast<I32>(read_status));
@@ -169,24 +173,22 @@ void ADXL345Manager::run_handler(
     }
 
     // Combine bytes into signed 16-bit values (little-endian from sensor)
-    I16 rawX = static_cast<I16>(static_cast<U16>(data[1]) << 8 | data[0]);
-    I16 rawY = static_cast<I16>(static_cast<U16>(data[3]) << 8 | data[2]);
-    I16 rawZ = static_cast<I16>(static_cast<U16>(data[5]) << 8 | data[4]);
+    auto deserializer = readBuffer.getDeserializer();
+    I16 rawX, rawY, rawZ;
+    deserializer.deserializeTo(rawX, Fw::Endianness::LITTLE);
+    deserializer.deserializeTo(rawY, Fw::Endianness::LITTLE);
+    deserializer.deserializeTo(rawZ, Fw::Endianness::LITTLE);
 
     // Convert raw LSB counts to g values
     F32 scaleFactor = this->getScaleFactor();
-    F32 accelX = static_cast<F32>(rawX) * scaleFactor;
-    F32 accelY = static_cast<F32>(rawY) * scaleFactor;
-    F32 accelZ = static_cast<F32>(rawZ) * scaleFactor;
-
-    this->tlmWrite_accelX(accelX);
-    this->tlmWrite_accelY(accelY);
-    this->tlmWrite_accelZ(accelZ);
-
     AccelData accelData;
-    accelData.set_accelX(accelX);
-    accelData.set_accelY(accelY);
-    accelData.set_accelZ(accelZ);
+    accelData.set_accelX(static_cast<F32>(rawX) * scaleFactor);
+    accelData.set_accelY(static_cast<F32>(rawY) * scaleFactor);
+    accelData.set_accelZ(static_cast<F32>(rawZ) * scaleFactor);
+    this->tlmWrite_accelX(accelData.get_accelX());
+    this->tlmWrite_accelY(accelData.get_accelY());
+    this->tlmWrite_accelZ(accelData.get_accelZ());
+    this->tlmWrite_acceleration(accelData);
     
     if (not this->m_containerValid) {
         

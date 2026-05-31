@@ -29,7 +29,7 @@ class ADXL345Manager final : public ADXL345ManagerComponentBase {
     void ADXL345_SET_RATE_cmdHandler(FwOpcodeType opCode, U32 cmdSeq, U8 rate) override;
 
     Drv::I2cStatus writeRegister(U8 reg, U8 value);
-    Drv::I2cStatus readRegisters(U8 startReg, U8* buffer, U32 size);
+    Drv::I2cStatus readRegisters(U8 startReg, Fw::Buffer&);
 
     // if it was an active component, we could do it in the preamble
     // we have to initialize outside of the constructor
