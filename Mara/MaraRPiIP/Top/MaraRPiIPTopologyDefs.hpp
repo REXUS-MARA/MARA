@@ -25,6 +25,10 @@
 // Include autocoded FPP constants
 #include "Mara/MaraRPiIP/Top/FppConstantsAc.hpp"
 
+// needed for the bmp
+#include <Fw/Logger/Logger.hpp>
+
+
 
 /**
  * \brief required ping constants

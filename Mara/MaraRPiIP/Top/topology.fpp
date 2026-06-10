@@ -37,6 +37,8 @@ module Mara {
     instance adxl345Manager
     instance ltrManager
     instance I2CDriver
+    instance bmpDriver
+    instance bmpManager
 
   # ----------------------------------------------------------------------
   # Pattern graph specifiers
@@ -114,6 +116,7 @@ module Mara {
       rateGroup1.RateGroupMemberOut[4] -> ComCcsds.aggregator.timeout
       rateGroup1.RateGroupMemberOut[5] -> cmdSeq.schedIn
       rateGroup1.RateGroupMemberOut[6] -> adxl345Manager.run
+      rateGroup1.RateGroupMemberOut[7] -> bmpManager.run
       
 
       # Rate group 2
@@ -143,14 +146,17 @@ module Mara {
       ltrManager.busWrite          -> I2CDriver.write
       ltrManager.productGetOut     -> DataProducts.dpMgr.productGetIn
       ltrManager.productSendOut    -> DataProducts.dpMgr.productSendIn
+      bmpManager.spiReadWrite -> bmpDriver.SpiReadWrite
+              adxl345Manager.i2cReadWrite -> I2CDriver.writeRead
+        adxl345Manager.i2cWrite -> I2CDriver.write
+        adxl345Manager.productGetOut  -> DataProducts.dpMgr.productGetIn
+        adxl345Manager.productSendOut -> DataProducts.dpMgr.productSendIn
+
     }
 
     # Connect ADXL345 to I2C driver
     connections ADXL345 {
-        adxl345Manager.i2cReadWrite -> I2CDriver.writeRead
-        adxl345Manager.i2cWrite -> I2CDriver.write
-        adxl345Manager.productGetOut  -> DataProducts.dpMgr.productGetIn
-        adxl345Manager.productSendOut -> DataProducts.dpMgr.productSendIn
+
     }
 
   }

@@ -35,10 +35,10 @@ module Mara {
         event DeviceReadFailure() severity warning high format "BMP280 Device Measurement Read failure" throttle 5
 
         @ Parameter for setting the pressure oversampling
-        param PRESSURE_OVERSAMPLING: PressureOversampling default PressureOversampling.OVERSAMPLE_1X
+        param PRESSURE_OVERSAMPLING: PressureOversampling default PressureOversampling.OVERSAMPLE_8X
 
         @ Parameter for setting the temperature oversampling
-        param TEMPERATURE_OVERSAMPLING: TemperatureOversampling default TemperatureOversampling.OVERSAMPLE_1X
+        param TEMPERATURE_OVERSAMPLING: TemperatureOversampling default TemperatureOversampling.OVERSAMPLE_2X
 
         @ Parameter for setting the sea-level pressure for altitude calculation (Pa)
         param SEA_LEVEL_PRESSURE: F32 default 101325.0

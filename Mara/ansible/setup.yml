@@ -17,6 +17,9 @@
     - name: Enable I2C
       command: raspi-config nonint do_i2c 0
 
+    - name: Enable SPI
+      command: raspi-config nonint do_spi 0
+
     - name: Install packages
       apt:
         name:

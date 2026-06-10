@@ -76,4 +76,18 @@ module Mara {
   
   instance I2CDriver: Drv.LinuxI2cDriver base id 0x10016000
 
+  instance bmpDriver: Drv.LinuxSpiDriver base id 0x10018000 {
+        phase Fpp.ToCpp.Phases.configComponents """
+        if (not Mara::bmpDriver.open(0, 0, Drv::SPI_FREQUENCY_5MHZ)) {
+            Fw::Logger::log("[ERROR] BMP280 SPI open failed\\n");
+        }
+        else {
+            Fw::Logger::log("[INFO] BMP280 SPI open successful\\n");
+        }
+        """
+    }
+  
+  instance bmpManager: BmpManager base id 0x10019000
+
+
 }

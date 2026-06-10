@@ -114,11 +114,11 @@ void BmpManager ::run_handler(FwIndexType portNum, U32 context) {
             }
 
             // Step 2: Trigger a new measurement in forced mode
-            if (!this->trigger_measurement()) {
-                this->m_state = RESET;
-                this->log_WARNING_HI_MeasurementTriggerFailure();
-                break;
-            }
+            // if (!this->trigger_measurement()) {
+            //     this->m_state = RESET;
+            //     this->log_WARNING_HI_MeasurementTriggerFailure();
+            //     break;
+            // }
 
             // Step 3: Read measurement data
             // BMP280 SPI protocol: read 6 bytes starting from PRESSURE_MSB_REGISTER
@@ -252,7 +252,7 @@ bool BmpManager ::configure_device() {
     // bits 4:2 = osrs_p (pressure oversampling)
     // bits 1:0 = mode (00=sleep, 01=forced, 11=normal)
     U8 ctrl_meas_value = (static_cast<U8>(temperatureOversampling) << 5) |
-                         (static_cast<U8>(pressureOversampling) << 2) | 0x00;  // Start in sleep mode first
+                         (static_cast<U8>(pressureOversampling) << 2) | 0b00000000;  // Start in sleep mode first
 
     U8 config_sequence[] = {CTRL_MEAS_REGISTER & 0x7F, ctrl_meas_value};  // Clear MSB for write
     Fw::Buffer writeBuffer(config_sequence, sizeof(config_sequence));
@@ -268,6 +268,14 @@ bool BmpManager ::configure_device() {
 
         success = this->spi_transfer(configWriteBuffer, configReadBuffer);
     }
+
+    U8 ctrl_meas_value_1 = (static_cast<U8>(temperatureOversampling) << 5) |
+                         (static_cast<U8>(pressureOversampling) << 2) | 0b00000011;  // Start in sleep mode first
+
+    U8 config_sequence_1[] = {CTRL_MEAS_REGISTER & 0x7F, ctrl_meas_value_1};  // Clear MSB for write
+    Fw::Buffer writeBuffer_1(config_sequence_1, sizeof(config_sequence_1));
+    Fw::Buffer readBuffer_1(config_sequence_1, sizeof(config_sequence_1));
+    success = this->spi_transfer(writeBuffer_1, readBuffer_1);
 
     return success;
 }
