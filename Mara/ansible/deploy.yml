@@ -19,40 +19,40 @@
         capability: cap_sys_nice+eip
         state: present
 
-    - name: Deploy MARA systemd service
-      copy:
-        dest: /etc/systemd/system/mara.service
-        content: |
-          [Unit]
-          Description=MARA Flight Software
-          After=network.target
+  #   - name: Deploy MARA systemd service
+  #     copy:
+  #       dest: /etc/systemd/system/mara.service
+  #       content: |
+  #         [Unit]
+  #         Description=MARA Flight Software
+  #         After=network.target
 
-          [Service]
-          User={{ mara_user }}
-          CPUSchedulingPolicy=fifo
-          CPUSchedulingPriority=80
-          WorkingDirectory=/home/{{ mara_user }}/mara  
-          TimeoutStopSec=10
-          KillSignal=SIGTERM
-          ExecStart={{ mara_binary }} -a {{ mara_address }} -p {{ mara_port }}
-          Restart=on-failure
-          RestartSec=5s
-          StandardOutput=append:/home/{{ mara_user }}/mara/logs/mara.log
-          StandardError=append:/home/{{ mara_user }}/mara/logs/mara.log
+  #         [Service]
+  #         User={{ mara_user }}
+  #         CPUSchedulingPolicy=fifo
+  #         CPUSchedulingPriority=80
+  #         WorkingDirectory=/home/{{ mara_user }}/mara  
+  #         TimeoutStopSec=10
+  #         KillSignal=SIGTERM
+  #         ExecStart={{ mara_binary }} -a {{ mara_address }} -p {{ mara_port }}
+  #         Restart=on-failure
+  #         RestartSec=5s
+  #         StandardOutput=append:/home/{{ mara_user }}/mara/logs/mara.log
+  #         StandardError=append:/home/{{ mara_user }}/mara/logs/mara.log
 
-          [Install]
-          WantedBy=multi-user.target
-      notify: Reload and restart MARA
+  #         [Install]
+  #         WantedBy=multi-user.target
+  #     notify: Reload and restart MARA
 
-    - name: Enable MARA service (start on boot)
-      systemd:
-        name: mara
-        enabled: yes
-        daemon_reload: yes
+  #   - name: Enable MARA service (start on boot)
+  #     systemd:
+  #       name: mara
+  #       enabled: yes
+  #       daemon_reload: yes
 
-  handlers:
-    - name: Reload and restart MARA
-      systemd:
-        name: mara
-        state: restarted
-        daemon_reload: yes
+  # handlers:
+  #   - name: Reload and restart MARA
+  #     systemd:
+  #       name: mara
+  #       state: restarted
+  #       daemon_reload: yes
