@@ -48,6 +48,7 @@ namespace PingEntries {
     namespace Mara_rateGroup1 {enum { WARN = 3, FATAL = 5 };}
     namespace Mara_rateGroup2 {enum { WARN = 3, FATAL = 5 };}
     namespace Mara_rateGroup3 {enum { WARN = 3, FATAL = 5 };}
+    namespace Mara_rateGroup4 {enum { WARN = 3, FATAL = 5 };}
     namespace Mara_cmdSeq {enum { WARN = 3, FATAL = 5 };}
 }  // namespace PingEntries
 

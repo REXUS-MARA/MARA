@@ -49,3 +49,11 @@ fprime-gds
   - Data product cataloging
   - Storage and retrieval capabilities
   - Product metadata management
+
+# Custom changes
+ - this topology has more rate groups - 4, and one of them has 20 Hz, and the other a 100 Hz
+ - most of the topology is defined in connections MaraRPiIP, and a bit in the rate groups
+ - the subtopology for DataProducts is overwritten - I wanted to have a bigger dpBufferStoreSize , to have bigger buffers for Data Products
+ - the defualt stack size went up from 64 kB to 256 kB - on my pi zero the smallest one possible was 128 kB
+ - there's also a bunch of overwrites to change stack sizes for stuff like dpCat and dpMgr (mostly done because there's a warning, and we already had to override the dpBufferStoreSize)
+ - I've added invocation of readParameters() within the setupTopology function - without that it would not read the parameter db file. I have no idea why it isn't in the default topology.
