@@ -28,6 +28,14 @@ I reccomend colima + docker cli - `brew install docker colima`. After you have t
 This is the way I do it - but it's not connected to the official tutorial, so that's why it's in a different header. Apple has released it's own containers, and I found it around 30% faster than the colima + docker cli. And also, when you build the deployement, you don't need to scp it from the container itself - it's connected as a volume, so all the files are also availble no your "host" system. 
 1. ```container run --arch amd64 -u "`id -u`:`id -g`" -v "$(pwd):/project" ghcr.io/filipjsowa/fprime-arm:4.1.1 -c "fprime-util build aarch64-linux"```
 1. Or, if you need the build folder to be regenerated (for example, you've added new libraries ussing settings.ini) ```container run --arch amd64 --cpus 6 --memory 8g -u "`id -u`:`id -g`" -v "$(pwd):/project" ghcr.io/filipjsowa/fprime-arm:4.1.1 -c "yes | fprime-util purge aarch64-linux && fprime-util generate aarch64-linux && fprime-util build aarch64-linux"``` . This one has also more cpu and ram, customize it to your own laptop. 
+2. `scp build-artifacts/aarch64-linux/Mara_MaraRPiUART/bin/Mara_MaraRPiUART pi-fsowa.local:MARA`
+3. `ssh pi-fsowa.local "sudo setcap 'cap_sys_nice=eip' MARA && ./MARA -d /dev/serial0 -b 115200"`
+4. `fprime-gds -n --dictionary build-artifacts/aarch64-linux/Mara_MaraRPiUART/dict/MaraRPiUARTTopologyDictionary.json --communication-selection uart --uart-baud 115200 --uart-device /dev/cu.usbserial-BG02CR1I`
+
+If you need to find the uart device, on mac after connecting the FT232 not much was needed - jsut allow it to connect, and then do ls /dev/cu.usbserial-* in the terminal. No drivers, I expect the same on linux. god speed to our windows brothers.
+Also make sure that uart is enabled on the pi (sudo raspi-config and then interfaces, serial, first no then yes - you want hardware).
+Below are older steps for doing the IP deploy. All the cool kids are using UART tho.
+
 2. `scp build-artifacts/aarch64-linux/Mara_MaraRPiIP/bin/Mara_MaraRPiIP pi-fsowa.local:MARA`
 3. `ssh pi-fsowa.local "./MARA -a 0.0.0.0 -p 50000"`
 4. `fprime-gds -n --dictionary build-artifacts/aarch64-linux/Mara_MaraRPiIP/dict/MaraRPiIPTopologyDictionary.json --ip-client --ip-address $(python3 -c "import socket; print(socket.gethostbyname('pi-fsowa.local'))")`
@@ -56,3 +64,10 @@ Some of my notes of things that are lackign from fprime tutorials:
 2. man pages don't work? 
 
 **For documentation on F' visit:** https://fprime.jpl.nasa.gov.
+
+
+**For testing the uart locally**
+To simulate a connection between your pc and rpi with the rocket in between, you'll need serial interface - uart. Better yet rpi uart -> rs3232 -> RXSM -> computer serving the tcp server -> switch -> laptop with a gds. As in life we can and will cheat, to test the software part it's enough to have rpi uart -> laptop. On that laptop you need to run a tcp server, that will get the data from serial, and then your gds will try to communicate with that server. It's quite easy to do - first, connect your rpi to uart. Make sure that uart is enabled (sudo raspi-config). Then, run your applications:
+1. After ssh into the pi `./MARA -d /dev/serial0 -b 115200`
+2. In a terminal, within the fprime-venv (I mean doesn't have to be, but it's just so hapens that it has all the needed packages) `python uart_tcp_bridge.py --serial-port /dev/cu.usbserial-BG02CR1I --baudrate 115200 --host 127.0.0.1 --port 50000`
+3. In another teminal `fprime-gds -n --dictionary build-artifacts/aarch64-linux/Mara_MaraRPiUART/dict/MaraRPiUARTTopologyDictionary.json --ip-client --ip-address 127.0.0.1`

@@ -57,3 +57,6 @@ fprime-gds
  - the defualt stack size went up from 64 kB to 256 kB - on my pi zero the smallest one possible was 128 kB
  - there's also a bunch of overwrites to change stack sizes for stuff like dpCat and dpMgr (mostly done because there's a warning, and we already had to override the dpBufferStoreSize)
  - I've added invocation of readParameters() within the setupTopology function - without that it would not read the parameter db file. I have no idea why it isn't in the default topology.
+
+# Some instructions so that I remember how it's done
+1. build the deployment.
