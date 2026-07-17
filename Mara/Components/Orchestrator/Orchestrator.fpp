@@ -16,6 +16,10 @@ module Mara {
 
         state machine instance OrchestratorStateMachine : OrchestratorStateMachine
 
+        async input port LOHigh: Fw.Signal
+        async input port SOEHigh: Fw.Signal
+        async input port EODSHigh: Fw.Signal
+
         ###############################################################################
         # Standard AC Ports: Required for Channels, Events, Commands, and Parameters  #
         ###############################################################################

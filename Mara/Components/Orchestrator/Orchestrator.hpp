@@ -26,6 +26,24 @@ class Orchestrator final : public OrchestratorComponentBase {
 
   private:
     // ----------------------------------------------------------------------
+    // Handler implementations for typed input ports
+    // ----------------------------------------------------------------------
+
+    //! Handler implementation for EODSHigh
+    void EODSHigh_handler(FwIndexType portNum  //!< The port number
+                          ) override;
+
+    //! Handler implementation for LOHigh
+    void LOHigh_handler(FwIndexType portNum  //!< The port number
+                        ) override;
+
+    //! Handler implementation for SOEHigh
+    void SOEHigh_handler(FwIndexType portNum  //!< The port number
+                         ) override;
+          
+                         
+  private:
+    // ----------------------------------------------------------------------
     // Handler implementations for commands
     // ----------------------------------------------------------------------
 
@@ -92,6 +110,10 @@ class Orchestrator final : public OrchestratorComponentBase {
     //!
     //! test the EODS
     void Mara_OrchestratorStateMachine_action_doTestEODS(SmId smId,  //!< The state machine id
+                                                         Mara_OrchestratorStateMachine::Signal signal  //!< The signal
+                                                         ) override;
+    
+    void Mara_OrchestratorStateMachine_action_doExperiment(SmId smId,  //!< The state machine id
                                                          Mara_OrchestratorStateMachine::Signal signal  //!< The signal
                                                          ) override;
 };

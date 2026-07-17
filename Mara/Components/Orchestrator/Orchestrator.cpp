@@ -17,6 +17,22 @@ Orchestrator ::Orchestrator(const char* const compName) : OrchestratorComponentB
 Orchestrator ::~Orchestrator() {}
 
 // ----------------------------------------------------------------------
+// Handler implementations for typed input ports
+// ----------------------------------------------------------------------
+
+void Orchestrator ::EODSHigh_handler(FwIndexType portNum) {
+    OrchestratorStateMachine_sendSignal_EODS();
+}
+
+void Orchestrator ::LOHigh_handler(FwIndexType portNum) {
+    OrchestratorStateMachine_sendSignal_LO();
+}
+
+void Orchestrator ::SOEHigh_handler(FwIndexType portNum) {
+    OrchestratorStateMachine_sendSignal_SOE();
+}
+
+// ----------------------------------------------------------------------
 // Handler implementations for commands
 // ----------------------------------------------------------------------
 
@@ -65,6 +81,11 @@ void Orchestrator ::Mara_OrchestratorStateMachine_action_doTestSOE(SmId smId,
 }
 
 void Orchestrator ::Mara_OrchestratorStateMachine_action_doTestEODS(SmId smId,
+                                                                    Mara_OrchestratorStateMachine::Signal signal) {
+    // TODO
+}
+
+void Orchestrator ::Mara_OrchestratorStateMachine_action_doExperiment(SmId smId,
                                                                     Mara_OrchestratorStateMachine::Signal signal) {
     // TODO
 }
