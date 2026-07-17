@@ -29,13 +29,6 @@ class Orchestrator final : public OrchestratorComponentBase {
     // Handler implementations for commands
     // ----------------------------------------------------------------------
 
-    //! Handler implementation for command TODO
-    //!
-    //! TODO
-    void TODO_cmdHandler(FwOpcodeType opCode,  //!< The opcode
-                         U32 cmdSeq            //!< The command sequence number
-                         ) override;
-
     //! Handler implementation for command enterTestMode
     void enterTestMode_cmdHandler(FwOpcodeType opCode,  //!< The opcode
                                   U32 cmdSeq            //!< The command sequence number
@@ -57,7 +50,7 @@ class Orchestrator final : public OrchestratorComponentBase {
                               ) override;
 
     //! Handler implementation for command testMotor
-    void testMotor_cmdHandler(FwOpcodeType opCode,  //!< The opcode
+    void testPlatform_cmdHandler(FwOpcodeType opCode,  //!< The opcode
                               U32 cmdSeq            //!< The command sequence number
                               ) override;
 

@@ -45,6 +45,10 @@ module Mara {
         @ test the EODS
         action doTestEODS
 
+        @ perform the experiment
+        @ maybe we want to make that it's own state with transitions
+        action doExperiment
+
         @ Initial state
         state IDLE {
             on LO enter FLIGHT
@@ -71,6 +75,7 @@ module Mara {
 
         @ Run the sensor
         state EXPERIMENT {
+            entry do { doExperiment }
             on EODS enter AFTER_EXPERIMENT
             on error enter SAFE
         }

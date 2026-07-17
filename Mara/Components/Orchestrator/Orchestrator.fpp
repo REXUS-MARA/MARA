@@ -2,22 +2,17 @@ module Mara {
     @ Orchestrator of the whole experiment
     active component Orchestrator {
 
-        # One async command/port is required for active components
-        # This should be overridden by the developers with a useful command/port
-        @ TODO
-        async command TODO opcode 0
+        async command enterTestMode
 
-        sync command enterTestMode
-
-        sync command exitTestMode
+        async command exitTestMode
 
         @ I'm not sure if those should be sync or async
         @ Because the test will take some time
         @ But do we expect it to end within some finite time
         @ It's a pickle for me
-        sync command testDrill
+        async command testDrill
 
-        sync command testMotor
+        async command testPlatform
 
         state machine instance OrchestratorStateMachine : OrchestratorStateMachine
 

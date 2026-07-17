@@ -20,29 +20,24 @@ Orchestrator ::~Orchestrator() {}
 // Handler implementations for commands
 // ----------------------------------------------------------------------
 
-void Orchestrator ::TODO_cmdHandler(FwOpcodeType opCode, U32 cmdSeq) {
-    // TODO
-    this->cmdResponse_out(opCode, cmdSeq, Fw::CmdResponse::OK);
-}
-
 void Orchestrator ::enterTestMode_cmdHandler(FwOpcodeType opCode, U32 cmdSeq) {
-    // TODO
-    this->cmdResponse_out(opCode, cmdSeq, Fw::CmdResponse::OK);
+    OrchestratorStateMachine_sendSignal_EnterTest();
+    cmdResponse_out(opCode, cmdSeq, Fw::CmdResponse::OK);
 }
 
 void Orchestrator ::exitTestMode_cmdHandler(FwOpcodeType opCode, U32 cmdSeq) {
-    // TODO
-    this->cmdResponse_out(opCode, cmdSeq, Fw::CmdResponse::OK);
+    OrchestratorStateMachine_sendSignal_ExitTest();
+    cmdResponse_out(opCode, cmdSeq, Fw::CmdResponse::OK);
 }
 
 void Orchestrator ::testDrill_cmdHandler(FwOpcodeType opCode, U32 cmdSeq) {
-    // TODO
-    this->cmdResponse_out(opCode, cmdSeq, Fw::CmdResponse::OK);
+    OrchestratorStateMachine_sendSignal_testDrill();
+    cmdResponse_out(opCode, cmdSeq, Fw::CmdResponse::OK);
 }
 
-void Orchestrator ::testMotor_cmdHandler(FwOpcodeType opCode, U32 cmdSeq) {
-    // TODO
-    this->cmdResponse_out(opCode, cmdSeq, Fw::CmdResponse::OK);
+void Orchestrator ::testPlatform_cmdHandler(FwOpcodeType opCode, U32 cmdSeq) {
+    OrchestratorStateMachine_sendSignal_testPlatform();
+    cmdResponse_out(opCode, cmdSeq, Fw::CmdResponse::OK);
 }
 
 // ----------------------------------------------------------------------
