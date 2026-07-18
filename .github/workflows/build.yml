@@ -22,6 +22,9 @@ jobs:
       - run: |
           fprime-util generate aarch64-linux
           fprime-util build aarch64-linux
+          mv /__w/MARA/MARA/build-artifacts/aarch64-linux/Mara_MaraRPiUART/bin/Mara_MaraRPiUART /__w/MARA/MARA/build-artifacts/aarch64-linux/Mara_MaraRPiUART/bin/MARA${{ github.ref_name }}
+          mv /__w/MARA/MARA/build-artifacts/aarch64-linux/Mara_MaraRPiUART/dict/MaraRPiUARTTopologyDictionary.json /__w/MARA/MARA/build-artifacts/aarch64-linux/Mara_MaraRPiUART/dict/MARADict${{ github.ref_name }}.json
+
 
       - uses: softprops/action-gh-release@v3
         with:
@@ -78,5 +81,5 @@ jobs:
 
             Then run one of the commands above.
           files: |
-            /__w/MARA/MARA/build-artifacts/aarch64-linux/Mara_MaraRPiUART/bin/Mara_MaraRPiUART
-            /__w/MARA/MARA/build-artifacts/aarch64-linux/Mara_MaraRPiUART/dict/MaraRPiUARTTopologyDictionary.json
+            /__w/MARA/MARA/build-artifacts/aarch64-linux/Mara_MaraRPiUART/bin/MARA${{ github.ref_name }}
+            /__w/MARA/MARA/build-artifacts/aarch64-linux/Mara_MaraRPiUART/dict/MARADict${{ github.ref_name }}.json
