@@ -24,8 +24,6 @@ jobs:
           fprime-util build aarch64-linux
           mv /__w/MARA/MARA/build-artifacts/aarch64-linux/Mara_MaraRPiUART/bin/Mara_MaraRPiUART /__w/MARA/MARA/build-artifacts/aarch64-linux/Mara_MaraRPiUART/bin/MARA${{ github.ref_name }}
           mv /__w/MARA/MARA/build-artifacts/aarch64-linux/Mara_MaraRPiUART/dict/MaraRPiUARTTopologyDictionary.json /__w/MARA/MARA/build-artifacts/aarch64-linux/Mara_MaraRPiUART/dict/MARADict${{ github.ref_name }}.json
-          chmod +x /__w/MARA/MARA/build-artifacts/aarch64-linux/Mara_MaraRPiUART/bin/MARA${{ github.ref_name }}
-
 
       - uses: softprops/action-gh-release@v3
         with:
@@ -36,6 +34,7 @@ jobs:
             1. Copy `MARA${{ github.ref_name }}` to the pi.
             2. On the Pi, set capabilities:
                ```bash
+               chmod +x MARA${{ github.ref_name }}
                sudo setcap 'cap_sys_nice=eip' MARA${{ github.ref_name }}
                ```
             3. Run the flight app:
