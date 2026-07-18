@@ -49,6 +49,13 @@ module Mara {
         @ maybe we want to make that it's own state with transitions
         action doExperiment
 
+        action notifyEnterTEST
+        action notifyExitTEST
+        action notifyEnterFlight
+        action notifyEnterExperiment
+        action notifyEnterAfterExperiment
+        action notifyEnterSafe
+
         @ Initial state
         state IDLE {
             on LO enter FLIGHT
@@ -56,6 +63,7 @@ module Mara {
         }
 
         state TEST {
+            entry do { notifyEnterTEST }
             on ExitTest enter IDLE
             on LO do { doTestLO }
             on SOE do { doTestSOE }
@@ -64,29 +72,33 @@ module Mara {
             @ testDrill and testPlatform
             on testDrill do { doTestDrill }
             on testPlatform do { doTestPlatform }
+            exit do { notifyExitTEST }
         }
 
 
         @ Wait for the sensor while it performs reset
         state FLIGHT {
+            entry do { notifyEnterFlight }
             on SOE enter EXPERIMENT
             on error enter SAFE
         }
 
         @ Run the sensor
         state EXPERIMENT {
-            entry do { doExperiment }
+            entry do { notifyEnterExperiment, doExperiment }
             on EODS enter AFTER_EXPERIMENT
             on error enter SAFE
         }
 
         @ Run the sensor
         state AFTER_EXPERIMENT {
+            entry do { notifyEnterAfterExperiment }
             on error enter SAFE
         }
 
         @ In this state, just hunker down
         state SAFE {
+            entry do { notifyEnterSafe }
         }
     }
 }

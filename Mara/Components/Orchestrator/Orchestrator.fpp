@@ -20,6 +20,17 @@ module Mara {
         async input port SOEHigh: Fw.Signal
         async input port EODSHigh: Fw.Signal
 
+        event EODSTestSignal severity activity high format "Detected EODS signal in TEST mode, disregarding."
+        event LOTestSignal severity activity high format "Detected LO signal in TEST mode, disregarding."
+        event SOETestSignal severity activity high format "Detected SOE signal in TEST mode, disregarding."
+        event EnterTest severity activity high format "Entered TEST state."
+        event ExitTest severity activity high format "Exit TEST state, back to IDLE."
+        event EnterFlight severity activity high format "Entered Flight state."
+        event EnterExperiment severity activity high format "Entered Experiment state."
+        event EnterAfterExperiment severity activity high format "Entered AfterExperiment state."
+        event EnterSafe severity activity high format "Entered Safe state."
+
+
         ###############################################################################
         # Standard AC Ports: Required for Channels, Events, Commands, and Parameters  #
         ###############################################################################

@@ -66,26 +66,26 @@ module Mara {
   # Passive component instances
   # ----------------------------------------------------------------------
 
-  instance chronoTime: Svc.ChronoTime base id 0x10010000
+  instance chronoTime: Svc.ChronoTime base id 0x10030000
 
-  instance rateGroupDriver: Svc.RateGroupDriver base id 0x10011000
+  instance rateGroupDriver: Svc.RateGroupDriver base id 0x10031000
 
-  instance systemResources: Svc.SystemResources base id 0x10012000
+  instance systemResources: Svc.SystemResources base id 0x10032000
 
-  instance timer: Svc.LinuxTimer base id 0x10013000
+  instance timer: Svc.LinuxTimer base id 0x10033000
 
-  instance comDriver: Drv.LinuxUartDriver base id 0x10014000
+  instance comDriver: Drv.LinuxUartDriver base id 0x10034000
 
-  instance adxl345Manager: Mara.ADXL345Manager base id 0x10016000
+  instance adxl345Manager: Mara.ADXL345Manager base id 0x10035000
   
-  instance I2CDriver: Drv.LinuxI2cDriver base id 0x10017000
+  instance I2CDriver: Drv.LinuxI2cDriver base id 0x10036000
 
-  instance gpioWatcher: Mara.GPIOWatcher base id 0x10018000
+  instance gpioWatcher: Mara.GPIOWatcher base id 0x10037000
 
-  instance LOgpioDriver: Drv.LinuxGpioDriver base id 0x10019000
+  instance LOgpioDriver: Drv.LinuxGpioDriver base id 0x10038000
   
-  instance SOEgpioDriver: Drv.LinuxGpioDriver base id 0x10020000
+  instance SOEgpioDriver: Drv.LinuxGpioDriver base id 0x10039000
 
-  instance EODSgpioDriver: Drv.LinuxGpioDriver base id 0x10021000
+  instance EODSgpioDriver: Drv.LinuxGpioDriver base id 0x10040000
 
 }

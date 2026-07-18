@@ -38,7 +38,7 @@ module Mara {
     instance timer
     instance comDriver
     instance cmdSeq
-    instance adxl345Manager
+    # instance adxl345Manager
     instance ltrManager
     instance I2CDriver
     instance orchestrator
@@ -122,7 +122,7 @@ module Mara {
       rateGroup1.RateGroupMemberOut[3] -> ComCcsds.comQueue.run
       rateGroup1.RateGroupMemberOut[4] -> ComCcsds.aggregator.timeout
       rateGroup1.RateGroupMemberOut[5] -> cmdSeq.schedIn
-      rateGroup1.RateGroupMemberOut[6] -> adxl345Manager.run
+      # rateGroup1.RateGroupMemberOut[6] -> adxl345Manager.run
       
 
       # Rate group 2
@@ -165,12 +165,12 @@ module Mara {
     }
 
     # Connect ADXL345 to I2C driver
-    connections ADXL345 {
-        adxl345Manager.i2cReadWrite -> I2CDriver.writeRead
-        adxl345Manager.i2cWrite -> I2CDriver.write
-        adxl345Manager.productGetOut  -> DataProducts.dpMgr.productGetIn
-        adxl345Manager.productSendOut -> DataProducts.dpMgr.productSendIn
-    }
+    # connections ADXL345 {
+    #     adxl345Manager.i2cReadWrite -> I2CDriver.writeRead
+    #     adxl345Manager.i2cWrite -> I2CDriver.write
+    #     adxl345Manager.productGetOut  -> DataProducts.dpMgr.productGetIn
+    #     adxl345Manager.productSendOut -> DataProducts.dpMgr.productSendIn
+    # }
 
   }
 

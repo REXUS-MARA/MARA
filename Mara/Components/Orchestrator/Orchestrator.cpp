@@ -72,22 +72,55 @@ void Orchestrator ::Mara_OrchestratorStateMachine_action_doTestPlatform(SmId smI
 
 void Orchestrator ::Mara_OrchestratorStateMachine_action_doTestLO(SmId smId,
                                                                   Mara_OrchestratorStateMachine::Signal signal) {
-    // TODO
+    log_ACTIVITY_HI_LOTestSignal();
 }
 
 void Orchestrator ::Mara_OrchestratorStateMachine_action_doTestSOE(SmId smId,
                                                                    Mara_OrchestratorStateMachine::Signal signal) {
-    // TODO
+    log_ACTIVITY_HI_SOETestSignal();
 }
 
 void Orchestrator ::Mara_OrchestratorStateMachine_action_doTestEODS(SmId smId,
                                                                     Mara_OrchestratorStateMachine::Signal signal) {
-    // TODO
+    log_ACTIVITY_HI_EODSTestSignal();
 }
 
 void Orchestrator ::Mara_OrchestratorStateMachine_action_doExperiment(SmId smId,
                                                                     Mara_OrchestratorStateMachine::Signal signal) {
     // TODO
+}
+
+void Orchestrator ::Mara_OrchestratorStateMachine_action_notifyEnterTEST(SmId smId,
+                                                                         Mara_OrchestratorStateMachine::Signal signal) {
+    log_ACTIVITY_HI_EnterTest();
+}
+
+void Orchestrator ::Mara_OrchestratorStateMachine_action_notifyExitTEST(SmId smId,
+                                                                        Mara_OrchestratorStateMachine::Signal signal) {
+    log_ACTIVITY_HI_ExitTest();
+}
+
+void Orchestrator ::Mara_OrchestratorStateMachine_action_notifyEnterFlight(
+    SmId smId,
+    Mara_OrchestratorStateMachine::Signal signal) {
+    log_ACTIVITY_HI_EnterFlight();
+}
+
+void Orchestrator ::Mara_OrchestratorStateMachine_action_notifyEnterExperiment(
+    SmId smId,
+    Mara_OrchestratorStateMachine::Signal signal) {
+    log_ACTIVITY_HI_EnterExperiment();
+}
+
+void Orchestrator ::Mara_OrchestratorStateMachine_action_notifyEnterAfterExperiment(
+    SmId smId,
+    Mara_OrchestratorStateMachine::Signal signal) {
+    log_ACTIVITY_HI_EnterAfterExperiment();
+}
+
+void Orchestrator ::Mara_OrchestratorStateMachine_action_notifyEnterSafe(SmId smId,
+                                                                         Mara_OrchestratorStateMachine::Signal signal) {
+    log_ACTIVITY_HI_EnterSafe();
 }
 
 }  // namespace Mara
