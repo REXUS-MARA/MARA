@@ -71,6 +71,10 @@ struct TopologyState {
     FileHandling::SubtopologyState fileHandling; //!< Subtopology state for FileHandling
 };
 
+static constexpr int EODSGpioPin {17};
+static constexpr int LOGpioPin {27};
+static constexpr int SOEGpioPin {22}; 
+
 namespace PingEntries = ::PingEntries;
 }  // namespace Mara
 

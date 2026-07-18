@@ -5,9 +5,13 @@ module Mara {
   # ----------------------------------------------------------------------
 
   enum Ports_RateGroups {
+    # 1 Hz
     rateGroup1
+    # 20 Hz
     rateGroup2
+    # 1/4 Hz
     rateGroup3
+    # 100 Hz
     rateGroup4
   }
 
@@ -34,9 +38,14 @@ module Mara {
     instance timer
     instance comDriver
     instance cmdSeq
-    # instance adxl345Manager
+    instance adxl345Manager
     instance ltrManager
     instance I2CDriver
+    instance orchestrator
+    instance gpioWatcher
+    instance LOgpioDriver
+    instance EODSgpioDriver
+    instance SOEgpioDriver
 
   # ----------------------------------------------------------------------
   # Pattern graph specifiers
@@ -113,12 +122,14 @@ module Mara {
       rateGroup1.RateGroupMemberOut[3] -> ComCcsds.comQueue.run
       rateGroup1.RateGroupMemberOut[4] -> ComCcsds.aggregator.timeout
       rateGroup1.RateGroupMemberOut[5] -> cmdSeq.schedIn
-      # rateGroup1.RateGroupMemberOut[6] -> adxl345Manager.run
+      rateGroup1.RateGroupMemberOut[6] -> adxl345Manager.run
       
 
       # Rate group 2
       rateGroupDriver.CycleOut[Ports_RateGroups.rateGroup2] -> rateGroup2.CycleIn
       rateGroup2.RateGroupMemberOut[0] -> ltrManager.run
+      rateGroup2.RateGroupMemberOut[1] -> gpioWatcher.schedIn
+
 
       # Rate group 3
       rateGroupDriver.CycleOut[Ports_RateGroups.rateGroup3] -> rateGroup3.CycleIn
@@ -130,6 +141,7 @@ module Mara {
 
       # Rate group 4
       rateGroupDriver.CycleOut[Ports_RateGroups.rateGroup4] -> rateGroup4.CycleIn
+
     }
 
     connections CdhCore_cmdSeq {
@@ -143,15 +155,22 @@ module Mara {
       ltrManager.busWrite          -> I2CDriver.write
       ltrManager.productGetOut     -> DataProducts.dpMgr.productGetIn
       ltrManager.productSendOut    -> DataProducts.dpMgr.productSendIn
+      gpioWatcher.EODSHigh         -> orchestrator.EODSHigh
+      gpioWatcher.LOHigh           -> orchestrator.LOHigh
+      gpioWatcher.SOEHigh          -> orchestrator.SOEHigh
+
+      gpioWatcher.EODSPinRead      -> EODSgpioDriver.gpioRead
+      gpioWatcher.LOPinRead        -> LOgpioDriver.gpioRead
+      gpioWatcher.SOEPinRead       -> SOEgpioDriver.gpioRead
     }
 
     # Connect ADXL345 to I2C driver
-    # connections ADXL345 {
-    #     adxl345Manager.i2cReadWrite -> I2CDriver.writeRead
-    #     adxl345Manager.i2cWrite -> I2CDriver.write
-    #     adxl345Manager.productGetOut  -> DataProducts.dpMgr.productGetIn
-    #     adxl345Manager.productSendOut -> DataProducts.dpMgr.productSendIn
-    # }
+    connections ADXL345 {
+        adxl345Manager.i2cReadWrite -> I2CDriver.writeRead
+        adxl345Manager.i2cWrite -> I2CDriver.write
+        adxl345Manager.productGetOut  -> DataProducts.dpMgr.productGetIn
+        adxl345Manager.productSendOut -> DataProducts.dpMgr.productSendIn
+    }
 
   }
 

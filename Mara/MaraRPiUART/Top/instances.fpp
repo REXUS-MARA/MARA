@@ -51,6 +51,10 @@ module Mara {
     stack size Default.STACK_SIZE \
     priority 39
 
+  instance orchestrator: Mara.Orchestrator base id 0x10006000 \
+    queue size Default.QUEUE_SIZE \
+    stack size Default.STACK_SIZE \
+    priority 38
   # ----------------------------------------------------------------------
   # Queued component instances
   # ----------------------------------------------------------------------
@@ -72,8 +76,16 @@ module Mara {
 
   instance comDriver: Drv.LinuxUartDriver base id 0x10014000
 
-  instance adxl345Manager: Mara.ADXL345Manager base id 0x10017000
+  instance adxl345Manager: Mara.ADXL345Manager base id 0x10016000
   
-  instance I2CDriver: Drv.LinuxI2cDriver base id 0x10016000
+  instance I2CDriver: Drv.LinuxI2cDriver base id 0x10017000
+
+  instance gpioWatcher: Mara.GPIOWatcher base id 0x10018000
+
+  instance LOgpioDriver: Drv.LinuxGpioDriver base id 0x10019000
+  
+  instance SOEgpioDriver: Drv.LinuxGpioDriver base id 0x10020000
+
+  instance EODSgpioDriver: Drv.LinuxGpioDriver base id 0x10021000
 
 }

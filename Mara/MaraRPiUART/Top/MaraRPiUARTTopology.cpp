@@ -57,13 +57,31 @@ void configureTopology() {
 
 
     if (not I2CDriver.open("/dev/i2c-1")) {
-        Fw::Logger::log("[ERROR] I2C driver open failed\\n");
+        Fw::Logger::log("[ERROR] I2C driver open failed\n");
     }
     else {
-        Fw::Logger::log("[INFO] I2C driver open successful\\n");
+        Fw::Logger::log("[INFO] I2C driver open successful\n");
     }
 
     ltrManager.configure(0x29); // Device I2C address from datasheet
+
+    Os::File::Status EODSstatus =
+        EODSgpioDriver.open("/dev/gpiochip4", EODSGpioPin, Drv::LinuxGpioDriver::GpioConfiguration::GPIO_INPUT);
+    if (EODSstatus != Os::File::Status::OP_OK) {
+        Fw::Logger::log("[ERROR] Failed to open GPIO pin for EODS line\n");
+    }
+
+    Os::File::Status LOstatus =
+        LOgpioDriver.open("/dev/gpiochip4", LOGpioPin, Drv::LinuxGpioDriver::GpioConfiguration::GPIO_INPUT);
+    if (LOstatus != Os::File::Status::OP_OK) {
+        Fw::Logger::log("[ERROR] Failed to open GPIO pin for LO line\n");
+    }
+
+    Os::File::Status SOEstatus =
+        SOEgpioDriver.open("/dev/gpiochip4", SOEGpioPin, Drv::LinuxGpioDriver::GpioConfiguration::GPIO_INPUT);
+    if (SOEstatus != Os::File::Status::OP_OK) {
+        Fw::Logger::log("[ERROR] Failed to open GPIO pin for SOE line\n");
+    }
 }
 
 void setupTopology(const TopologyState& state) {
