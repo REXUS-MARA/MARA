@@ -13,12 +13,11 @@ jobs:
     runs-on: ubuntu-latest
     container:
       image: ghcr.io/filipjsowa/fprime-arm:4.1.1
-    defaults:
-      run:
-        working-directory: ${{ github.workspace }}
 
     steps:
       - uses: actions/checkout@v7
+        with:
+            submodules: recursive
 
       - run: |
           fprime-util generate aarch64-linux
