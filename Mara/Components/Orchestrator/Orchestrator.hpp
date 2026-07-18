@@ -116,6 +116,42 @@ class Orchestrator final : public OrchestratorComponentBase {
     void Mara_OrchestratorStateMachine_action_doExperiment(SmId smId,  //!< The state machine id
                                                          Mara_OrchestratorStateMachine::Signal signal  //!< The signal
                                                          ) override;
+
+    //! Implementation for action notifyEnterTEST of state machine Mara_OrchestratorStateMachine
+    void Mara_OrchestratorStateMachine_action_notifyEnterTEST(
+        SmId smId,                                    //!< The state machine id
+        Mara_OrchestratorStateMachine::Signal signal  //!< The signal
+        ) override;
+
+    //! Implementation for action notifyExitTEST of state machine Mara_OrchestratorStateMachine
+    void Mara_OrchestratorStateMachine_action_notifyExitTEST(
+        SmId smId,                                    //!< The state machine id
+        Mara_OrchestratorStateMachine::Signal signal  //!< The signal
+        ) override;
+    
+    //! Implementation for action notifyEnterFlight of state machine Mara_OrchestratorStateMachine
+    void Mara_OrchestratorStateMachine_action_notifyEnterFlight(
+        SmId smId,                                    //!< The state machine id
+        Mara_OrchestratorStateMachine::Signal signal  //!< The signal
+        ) override;
+
+    //! Implementation for action notifyEnterExperiment of state machine Mara_OrchestratorStateMachine
+    void Mara_OrchestratorStateMachine_action_notifyEnterExperiment(
+        SmId smId,                                    //!< The state machine id
+        Mara_OrchestratorStateMachine::Signal signal  //!< The signal
+        ) override;
+
+    //! Implementation for action notifyEnterAfterExperiment of state machine Mara_OrchestratorStateMachine
+    void Mara_OrchestratorStateMachine_action_notifyEnterAfterExperiment(
+        SmId smId,                                    //!< The state machine id
+        Mara_OrchestratorStateMachine::Signal signal  //!< The signal
+        ) override;
+
+    //! Implementation for action notifyEnterSafe of state machine Mara_OrchestratorStateMachine
+    void Mara_OrchestratorStateMachine_action_notifyEnterSafe(
+        SmId smId,                                    //!< The state machine id
+        Mara_OrchestratorStateMachine::Signal signal  //!< The signal
+        ) override;
 };
 
 }  // namespace Mara

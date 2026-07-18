@@ -29,26 +29,6 @@ class GPIOWatcher final : public GPIOWatcherComponentBase {
     // ----------------------------------------------------------------------
     // Handler implementations for typed input ports
     // ----------------------------------------------------------------------
-
-    //! Handler implementation for EODSPinInterrupt
-    void EODSPinInterrupt_handler(FwIndexType portNum,  //!< The port number
-                                  U32 context           //!< The call order
-                                  ) override;
-
-    //! Handler implementation for LOPinInterrupt
-    //!
-    //! For each pin we have 2 input ports
-    //! One for the interrupt
-    //! And one for reading so that we can do software debouncing
-    void LOPinInterrupt_handler(FwIndexType portNum,  //!< The port number
-                                U32 context           //!< The call order
-                                ) override;
-
-    //! Handler implementation for SOEPinInterrupt
-    void SOEPinInterrupt_handler(FwIndexType portNum,  //!< The port number
-                                 U32 context           //!< The call order
-                                 ) override;
-
     //! Handler implementation for schedIn
     //!
     //! Preferably this would be connected to a rate group fast enough
@@ -59,13 +39,13 @@ class GPIOWatcher final : public GPIOWatcherComponentBase {
                          U32 context           //!< The call order
                          ) override;
     
-    static constexpr int m_rising_edges_threshold{5};
-    std::atomic<bool> m_LO_primed{false};
+    static constexpr int m_consecutive_highs_threshold{4};
     int m_LO_counter{0};
-    std::atomic<bool> m_SOE_primed{false};
+    bool m_LO_signal_emitted{false};
     int m_SOE_counter{0};
-    std::atomic<bool> m_EODS_primed{false};
+    bool m_SOE_signal_emitted{false};
     int m_EODS_counter{0};
+    bool m_EODS_signal_emitted{false};
 };
 
 }  // namespace Mara
