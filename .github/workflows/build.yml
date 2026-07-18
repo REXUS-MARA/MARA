@@ -78,5 +78,5 @@ jobs:
 
             Then run one of the commands above.
           files: |
-            /__w/MARA/MARA/build-artifacts/aarch64-linux/Mara_MaraRPiUART/bin/Mara_MaraRPiUART@MARA${{ github.ref_name }}
-            /__w/MARA/MARA/build-artifacts/aarch64-linux/Mara_MaraRPiUART/dict/MaraRPiUARTTopologyDictionary.json@MARADict${{ github.ref_name }}.json
+            /__w/MARA/MARA/build-artifacts/aarch64-linux/Mara_MaraRPiUART/bin/Mara_MaraRPiUART
+            /__w/MARA/MARA/build-artifacts/aarch64-linux/Mara_MaraRPiUART/dict/MaraRPiUARTTopologyDictionary.json
