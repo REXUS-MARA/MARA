@@ -29,14 +29,14 @@ jobs:
           body: |
             ### Deploy to Raspberry Pi
 
-            1. Copy `MARAv${{ github.ref_name }}` to the pi.
+            1. Copy `MARA${{ github.ref_name }}` to the pi.
             2. On the Pi, set capabilities:
                ```bash
-               sudo setcap 'cap_sys_nice=eip' MARAv${{ github.ref_name }}
+               sudo setcap 'cap_sys_nice=eip' MARA${{ github.ref_name }}
                ```
             3. Run the flight app:
                ```bash
-               ./MARAv${{ github.ref_name }} -d /dev/serial0 -b 115200
+               ./MARA${{ github.ref_name }} -d /dev/serial0 -b 115200
                ```
 
             ### Run the GDS
@@ -45,7 +45,7 @@ jobs:
 
             ```bash
             fprime-gds -n \
-              --dictionary MARADictv${{ github.ref_name }}.json \
+              --dictionary MARADict${{ github.ref_name }}.json \
               --communication-selection uart \
               --uart-baud 115200 \
               --uart-device /dev/cu.usbserial-BG02CR1I
@@ -58,7 +58,7 @@ jobs:
 
             ```bash
             fprime-gds -n \
-              --dictionary MARADictv${{ github.ref_name }}.json \
+              --dictionary MARADict${{ github.ref_name }}.json \
               --ip-client \
               --ip-address 127.0.0.1 \
               --ip-port 50000
@@ -78,5 +78,5 @@ jobs:
 
             Then run one of the commands above.
           files: |
-            build-artifacts/aarch64-linux/Mara_MaraRPiUART/bin/Mara_MaraRPiUART@MARAv${{ github.ref_name }}
-            build-artifacts/aarch64-linux/Mara_MaraRPiUART/dict/MaraRPiUARTTopologyDictionary.json@MARADictv${{ github.ref_name }}.json
+            /__w/MARA/MARA/build-artifacts/aarch64-linux/Mara_MaraRPiUART/bin/Mara_MaraRPiUART@MARA${{ github.ref_name }}
+            /__w/MARA/MARA/build-artifacts/aarch64-linux/Mara_MaraRPiUART/dict/MaraRPiUARTTopologyDictionary.json@MARADict${{ github.ref_name }}.json
