@@ -1,0 +1,80 @@
+name: Build the executable and dict
+
+on:
+  push:
+    tags:
+      - "v*"
+
+permissions:
+  contents: write
+
+jobs:
+  build-and-release:
+    runs-on: ubuntu-latest
+    container:
+      image: ghcr.io/filipjsowa/fprime-arm:4.1.1
+
+    steps:
+      - uses: actions/checkout@v7
+
+      - run: |
+          fprime-util generate aarch64-linux
+          fprime-util build aarch64-linux
+
+      - uses: softprops/action-gh-release@v3
+        with:
+          name: MARA ${{ github.ref_name }}
+          body: |
+            ### Deploy to Raspberry Pi
+
+            1. Copy `MARAv${{ github.ref_name }}` to the pi.
+            2. On the Pi, set capabilities:
+               ```bash
+               sudo setcap 'cap_sys_nice=eip' MARAv${{ github.ref_name }}
+               ```
+            3. Run the flight app:
+               ```bash
+               ./MARAv${{ github.ref_name }} -d /dev/serial0 -b 115200
+               ```
+
+            ### Run the GDS
+
+            If you have direct UART connection between the Pi and your laptop:
+
+            ```bash
+            fprime-gds -n \
+              --dictionary MARADictv${{ github.ref_name }}.json \
+              --communication-selection uart \
+              --uart-baud 115200 \
+              --uart-device /dev/cu.usbserial-BG02CR1I
+            ```
+
+            > `--uart-device` is machine-specific. On macOS it's typically `/dev/cu.usbserial-*`; on Linux something like `/dev/ttyUSB0` or `/dev/ttyACM0`.
+
+
+            If your Pi is connected to an RXSM and then the traffic served over TCP:
+
+            ```bash
+            fprime-gds -n \
+              --dictionary MARADictv${{ github.ref_name }}.json \
+              --ip-client \
+              --ip-address 127.0.0.1 \
+              --ip-port 50000
+            ```
+
+            Replace `127.0.0.1` with the actual server address. Default GDS IP port is 50000, you can skip that.
+
+            ### GDS setup
+
+            You have to have python installed on your laptop. Then you can just do :
+
+            ```bash
+            python -m venv .venv
+            source .venv/bin/activate  # Windows: .venv\Scripts\activate
+            pip install fprime-gds
+            ```
+
+            Then run one of the commands above.
+          files: |
+            build-artifacts/aarch64-linux/Mara_MaraRPiUART/bin/Mara_MaraRPiUART@MARAv${{ github.ref_name }}
+            build-artifacts/aarch64-linux/Mara_MaraRPiUART/dict/MaraRPiUARTTopologyDictionary.json@MARADictv${{ github.ref_name }}.json
