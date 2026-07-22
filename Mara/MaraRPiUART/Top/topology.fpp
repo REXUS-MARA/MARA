@@ -39,7 +39,6 @@ module Mara {
     instance comDriver
     instance cmdSeq
     instance adxl345Manager
-    instance ltrManager
     instance I2CDriver
     instance orchestrator
     instance gpioWatcher
@@ -127,8 +126,7 @@ module Mara {
 
       # Rate group 2
       rateGroupDriver.CycleOut[Ports_RateGroups.rateGroup2] -> rateGroup2.CycleIn
-      rateGroup2.RateGroupMemberOut[0] -> ltrManager.run
-      rateGroup2.RateGroupMemberOut[1] -> gpioWatcher.schedIn
+      rateGroup2.RateGroupMemberOut[0] -> gpioWatcher.schedIn
 
 
       # Rate group 3
@@ -151,10 +149,6 @@ module Mara {
     }
 
     connections MaraRPiUART {
-      ltrManager.busWriteRead      -> I2CDriver.writeRead
-      ltrManager.busWrite          -> I2CDriver.write
-      ltrManager.productGetOut     -> DataProducts.dpMgr.productGetIn
-      ltrManager.productSendOut    -> DataProducts.dpMgr.productSendIn
       gpioWatcher.EODSHigh         -> orchestrator.EODSHigh
       gpioWatcher.LOHigh           -> orchestrator.LOHigh
       gpioWatcher.SOEHigh          -> orchestrator.SOEHigh
