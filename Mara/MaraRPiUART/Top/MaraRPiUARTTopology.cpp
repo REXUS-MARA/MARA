@@ -63,8 +63,6 @@ void configureTopology() {
         Fw::Logger::log("[INFO] I2C driver open successful\n");
     }
 
-    ltrManager.configure(0x29); // Device I2C address from datasheet
-
     Os::File::Status EODSstatus =
         EODSgpioDriver.open("/dev/gpiochip4", EODSGpioPin, Drv::LinuxGpioDriver::GpioConfiguration::GPIO_INPUT);
     if (EODSstatus != Os::File::Status::OP_OK) {

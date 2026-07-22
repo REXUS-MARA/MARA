@@ -58,9 +58,6 @@ module Mara {
   # ----------------------------------------------------------------------
   # Queued component instances
   # ----------------------------------------------------------------------
-  
-  instance ltrManager: Mara.LtrManager base id 0x10015000 \
-    queue size Default.QUEUE_SIZE
 
   # ----------------------------------------------------------------------
   # Passive component instances
