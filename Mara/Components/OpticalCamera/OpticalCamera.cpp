@@ -20,7 +20,11 @@ OpticalCamera ::~OpticalCamera() {}
 // Handler implementations for typed input ports
 // ----------------------------------------------------------------------
 
-void OpticalCamera ::TODO_handler(FwIndexType portNum, U32 context) {
+void OpticalCamera ::Camera_ON_handler(FwIndexType portNum, U32 context) {
+    // TODO
+}
+
+void OpticalCamera ::Camera_OFF_handler(FwIndexType portNum, U32 context) {
     // TODO
 }
 

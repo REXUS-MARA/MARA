@@ -2,10 +2,11 @@ module Mara {
     @ Component for recording the camera
     active component OpticalCamera {
 
-        # One async command/port is required for active components
-        # This should be overridden by the developers with a useful command/port
-        @ TODO
-        async input port TODO: Svc.Sched
+        @ Turns on the camera recording
+        async input port Camera_ON: Svc.Sched
+
+        @ Turns off the camera recording
+        async input port Camera_OFF: Svc.Sched
 
         ##############################################################################
         #### Uncomment the following examples to start customizing your component ####

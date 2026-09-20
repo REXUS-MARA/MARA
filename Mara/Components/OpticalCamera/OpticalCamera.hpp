@@ -29,12 +29,19 @@ class OpticalCamera final : public OpticalCameraComponentBase {
     // Handler implementations for typed input ports
     // ----------------------------------------------------------------------
 
-    //! Handler implementation for TODO
+    //! Handler implementation for Camera_ON
     //!
-    //! TODO
-    void TODO_handler(FwIndexType portNum,  //!< The port number
+    //! Turns on the camera recording
+    void Camera_ON_handler(FwIndexType portNum,  //!< The port number
                       U32 context           //!< The call order
                       ) override;
+
+    //! Handler implementation for Camera_OFF
+    //!
+    //! Turns off the camera recording
+    void Camera_OFF_handler(FwIndexType portNum,  //!< The port number
+                       U32 context            //!< The call order
+                       ) override;
 };
 
 }  // namespace Mara
