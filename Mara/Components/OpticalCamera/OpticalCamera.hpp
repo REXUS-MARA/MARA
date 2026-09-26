@@ -9,6 +9,7 @@
 
 #include "Mara/Components/OpticalCamera/OpticalCameraComponentAc.hpp"
 #include "Fw/Types/String.hpp"
+#include <sys/types.h>
 
 namespace Mara {
 
