@@ -56,6 +56,16 @@ void Orchestrator ::testPlatform_cmdHandler(FwOpcodeType opCode, U32 cmdSeq) {
     cmdResponse_out(opCode, cmdSeq, Fw::CmdResponse::OK);
 }
 
+void Orchestrator ::testOpticalCamera_cmdHandler(FwOpcodeType opCode, U32 cmdSeq) {
+    OrchestratorStateMachine_sendSignal_testOpticalCamera();
+    cmdResponse_out(opCode, cmdSeq, Fw::CmdResponse::OK);
+}
+
+void Orchestrator ::testThermalCamera_cmdHandler(FwOpcodeType opCode, U32 cmdSeq) {
+    OrchestratorStateMachine_sendSignal_testThermalCamera();
+    cmdResponse_out(opCode, cmdSeq, Fw::CmdResponse::OK);
+}
+
 // ----------------------------------------------------------------------
 // Implementations for internal state machine actions
 // ----------------------------------------------------------------------
@@ -66,6 +76,16 @@ void Orchestrator ::Mara_OrchestratorStateMachine_action_doTestDrill(SmId smId,
 }
 
 void Orchestrator ::Mara_OrchestratorStateMachine_action_doTestPlatform(SmId smId,
+                                                                        Mara_OrchestratorStateMachine::Signal signal) {
+    // TODO
+}
+
+void Orchestrator ::Mara_OrchestratorStateMachine_action_doTestOpticalCamera(SmId smId,
+                                                                        Mara_OrchestratorStateMachine::Signal signal) {
+    // TODO
+}
+
+void Orchestrator ::Mara_OrchestratorStateMachine_action_doTestThermalCamera(SmId smId,
                                                                         Mara_OrchestratorStateMachine::Signal signal) {
     // TODO
 }

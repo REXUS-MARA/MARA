@@ -14,6 +14,10 @@ module Mara {
 
         async command testPlatform
 
+        async command testOpticalCamera
+
+        async command testThermalCamera
+
         state machine instance OrchestratorStateMachine : OrchestratorStateMachine
 
         async input port LOHigh: Fw.Signal
