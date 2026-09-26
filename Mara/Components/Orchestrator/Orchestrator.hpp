@@ -72,13 +72,23 @@ class Orchestrator final : public OrchestratorComponentBase {
                               U32 cmdSeq            //!< The command sequence number
                               ) override;
 
-    //! Handler implementation for command testOpticalCamera
-    void testOpticalCamera_cmdHandler(FwOpcodeType opCode,  //!< The opcode
+    //! Handler implementation for command testOpticalCameraON
+    void testOpticalCameraON_cmdHandler(FwOpcodeType opCode,  //!< The opcode
+                              U32 cmdSeq            //!< The command sequence number
+                              ) override;
+    
+    //! Handler implementation for command testOpticalCameraOFF
+    void testOpticalCameraOFF_cmdHandler(FwOpcodeType opCode,  //!< The opcode
                               U32 cmdSeq            //!< The command sequence number
                               ) override;
 
-    //! Handler implementation for command testThermalCamera
-    void testThermalCamera_cmdHandler(FwOpcodeType opCode,  //!< The opcode
+    //! Handler implementation for command testThermalCameraON
+    void testThermalCameraON_cmdHandler(FwOpcodeType opCode,  //!< The opcode
+                              U32 cmdSeq            //!< The command sequence number
+                              ) override;
+
+    //! Handler implementation for command testThermalCameraOFF
+    void testThermalCameraOFF_cmdHandler(FwOpcodeType opCode,  //!< The opcode
                               U32 cmdSeq            //!< The command sequence number
                               ) override;
   private:
@@ -101,22 +111,38 @@ class Orchestrator final : public OrchestratorComponentBase {
         Mara_OrchestratorStateMachine::Signal signal  //!< The signal
         ) override;
 
-    //! Implementation for action doTestOpticalCamera of state machine Mara_OrchestratorStateMachine
+    //! Implementation for action doTestOpticalCameraON of state machine Mara_OrchestratorStateMachine
     //!
-    //! test the optical camera
-    void Mara_OrchestratorStateMachine_action_doTestOpticalCamera(
+    //! test the optical camera ON
+    void Mara_OrchestratorStateMachine_action_doTestOpticalCameraON(
         SmId smId,                                    //!< The state machine id
         Mara_OrchestratorStateMachine::Signal signal  //!< The signal
         ) override;
 
-    //! Implementation for action doTestPlatform of state machine Mara_OrchestratorStateMachine
+    //! Implementation for action doTestOpticalCameraOFF of state machine Mara_OrchestratorStateMachine
     //!
-    //! test the thermal camera
-    void Mara_OrchestratorStateMachine_action_doTestThermalCamera(
+    //! test the optical camera OFF
+    void Mara_OrchestratorStateMachine_action_doTestOpticalCameraOFF(
+        SmId smId,                                    //!< The state machine id
+        Mara_OrchestratorStateMachine::Signal signal  //!< The signal
+        ) override;
+
+    //! Implementation for action doTestThermalCameraON of state machine Mara_OrchestratorStateMachine
+    //!
+    //! test the thermal camera ON
+    void Mara_OrchestratorStateMachine_action_doTestThermalCameraON(
         SmId smId,                                    //!< The state machine id
         Mara_OrchestratorStateMachine::Signal signal  //!< The signal
         ) override;
     
+    //! Implementation for action doTestThermalCameraOFF of state machine Mara_OrchestratorStateMachine
+    //!
+    //! test the thermal camera OFF
+    void Mara_OrchestratorStateMachine_action_doTestThermalCameraOFF(
+        SmId smId,                                    //!< The state machine id
+        Mara_OrchestratorStateMachine::Signal signal  //!< The signal
+        ) override;
+
     //! Implementation for action doTestLO of state machine Mara_OrchestratorStateMachine
     //!
     //! test the LO

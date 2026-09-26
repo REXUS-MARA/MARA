@@ -55,6 +55,11 @@ module Mara {
     queue size Default.QUEUE_SIZE \
     stack size Default.STACK_SIZE \
     priority 38
+
+  instance opticalCamera: Mara.OpticalCamera base id 0x10007000 \
+    queue size Default.QUEUE_SIZE \
+    stack size Default.STACK_SIZE \
+    priority 37
   # ----------------------------------------------------------------------
   # Queued component instances
   # ----------------------------------------------------------------------

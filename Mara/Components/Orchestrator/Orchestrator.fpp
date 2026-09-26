@@ -14,9 +14,11 @@ module Mara {
 
         async command testPlatform
 
-        async command testOpticalCamera
+        async command testOpticalCameraON
+        async command testOpticalCameraOFF
 
-        async command testThermalCamera
+        async command testThermalCameraON
+        async command testThermalCameraOFF
 
         state machine instance OrchestratorStateMachine : OrchestratorStateMachine
 
@@ -34,6 +36,8 @@ module Mara {
         event EnterAfterExperiment severity activity high format "Entered AfterExperiment state."
         event EnterSafe severity activity high format "Entered Safe state."
 
+        output port OpticalCameraON: Fw.Signal
+        output port OpticalCameraOFF: Fw.Signal
 
         ###############################################################################
         # Standard AC Ports: Required for Channels, Events, Commands, and Parameters  #
