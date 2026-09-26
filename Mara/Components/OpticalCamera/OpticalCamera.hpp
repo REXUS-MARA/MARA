@@ -8,40 +8,30 @@
 #define Mara_OpticalCamera_HPP
 
 #include "Mara/Components/OpticalCamera/OpticalCameraComponentAc.hpp"
+#include "Fw/Types/String.hpp"
 
 namespace Mara {
 
 class OpticalCamera final : public OpticalCameraComponentBase {
-  public:
-    // ----------------------------------------------------------------------
-    // Component construction and destruction
-    // ----------------------------------------------------------------------
-
-    //! Construct OpticalCamera object
-    OpticalCamera(const char* const compName  //!< The component name
-    );
-
-    //! Destroy OpticalCamera object
-    ~OpticalCamera();
+   public:
+    explicit OpticalCamera(const char* compName);
+    ~OpticalCamera() override;
 
   private:
-    // ----------------------------------------------------------------------
-    // Handler implementations for typed input ports
-    // ----------------------------------------------------------------------
+    void Camera_ON_handler(FwIndexType portNum) override;
+    void Camera_OFF_handler(FwIndexType portNum) override;
+    void pingIn_handler(FwIndexType portNum, U32 key) override;
 
-    //! Handler implementation for Camera_ON
-    //!
-    //! Turns on the camera recording
-    void Camera_ON_handler(FwIndexType portNum,  //!< The port number
-                      U32 context           //!< The call order
-                      ) override;
+    void checkRecorder();
+    void stopRecorder();
+    bool isRecording() const { return m_pid > 0; }
 
-    //! Handler implementation for Camera_OFF
-    //!
-    //! Turns off the camera recording
-    void Camera_OFF_handler(FwIndexType portNum,  //!< The port number
-                       U32 context            //!< The call order
-                       ) override;
+    pid_t m_pid = -1;
+    U32 m_segment = 0;
+    Fw::String m_primaryPath;  // path the running ffmpeg was started with
+    FwSizeType m_lastSize = 0;
+    U32 m_stalls = 0;
+    static const U32 STALL_PINGS = 5;
 };
 
 }  // namespace Mara
