@@ -50,6 +50,7 @@ namespace PingEntries {
     namespace Mara_rateGroup3 {enum { WARN = 3, FATAL = 5 };}
     namespace Mara_rateGroup4 {enum { WARN = 3, FATAL = 5 };}
     namespace Mara_cmdSeq {enum { WARN = 3, FATAL = 5 };}
+    namespace Mara_opticalCamera {enum { WARN = 3, FATAL = 5 };}
 }  // namespace PingEntries
 
 // Definitions are placed within the same namespace as the FPP module that contains the topology.

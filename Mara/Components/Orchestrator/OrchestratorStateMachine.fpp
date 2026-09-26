@@ -30,11 +30,35 @@ module Mara {
         @ test the platform motors
         signal testPlatform
 
+        @ test the optical camera ON
+        signal testOpticalCameraON
+
+        @ test the optical camera OFF
+        signal testOpticalCameraOFF
+
+        @ test the thermal camera ON
+        signal testThermalCameraON
+        
+        @ test the thermal camera OFF
+        signal testThermalCameraOFF
+
         @ test the main drill
         action doTestDrill
 
         @ test the platform motors
         action doTestPlatform
+
+        @ test the optical camera ON
+        action doTestOpticalCameraON
+
+        @ test the optical camera OFF
+        action doTestOpticalCameraOFF
+
+        @ test the thermal camera ON
+        action doTestThermalCameraON
+
+        @ test the thermal camera OFF
+        action doTestThermalCameraOFF
 
         @ test the LO
         action doTestLO
@@ -72,6 +96,10 @@ module Mara {
             @ testDrill and testPlatform
             on testDrill do { doTestDrill }
             on testPlatform do { doTestPlatform }
+            on testOpticalCameraON do { doTestOpticalCameraON }
+            on testOpticalCameraOFF do { doTestOpticalCameraOFF }
+            on testThermalCameraON do { doTestThermalCameraON }
+            on testThermalCameraOFF do { doTestThermalCameraOFF }
             exit do { notifyExitTEST }
         }
 

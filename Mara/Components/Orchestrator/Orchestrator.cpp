@@ -56,6 +56,26 @@ void Orchestrator ::testPlatform_cmdHandler(FwOpcodeType opCode, U32 cmdSeq) {
     cmdResponse_out(opCode, cmdSeq, Fw::CmdResponse::OK);
 }
 
+void Orchestrator ::testOpticalCameraON_cmdHandler(FwOpcodeType opCode, U32 cmdSeq) {
+    OrchestratorStateMachine_sendSignal_testOpticalCameraON();
+    cmdResponse_out(opCode, cmdSeq, Fw::CmdResponse::OK);
+}
+
+void Orchestrator ::testOpticalCameraOFF_cmdHandler(FwOpcodeType opCode, U32 cmdSeq) {
+    OrchestratorStateMachine_sendSignal_testOpticalCameraOFF();
+    cmdResponse_out(opCode, cmdSeq, Fw::CmdResponse::OK);
+}
+
+void Orchestrator ::testThermalCameraON_cmdHandler(FwOpcodeType opCode, U32 cmdSeq) {
+    OrchestratorStateMachine_sendSignal_testThermalCameraON();
+    cmdResponse_out(opCode, cmdSeq, Fw::CmdResponse::OK);
+}
+
+void Orchestrator ::testThermalCameraOFF_cmdHandler(FwOpcodeType opCode, U32 cmdSeq) {
+    OrchestratorStateMachine_sendSignal_testThermalCameraOFF();
+    cmdResponse_out(opCode, cmdSeq, Fw::CmdResponse::OK);
+}
+
 // ----------------------------------------------------------------------
 // Implementations for internal state machine actions
 // ----------------------------------------------------------------------
@@ -66,6 +86,30 @@ void Orchestrator ::Mara_OrchestratorStateMachine_action_doTestDrill(SmId smId,
 }
 
 void Orchestrator ::Mara_OrchestratorStateMachine_action_doTestPlatform(SmId smId,
+                                                                        Mara_OrchestratorStateMachine::Signal signal) {
+    // TODO
+}
+
+void Orchestrator ::Mara_OrchestratorStateMachine_action_doTestOpticalCameraON(SmId smId,
+                                                                        Mara_OrchestratorStateMachine::Signal signal) {
+    if(isConnected_OpticalCameraON_OutputPort(0)){
+        OpticalCameraON_out(0);
+    }
+}
+
+void Orchestrator ::Mara_OrchestratorStateMachine_action_doTestOpticalCameraOFF(SmId smId,
+                                                                        Mara_OrchestratorStateMachine::Signal signal) {
+    if(isConnected_OpticalCameraOFF_OutputPort(0)){
+        OpticalCameraOFF_out(0);
+    }
+}
+
+void Orchestrator ::Mara_OrchestratorStateMachine_action_doTestThermalCameraON(SmId smId,
+                                                                        Mara_OrchestratorStateMachine::Signal signal) {
+    // TODO
+}
+
+void Orchestrator ::Mara_OrchestratorStateMachine_action_doTestThermalCameraOFF(SmId smId,
                                                                         Mara_OrchestratorStateMachine::Signal signal) {
     // TODO
 }

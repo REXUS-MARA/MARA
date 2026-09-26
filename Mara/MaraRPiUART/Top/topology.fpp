@@ -45,6 +45,7 @@ module Mara {
     instance LOgpioDriver
     instance EODSgpioDriver
     instance SOEgpioDriver
+    instance opticalCamera
 
   # ----------------------------------------------------------------------
   # Pattern graph specifiers
@@ -156,6 +157,9 @@ module Mara {
       gpioWatcher.EODSPinRead      -> EODSgpioDriver.gpioRead
       gpioWatcher.LOPinRead        -> LOgpioDriver.gpioRead
       gpioWatcher.SOEPinRead       -> SOEgpioDriver.gpioRead
+
+      orchestrator.OpticalCameraON -> opticalCamera.Camera_ON
+      orchestrator.OpticalCameraOFF -> opticalCamera.Camera_OFF
     }
 
     # Connect ADXL345 to I2C driver
