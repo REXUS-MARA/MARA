@@ -47,7 +47,7 @@ void Orchestrator ::exitTestMode_cmdHandler(FwOpcodeType opCode, U32 cmdSeq) {
 }
 
 void Orchestrator ::testDrill_cmdHandler(FwOpcodeType opCode, U32 cmdSeq) {
-    OrchestratorStateMachine_sendSignal_testDrill();
+    OrchestratorStateMachine_sendSignal_startDrill();
     cmdResponse_out(opCode, cmdSeq, Fw::CmdResponse::OK);
 }
 
@@ -60,7 +60,7 @@ void Orchestrator ::testPlatform_cmdHandler(FwOpcodeType opCode, U32 cmdSeq) {
 // Implementations for internal state machine actions
 // ----------------------------------------------------------------------
 
-void Orchestrator ::Mara_OrchestratorStateMachine_action_doTestDrill(SmId smId,
+void Orchestrator ::Mara_OrchestratorStateMachine_action_doStartDrill(SmId smId,
                                                                      Mara_OrchestratorStateMachine::Signal signal) {
     // TODO
 }

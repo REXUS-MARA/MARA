@@ -80,6 +80,24 @@ void configureTopology() {
     if (SOEstatus != Os::File::Status::OP_OK) {
         Fw::Logger::log("[ERROR] Failed to open GPIO pin for SOE line\n");
     }
+
+    Os::File::Status DrillMotorOnStatus =
+        drillMotorOnDriver.open("/dev/gpiochip4", DrillMotorOnGpioPin, Drv::LinuxGpioDriver::GpioConfiguration::GPIO_OUTPUT);
+    if (DrillMotorOnStatus != Os::File::Status::OP_OK) {
+        Fw::Logger::log("[ERROR] Failed to open GPIO pin for drill motor on/rpm line\n");
+    }
+
+    Os::File::Status DrillMotorDirStatus =
+        drillMotorDirDriver.open("/dev/gpiochip4", DrillMotorDirGpioPin, Drv::LinuxGpioDriver::GpioConfiguration::GPIO_OUTPUT);
+    if (DrillMotorDirStatus != Os::File::Status::OP_OK) {
+        Fw::Logger::log("[ERROR] Failed to open GPIO pin for drill motor direction line\n");
+    }
+
+    Os::File::Status DrillMotorStatusStatus =
+        drillMotorStatusDriver.open("/dev/gpiochip4", DrillMotorStatusGpioPin, Drv::LinuxGpioDriver::GpioConfiguration::GPIO_INPUT);
+    if (DrillMotorStatusStatus != Os::File::Status::OP_OK) {
+        Fw::Logger::log("[ERROR] Failed to open GPIO pin for drill motor status line\n");
+    }
 }
 
 void setupTopology(const TopologyState& state) {

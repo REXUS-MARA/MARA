@@ -57,7 +57,7 @@ void GPIOWatcher ::schedIn_handler(FwIndexType portNum, U32 context) {
                 [this]<typename ...Ts>(Ts&& ...ts) {return log_ACTIVITY_HI_EODSSpike(std::forward<Ts>(ts)...);},
                 [this]<typename ...Ts>(Ts&& ...ts) {return log_ACTIVITY_HI_EODSDetected(std::forward<Ts>(ts)...);},
                 [this]<typename ...Ts>(Ts&& ...ts) {return EODSHigh_out(std::forward<Ts>(ts)...);},
-                m_EODS_counter,
+                m_EODS_counter, 
                 m_EODS_signal_emitted );
 
     check_pins( [this]<typename ...Ts>(Ts&& ...ts) {return isConnected_LOPinRead_OutputPort(std::forward<Ts>(ts)...);},

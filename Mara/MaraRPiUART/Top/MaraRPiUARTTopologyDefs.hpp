@@ -73,7 +73,10 @@ struct TopologyState {
 
 static constexpr int EODSGpioPin {17};
 static constexpr int LOGpioPin {27};
-static constexpr int SOEGpioPin {22}; 
+static constexpr int SOEGpioPin {22};
+static constexpr int DrillMotorOnGpioPin {1};
+static constexpr int DrillMotorDirGpioPin {12};
+static constexpr int DrillMotorStatusGpioPin {16}; 
 
 namespace PingEntries = ::PingEntries;
 }  // namespace Mara

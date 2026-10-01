@@ -85,4 +85,12 @@ module Mara {
 
   instance EODSgpioDriver: Drv.LinuxGpioDriver base id 0x10040000
 
+  instance drillMotorOnDriver: Drv.LinuxGpioDriver base id 0x10041000
+
+  instance drillMotorDirDriver: Drv.LinuxGpioDriver base id 0x10042000
+
+  instance drillMotorStatusDriver: Drv.LinuxGpioDriver base id 0x10043000
+
+  instance drillMotor: Mara.DrillMotor base id 0x10044000
+
 }

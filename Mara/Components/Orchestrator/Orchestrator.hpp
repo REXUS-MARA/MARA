@@ -80,7 +80,7 @@ class Orchestrator final : public OrchestratorComponentBase {
     //! Implementation for action doTestDrill of state machine Mara_OrchestratorStateMachine
     //!
     //! test the main drill
-    void Mara_OrchestratorStateMachine_action_doTestDrill(SmId smId,  //!< The state machine id
+    void Mara_OrchestratorStateMachine_action_doStartDrill(SmId smId,  //!< The state machine id
                                                           Mara_OrchestratorStateMachine::Signal signal  //!< The signal
                                                           ) override;
 

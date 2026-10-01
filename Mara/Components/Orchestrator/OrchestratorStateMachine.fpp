@@ -25,13 +25,13 @@ module Mara {
         signal error
 
         @ test the main drill
-        signal testDrill
+        signal startDrill
 
         @ test the platform motors
         signal testPlatform
 
         @ test the main drill
-        action doTestDrill
+        action doStartDrill
 
         @ test the platform motors
         action doTestPlatform
@@ -70,7 +70,7 @@ module Mara {
             on EODS do { doTestEODS }
             @ maybe we should put some guards around 
             @ testDrill and testPlatform
-            on testDrill do { doTestDrill }
+            on startDrill do { doStartDrill }
             on testPlatform do { doTestPlatform }
             exit do { notifyExitTEST }
         }

@@ -45,6 +45,10 @@ module Mara {
     instance LOgpioDriver
     instance EODSgpioDriver
     instance SOEgpioDriver
+    instance drillMotorOnDriver
+    instance drillMotorDirDriver
+    instance drillMotorStatusDriver
+    instance drillMotor
 
   # ----------------------------------------------------------------------
   # Pattern graph specifiers
@@ -127,6 +131,7 @@ module Mara {
       # Rate group 2
       rateGroupDriver.CycleOut[Ports_RateGroups.rateGroup2] -> rateGroup2.CycleIn
       rateGroup2.RateGroupMemberOut[0] -> gpioWatcher.schedIn
+      rateGroup2.RateGroupMemberOut[1] -> drillMotor.schedIn
 
 
       # Rate group 3
@@ -164,6 +169,12 @@ module Mara {
         adxl345Manager.i2cWrite -> I2CDriver.write
         adxl345Manager.productGetOut  -> DataProducts.dpMgr.productGetIn
         adxl345Manager.productSendOut -> DataProducts.dpMgr.productSendIn
+    }
+
+    connections DrillMotor {
+        drillMotor.motorPinWrite     -> drillMotorOnDriver.gpioWrite
+        drillMotor.directionPinWrite -> drillMotorDirDriver.gpioWrite
+        drillMotor.statusPinRead     -> drillMotorStatusDriver.gpioRead
     }
 
   }
