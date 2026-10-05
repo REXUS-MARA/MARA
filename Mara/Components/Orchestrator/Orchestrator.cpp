@@ -21,15 +21,22 @@ Orchestrator ::~Orchestrator() {}
 // ----------------------------------------------------------------------
 
 void Orchestrator ::EODSHigh_handler(FwIndexType portNum) {
-    OrchestratorStateMachine_sendSignal_EODS();
+    this->OrchestratorStateMachine_sendSignal_EODS();
 }
 
 void Orchestrator ::LOHigh_handler(FwIndexType portNum) {
-    OrchestratorStateMachine_sendSignal_LO();
+    this->OrchestratorStateMachine_sendSignal_LO();
 }
 
 void Orchestrator ::SOEHigh_handler(FwIndexType portNum) {
-    OrchestratorStateMachine_sendSignal_SOE();
+    this->OrchestratorStateMachine_sendSignal_SOE();
+}
+
+void Orchestrator ::schedIn_handler(FwIndexType portNum, U32 context) {
+    m_phaseSeconds++;
+    this->tlmWrite_PhaseSeconds(m_phaseSeconds);
+    // States that don't handle tick ignore it
+    this->OrchestratorStateMachine_sendSignal_tick();
 }
 
 // ----------------------------------------------------------------------
@@ -37,134 +44,238 @@ void Orchestrator ::SOEHigh_handler(FwIndexType portNum) {
 // ----------------------------------------------------------------------
 
 void Orchestrator ::enterTestMode_cmdHandler(FwOpcodeType opCode, U32 cmdSeq) {
-    OrchestratorStateMachine_sendSignal_EnterTest();
-    cmdResponse_out(opCode, cmdSeq, Fw::CmdResponse::OK);
+    this->OrchestratorStateMachine_sendSignal_EnterTest();
+    this->cmdResponse_out(opCode, cmdSeq, Fw::CmdResponse::OK);
 }
 
 void Orchestrator ::exitTestMode_cmdHandler(FwOpcodeType opCode, U32 cmdSeq) {
-    OrchestratorStateMachine_sendSignal_ExitTest();
-    cmdResponse_out(opCode, cmdSeq, Fw::CmdResponse::OK);
+    this->OrchestratorStateMachine_sendSignal_ExitTest();
+    this->cmdResponse_out(opCode, cmdSeq, Fw::CmdResponse::OK);
 }
 
-void Orchestrator ::testDrill_cmdHandler(FwOpcodeType opCode, U32 cmdSeq) {
-    OrchestratorStateMachine_sendSignal_testDrill();
-    cmdResponse_out(opCode, cmdSeq, Fw::CmdResponse::OK);
+void Orchestrator ::testDrillON_cmdHandler(FwOpcodeType opCode, U32 cmdSeq) {
+    this->OrchestratorStateMachine_sendSignal_testDrillON();
+    this->cmdResponse_out(opCode, cmdSeq, Fw::CmdResponse::OK);
 }
 
-void Orchestrator ::testPlatform_cmdHandler(FwOpcodeType opCode, U32 cmdSeq) {
-    OrchestratorStateMachine_sendSignal_testPlatform();
-    cmdResponse_out(opCode, cmdSeq, Fw::CmdResponse::OK);
+void Orchestrator ::testDrillOFF_cmdHandler(FwOpcodeType opCode, U32 cmdSeq) {
+    this->OrchestratorStateMachine_sendSignal_testDrillOFF();
+    this->cmdResponse_out(opCode, cmdSeq, Fw::CmdResponse::OK);
+}
+
+void Orchestrator ::testPlatformMoveTo_cmdHandler(FwOpcodeType opCode, U32 cmdSeq, I32 position) {
+    this->OrchestratorStateMachine_sendSignal_testPlatformMoveTo(position);
+    this->cmdResponse_out(opCode, cmdSeq, Fw::CmdResponse::OK);
+}
+
+void Orchestrator ::testPlatformStop_cmdHandler(FwOpcodeType opCode, U32 cmdSeq) {
+    this->OrchestratorStateMachine_sendSignal_testPlatformStop();
+    this->cmdResponse_out(opCode, cmdSeq, Fw::CmdResponse::OK);
 }
 
 void Orchestrator ::testOpticalCameraON_cmdHandler(FwOpcodeType opCode, U32 cmdSeq) {
-    OrchestratorStateMachine_sendSignal_testOpticalCameraON();
-    cmdResponse_out(opCode, cmdSeq, Fw::CmdResponse::OK);
+    this->OrchestratorStateMachine_sendSignal_testOpticalCameraON();
+    this->cmdResponse_out(opCode, cmdSeq, Fw::CmdResponse::OK);
 }
 
 void Orchestrator ::testOpticalCameraOFF_cmdHandler(FwOpcodeType opCode, U32 cmdSeq) {
-    OrchestratorStateMachine_sendSignal_testOpticalCameraOFF();
-    cmdResponse_out(opCode, cmdSeq, Fw::CmdResponse::OK);
+    this->OrchestratorStateMachine_sendSignal_testOpticalCameraOFF();
+    this->cmdResponse_out(opCode, cmdSeq, Fw::CmdResponse::OK);
 }
 
 void Orchestrator ::testThermalCameraON_cmdHandler(FwOpcodeType opCode, U32 cmdSeq) {
-    OrchestratorStateMachine_sendSignal_testThermalCameraON();
-    cmdResponse_out(opCode, cmdSeq, Fw::CmdResponse::OK);
+    this->OrchestratorStateMachine_sendSignal_testThermalCameraON();
+    this->cmdResponse_out(opCode, cmdSeq, Fw::CmdResponse::OK);
 }
 
 void Orchestrator ::testThermalCameraOFF_cmdHandler(FwOpcodeType opCode, U32 cmdSeq) {
-    OrchestratorStateMachine_sendSignal_testThermalCameraOFF();
-    cmdResponse_out(opCode, cmdSeq, Fw::CmdResponse::OK);
+    this->OrchestratorStateMachine_sendSignal_testThermalCameraOFF();
+    this->cmdResponse_out(opCode, cmdSeq, Fw::CmdResponse::OK);
 }
 
 // ----------------------------------------------------------------------
 // Implementations for internal state machine actions
 // ----------------------------------------------------------------------
 
-void Orchestrator ::Mara_OrchestratorStateMachine_action_doTestDrill(SmId smId,
-                                                                     Mara_OrchestratorStateMachine::Signal signal) {
-    // TODO
-}
-
-void Orchestrator ::Mara_OrchestratorStateMachine_action_doTestPlatform(SmId smId,
-                                                                        Mara_OrchestratorStateMachine::Signal signal) {
-    // TODO
-}
-
-void Orchestrator ::Mara_OrchestratorStateMachine_action_doTestOpticalCameraON(SmId smId,
-                                                                        Mara_OrchestratorStateMachine::Signal signal) {
-    if(isConnected_OpticalCameraON_OutputPort(0)){
-        OpticalCameraON_out(0);
+void Orchestrator ::Mara_OrchestratorStateMachine_action_drillOn(SmId smId,
+                                                                 Mara_OrchestratorStateMachine::Signal signal) {
+    if (this->isConnected_DrillON_OutputPort(0)) {
+        this->DrillON_out(0);
     }
 }
 
-void Orchestrator ::Mara_OrchestratorStateMachine_action_doTestOpticalCameraOFF(SmId smId,
-                                                                        Mara_OrchestratorStateMachine::Signal signal) {
-    if(isConnected_OpticalCameraOFF_OutputPort(0)){
-        OpticalCameraOFF_out(0);
+void Orchestrator ::Mara_OrchestratorStateMachine_action_drillOff(SmId smId,
+                                                                  Mara_OrchestratorStateMachine::Signal signal) {
+    if (this->isConnected_DrillOFF_OutputPort(0)) {
+        this->DrillOFF_out(0);
     }
 }
 
-void Orchestrator ::Mara_OrchestratorStateMachine_action_doTestThermalCameraON(SmId smId,
-                                                                        Mara_OrchestratorStateMachine::Signal signal) {
-    // TODO
+void Orchestrator ::Mara_OrchestratorStateMachine_action_cameraOn(SmId smId,
+                                                                  Mara_OrchestratorStateMachine::Signal signal) {
+    if (this->isConnected_OpticalCameraON_OutputPort(0)) {
+        this->OpticalCameraON_out(0);
+    }
 }
 
-void Orchestrator ::Mara_OrchestratorStateMachine_action_doTestThermalCameraOFF(SmId smId,
+void Orchestrator ::Mara_OrchestratorStateMachine_action_cameraOff(SmId smId,
+                                                                   Mara_OrchestratorStateMachine::Signal signal) {
+    if (this->isConnected_OpticalCameraOFF_OutputPort(0)) {
+        this->OpticalCameraOFF_out(0);
+    }
+}
+
+void Orchestrator ::Mara_OrchestratorStateMachine_action_platformEnable(SmId smId,
                                                                         Mara_OrchestratorStateMachine::Signal signal) {
-    // TODO
+    if (this->isConnected_PlatformEnable_OutputPort(0)) {
+        this->PlatformEnable_out(0);
+    }
+}
+
+void Orchestrator ::Mara_OrchestratorStateMachine_action_platformAdvance(SmId smId,
+                                                                         Mara_OrchestratorStateMachine::Signal signal) {
+    if (this->isConnected_PlatformMoveTo_OutputPort(0)) {
+        this->PlatformMoveTo_out(0, m_drillPosition);
+    }
+}
+
+void Orchestrator ::Mara_OrchestratorStateMachine_action_platformRetract(SmId smId,
+                                                                         Mara_OrchestratorStateMachine::Signal signal) {
+    if (this->isConnected_PlatformMoveTo_OutputPort(0)) {
+        this->PlatformMoveTo_out(0, 0);
+    }
+}
+
+void Orchestrator ::Mara_OrchestratorStateMachine_action_platformStop(SmId smId,
+                                                                      Mara_OrchestratorStateMachine::Signal signal) {
+    if (this->isConnected_PlatformStop_OutputPort(0)) {
+        this->PlatformStop_out(0);
+    }
+}
+
+void Orchestrator ::Mara_OrchestratorStateMachine_action_doTestPlatformMoveTo(
+    SmId smId,
+    Mara_OrchestratorStateMachine::Signal signal,
+    I32 value) {
+    if (this->isConnected_PlatformMoveTo_OutputPort(0)) {
+        this->PlatformMoveTo_out(0, value);
+    }
+}
+
+void Orchestrator ::Mara_OrchestratorStateMachine_action_doTestThermalCameraON(
+    SmId smId,
+    Mara_OrchestratorStateMachine::Signal signal) {
+    // TODO: no thermal camera component yet
+}
+
+void Orchestrator ::Mara_OrchestratorStateMachine_action_doTestThermalCameraOFF(
+    SmId smId,
+    Mara_OrchestratorStateMachine::Signal signal) {
+    // TODO: no thermal camera component yet
 }
 
 void Orchestrator ::Mara_OrchestratorStateMachine_action_doTestLO(SmId smId,
                                                                   Mara_OrchestratorStateMachine::Signal signal) {
-    log_ACTIVITY_HI_LOTestSignal();
+    this->log_ACTIVITY_HI_LOTestSignal();
 }
 
 void Orchestrator ::Mara_OrchestratorStateMachine_action_doTestSOE(SmId smId,
                                                                    Mara_OrchestratorStateMachine::Signal signal) {
-    log_ACTIVITY_HI_SOETestSignal();
+    this->log_ACTIVITY_HI_SOETestSignal();
 }
 
 void Orchestrator ::Mara_OrchestratorStateMachine_action_doTestEODS(SmId smId,
                                                                     Mara_OrchestratorStateMachine::Signal signal) {
-    log_ACTIVITY_HI_EODSTestSignal();
+    this->log_ACTIVITY_HI_EODSTestSignal();
 }
 
-void Orchestrator ::Mara_OrchestratorStateMachine_action_doExperiment(SmId smId,
-                                                                    Mara_OrchestratorStateMachine::Signal signal) {
-    // TODO
+void Orchestrator ::Mara_OrchestratorStateMachine_action_loadTimeline(SmId smId,
+                                                                      Mara_OrchestratorStateMachine::Signal signal) {
+    Fw::ParamValid valid;
+    m_spinUpSeconds = this->paramGet_SPIN_UP_SECONDS(valid);
+    m_advanceSeconds = this->paramGet_ADVANCE_SECONDS(valid);
+    m_retractSeconds = this->paramGet_RETRACT_SECONDS(valid);
+    m_drillPosition = this->paramGet_DRILL_POSITION(valid);
+}
+
+void Orchestrator ::Mara_OrchestratorStateMachine_action_resetPhaseTimer(SmId smId,
+                                                                         Mara_OrchestratorStateMachine::Signal signal) {
+    m_phaseSeconds = 0;
+    this->tlmWrite_PhaseSeconds(m_phaseSeconds);
 }
 
 void Orchestrator ::Mara_OrchestratorStateMachine_action_notifyEnterTEST(SmId smId,
                                                                          Mara_OrchestratorStateMachine::Signal signal) {
-    log_ACTIVITY_HI_EnterTest();
+    this->log_ACTIVITY_HI_EnterTest();
 }
 
 void Orchestrator ::Mara_OrchestratorStateMachine_action_notifyExitTEST(SmId smId,
                                                                         Mara_OrchestratorStateMachine::Signal signal) {
-    log_ACTIVITY_HI_ExitTest();
+    this->log_ACTIVITY_HI_ExitTest();
 }
 
 void Orchestrator ::Mara_OrchestratorStateMachine_action_notifyEnterFlight(
     SmId smId,
     Mara_OrchestratorStateMachine::Signal signal) {
-    log_ACTIVITY_HI_EnterFlight();
+    this->log_ACTIVITY_HI_EnterFlight();
 }
 
 void Orchestrator ::Mara_OrchestratorStateMachine_action_notifyEnterExperiment(
     SmId smId,
     Mara_OrchestratorStateMachine::Signal signal) {
-    log_ACTIVITY_HI_EnterExperiment();
+    this->log_ACTIVITY_HI_EnterExperiment();
+}
+
+void Orchestrator ::Mara_OrchestratorStateMachine_action_notifySpinUp(SmId smId,
+                                                                      Mara_OrchestratorStateMachine::Signal signal) {
+    this->log_ACTIVITY_HI_PhaseSpinUp(m_spinUpSeconds);
+}
+
+void Orchestrator ::Mara_OrchestratorStateMachine_action_notifyAdvance(SmId smId,
+                                                                       Mara_OrchestratorStateMachine::Signal signal) {
+    this->log_ACTIVITY_HI_PhaseAdvance(m_drillPosition, m_advanceSeconds);
+}
+
+void Orchestrator ::Mara_OrchestratorStateMachine_action_notifyRetract(SmId smId,
+                                                                       Mara_OrchestratorStateMachine::Signal signal) {
+    this->log_ACTIVITY_HI_PhaseRetract(m_retractSeconds);
+}
+
+void Orchestrator ::Mara_OrchestratorStateMachine_action_notifyDone(SmId smId,
+                                                                    Mara_OrchestratorStateMachine::Signal signal) {
+    this->log_ACTIVITY_HI_PhaseDone();
 }
 
 void Orchestrator ::Mara_OrchestratorStateMachine_action_notifyEnterAfterExperiment(
     SmId smId,
     Mara_OrchestratorStateMachine::Signal signal) {
-    log_ACTIVITY_HI_EnterAfterExperiment();
+    this->log_ACTIVITY_HI_EnterAfterExperiment();
 }
 
 void Orchestrator ::Mara_OrchestratorStateMachine_action_notifyEnterSafe(SmId smId,
                                                                          Mara_OrchestratorStateMachine::Signal signal) {
-    log_ACTIVITY_HI_EnterSafe();
+    this->log_ACTIVITY_HI_EnterSafe();
+}
+
+// ----------------------------------------------------------------------
+// Implementations for internal state machine guards
+// ----------------------------------------------------------------------
+
+bool Orchestrator ::Mara_OrchestratorStateMachine_guard_spinUpDone(SmId smId,
+                                                                   Mara_OrchestratorStateMachine::Signal signal) const {
+    return m_phaseSeconds >= m_spinUpSeconds;
+}
+
+bool Orchestrator ::Mara_OrchestratorStateMachine_guard_advanceDone(
+    SmId smId,
+    Mara_OrchestratorStateMachine::Signal signal) const {
+    return m_phaseSeconds >= m_advanceSeconds;
+}
+
+bool Orchestrator ::Mara_OrchestratorStateMachine_guard_retractDone(
+    SmId smId,
+    Mara_OrchestratorStateMachine::Signal signal) const {
+    return m_phaseSeconds >= m_retractSeconds;
 }
 
 }  // namespace Mara
