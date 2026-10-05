@@ -33,6 +33,9 @@ U32 rateGroup4Context[Svc::ActiveRateGroup::CONNECTION_COUNT_MAX] = {};
 
 enum TopologyConstants {
     COMM_PRIORITY = 34,
+    MOTOR_UART_PRIORITY = 35,
+    MOTOR_BUFFER_SIZE = 64,   // largest UART read for motorUart; drive replies are 13-byte frames
+    MOTOR_BUFFER_COUNT = 10,
 };
 
 /**
@@ -55,6 +58,12 @@ void configureTopology() {
     // Command sequencer needs to allocate memory to hold contents of command sequences
     cmdSeq.allocateBuffer(0, mallocator, 5 * 1024);
 
+
+    // Receive buffers for the platform motor UART
+    Svc::BufferManager::BufferBins motorBins{};
+    motorBins.bins[0].bufferSize = MOTOR_BUFFER_SIZE;
+    motorBins.bins[0].numBuffers = MOTOR_BUFFER_COUNT;
+    motorBufferManager.setup(MotorBufferManagerId, 0, mallocator, motorBins);
 
     if (not I2CDriver.open("/dev/i2c-1")) {
         Fw::Logger::log("[ERROR] I2C driver open failed\n");
@@ -109,6 +118,15 @@ void setupTopology(const TopologyState& state) {
             printf("Failed to open UART device %s at baud rate %" PRIu32 "\n", state.uartDevice, state.baudRate);
         }
     }
+    // Platform motor: Waveshare USB-CAN-A at 2 Mbps (baud rates above 230400 only exist on Linux)
+#ifdef TGT_OS_TYPE_LINUX
+    if (motorUart.open(MotorUartDevice, Drv::LinuxUartDriver::BAUD_2000K, Drv::LinuxUartDriver::NO_FLOW,
+                       Drv::LinuxUartDriver::PARITY_NONE, MOTOR_BUFFER_SIZE)) {
+        motorUart.start(MOTOR_UART_PRIORITY, Default::STACK_SIZE);
+    } else {
+        Fw::Logger::log("[ERROR] Failed to open platform motor UART %s\n", MotorUartDevice);
+    }
+#endif
 }
 
 void startRateGroups(const Fw::TimeInterval& interval) {
@@ -131,9 +149,12 @@ void teardownTopology(const TopologyState& state) {
     // Other task clean-up.
     comDriver.quitReadThread();
     (void)comDriver.join();
+    motorUart.quitReadThread();
+    (void)motorUart.join();
 
     // Resource deallocation
     cmdSeq.deallocateBuffer(mallocator);
+    motorBufferManager.cleanup();
 
     tearDownComponents(state);
 }
