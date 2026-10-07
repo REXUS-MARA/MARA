@@ -45,6 +45,16 @@ TEST(Monitoring, NoStallWhileGrowing) {
     tester.testNoStallWhileGrowing();
 }
 
+TEST(Recording, StopTimeoutKills) {
+    Mara::OpticalCameraTester tester;
+    tester.testStopTimeoutKills();
+}
+
+TEST(Recording, SigintIgnoredByParent) {
+    Mara::OpticalCameraTester tester;
+    tester.testSigintIgnoredByParent();
+}
+
 TEST(Recording, SpawnFailed) {
     Mara::OpticalCameraTester tester;
     tester.testSpawnFailed();

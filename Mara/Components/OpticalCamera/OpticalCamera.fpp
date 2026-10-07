@@ -50,6 +50,9 @@ module Mara {
         @ ffmpeg stops by itself after this many seconds
         param MAX_SECONDS: U32 default 900
 
+        @ How long OFF waits for ffmpeg to finalise its files after SIGINT before killing it
+        param STOP_TIMEOUT_SECONDS: U32 default 5
+
         # ------------------------------------------------------------------
         # Events
         # ------------------------------------------------------------------
@@ -71,6 +74,18 @@ module Mara {
         event RecorderExitedEarly(seg: U32, status: I32) \
         severity warning high \
         format "ffmpeg for segment {} exited unexpectedly, raw status {}"
+
+        @ ffmpeg did not stop within STOP_TIMEOUT_SECONDS of SIGINT and was killed.
+        @ The last part of the segment may not be finalised.
+        event RecorderKilled(seg: U32, timeoutSeconds: U32) \
+        severity warning high \
+        format "ffmpeg for segment {} did not stop within {} s and was killed"
+
+        @ ffmpeg could not be reaped even after SIGKILL (e.g. stuck in the USB driver).
+        @ It is no longer tracked; a new ON starts a new process.
+        event RecorderUnresponsive(seg: U32) \
+        severity warning high \
+        format "ffmpeg for segment {} is unresponsive even to SIGKILL; abandoned"
 
         @ Output file stopped growing while ffmpeg is still running
         event RecorderStalled(seg: U32, bytes: U64) \

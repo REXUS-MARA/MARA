@@ -15,6 +15,7 @@
 #include "Mara/Components/OpticalCamera/OpticalCamera.hpp"
 #include "Mara/Components/OpticalCamera/OpticalCameraGTestBase.hpp"
 
+#include <functional>
 #include <string>
 #include <vector>
 
@@ -72,8 +73,14 @@ class OpticalCameraTester final : public OpticalCameraGTestBase {
     //! A growing output file never reports a stall
     void testNoStallWhileGrowing();
 
-    //! No ffmpeg on PATH: SpawnFailed, and the component keeps working
+    //! No ffmpeg on PATH: the failure is reported, and the component keeps working
     void testSpawnFailed();
+
+    //! A recorder that ignores SIGINT is killed after STOP_TIMEOUT_SECONDS; OFF doesn't hang
+    void testStopTimeoutKills();
+
+    //! With SIGINT ignored in the FSW, ffmpeg still stops on SIGINT (started with default handling)
+    void testSigintIgnoredByParent();
 
     //! Path of the fake's lifecycle log (for checks after the tester is gone)
     std::string logPath() const { return m_dir + "/ffmpeg.log"; }
@@ -96,6 +103,16 @@ class OpticalCameraTester final : public OpticalCameraGTestBase {
     void on();
     void off();
     void ping();
+
+    //! Ping (as Health would) until condition holds, up to timeoutMs. \return whether it held
+    bool pingUntil(const std::function<bool()>& condition, U32 timeoutMs = 3000);
+
+    //! PID of the most recently started fake ffmpeg, from its log; -1 if none
+    pid_t lastFakePid() const;
+
+    //! Pings sent so far, and pings answered
+    FwSizeType pingsSent() const { return m_pingsSent; }
+    FwSizeType eventHistory_pingOut_size() const { return this->fromPortHistory_pingOut->size(); }
 
     //! Select the fake's behaviour: "record" (default), "exit0", "exit1", "stall"
     void setMode(const char* mode);
@@ -126,6 +143,8 @@ class OpticalCameraTester final : public OpticalCameraGTestBase {
 
     //! PATH before the test, restored in the destructor
     std::string m_savedPath;
+
+    FwSizeType m_pingsSent = 0;
 };
 
 }  // namespace Mara

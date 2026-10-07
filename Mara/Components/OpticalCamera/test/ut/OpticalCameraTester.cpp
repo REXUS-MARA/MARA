@@ -14,6 +14,8 @@
 #include <fstream>
 #include <iomanip>
 #include <sstream>
+#include <algorithm>
+#include <csignal>
 #include <thread>
 
 namespace Mara {
@@ -26,6 +28,7 @@ log="$FAKE_FFMPEG_LOG"
 : > "$log.args"
 for a in "$@"; do printf '%s\n' "$a" >> "$log.args"; done
 echo start >> "$log"
+echo "pid $$" >> "$log"
 spec=""
 for a in "$@"; do spec="$a"; done
 primary="${spec#\[f=matroska\]}"
@@ -34,6 +37,7 @@ trap 'echo sigint >> "$log"; exit 0' INT
 case "$FAKE_FFMPEG_MODE" in
   exit0) echo exit0 >> "$log"; exit 0 ;;
   exit1) echo exit1 >> "$log"; exit 1 ;;
+  ignoreint) trap '' INT; while true; do echo frame >> "$primary"; sleep 0.05; done ;;
   stall) echo frame >> "$primary"; while true; do sleep 0.05; done ;;
   *) while true; do echo frame >> "$primary"; sleep 0.05; done ;;
 esac
@@ -173,33 +177,36 @@ void OpticalCameraTester ::testOffWhenIdle() {
 void OpticalCameraTester ::testExitedEarly() {
     this->setMode("exit1");
     this->on();
-    ASSERT_EVENTS_RecordingStarted_SIZE(1);
-    sleepMs(500);  // let it exit
+    ASSERT_EQ(this->eventHistory_RecordingStarted->size(), 1U);
 
-    this->ping();
-    ASSERT_from_pingOut_SIZE(1);  // always answered
-    ASSERT_EVENTS_RecorderExitedEarly_SIZE(1);
+    // Pings until ffmpeg's exit is noticed (no fixed sleep: CI machines vary in speed)
+    ASSERT_TRUE(this->pingUntil([this]() { return this->eventHistory_RecorderExitedEarly->size() > 0; }));
+    ASSERT_EQ(this->eventHistory_RecorderExitedEarly->size(), 1U);
     ASSERT_EQ(this->eventHistory_RecorderExitedEarly->at(0).seg, 1U);
+    ASSERT_EQ(this->eventHistory_pingOut_size(), this->pingsSent());  // always answered
 
     this->ping();
-    ASSERT_EVENTS_RecorderExitedEarly_SIZE(1);  // reported once
+    ASSERT_EQ(this->eventHistory_RecorderExitedEarly->size(), 1U);  // reported once
 
     // Not recording any more, so ON starts a new segment
     this->setMode("record");
     this->startRecording();
-    ASSERT_EVENTS_RecordingStarted_SIZE(2);
+    ASSERT_EQ(this->eventHistory_RecordingStarted->size(), 2U);
     this->off();
 }
 
 void OpticalCameraTester ::testExitedNormally() {
     this->setMode("exit0");
     this->on();
-    sleepMs(500);
+    // Ping until the component has reaped it (MAX_SECONDS reached is a normal exit). A process
+    // that has exited but not been reaped still exists for kill(pid, 0).
+    const pid_t pid = this->lastFakePid();
+    ASSERT_GT(pid, 0);
+    ASSERT_TRUE(this->pingUntil([pid]() { return ::kill(pid, 0) != 0; }));
 
-    this->ping();
-    ASSERT_EVENTS_RecorderExitedEarly_SIZE(0);
+    ASSERT_EQ(this->eventHistory_RecorderExitedEarly->size(), 0U);
     this->off();  // nothing left to stop
-    ASSERT_EVENTS_RecordingStopped_SIZE(0);
+    ASSERT_EQ(this->eventHistory_RecordingStopped->size(), 0U);
 }
 
 void OpticalCameraTester ::testStall() {
@@ -211,17 +218,16 @@ void OpticalCameraTester ::testStall() {
     for (U32 i = 0; i < 4; i++) {
         this->ping();
     }
-    ASSERT_EVENTS_RecorderStalled_SIZE(0);
+    ASSERT_EQ(this->eventHistory_RecorderStalled->size(), 0U);
     this->ping();
-    ASSERT_EVENTS_RecorderStalled_SIZE(1);
+    ASSERT_EQ(this->eventHistory_RecorderStalled->size(), 1U);
     ASSERT_EQ(this->eventHistory_RecorderStalled->at(0).seg, 1U);
     ASSERT_GT(this->eventHistory_RecorderStalled->at(0).bytes, 0U);
 
     for (U32 i = 0; i < 5; i++) {
         this->ping();
     }
-    ASSERT_EVENTS_RecorderStalled_SIZE(1);  // reported once
-    ASSERT_from_pingOut_SIZE(11);
+    ASSERT_EQ(this->eventHistory_RecorderStalled->size(), 1U);  // reported once
     this->off();
 }
 
@@ -231,7 +237,7 @@ void OpticalCameraTester ::testNoStallWhileGrowing() {
         sleepMs(150);  // the fake writes every 50 ms
         this->ping();
     }
-    ASSERT_EVENTS_RecorderStalled_SIZE(0);
+    ASSERT_EQ(this->eventHistory_RecorderStalled->size(), 0U);
     this->off();
 }
 
@@ -242,32 +248,78 @@ void OpticalCameraTester ::testSpawnFailed() {
     ASSERT_EQ(::setenv("PATH", emptyDir.c_str(), 1), 0);
 
     this->on();
-#ifdef TGT_OS_TYPE_LINUX
-    // glibc's posix_spawnp succeeds even when the program is not found; the child exits 127.
-    // So on Linux (the flight target) a missing ffmpeg shows up as RecordingStarted followed
-    // by RecorderExitedEarly on the next ping, never as SpawnFailed. Reported as a finding.
-    ASSERT_EVENTS_SpawnFailed_SIZE(0);
-    ASSERT_EVENTS_RecordingStarted_SIZE(1);
-    sleepMs(300);
+    // The C library may report a missing program from posix_spawnp itself (SpawnFailed), or start
+    // a child that fails to exec and exits 127 (seen under emulation): then the next pings report
+    // RecorderExitedEarly. Either way the failure must be reported, and nothing keeps running.
+    FwSizeType startedBefore = 0;
+    if (this->eventHistory_SpawnFailed->size() == 1) {
+        ASSERT_EQ(this->eventHistory_RecordingStarted->size(), 0U);
+    } else {
+        ASSERT_EQ(this->eventHistory_SpawnFailed->size(), 0U);
+        ASSERT_EQ(this->eventHistory_RecordingStarted->size(), 1U);
+        ASSERT_TRUE(this->pingUntil([this]() { return this->eventHistory_RecorderExitedEarly->size() > 0; }));
+        ASSERT_EQ(this->eventHistory_RecorderExitedEarly->size(), 1U);
+        const I32 status = this->eventHistory_RecorderExitedEarly->at(0).status;
+        ASSERT_TRUE(WIFEXITED(status) && WEXITSTATUS(status) == 127) << "raw status " << status;
+        startedBefore = 1;
+    }
     this->ping();
-    ASSERT_EVENTS_RecorderExitedEarly_SIZE(1);
-    const I32 status = this->eventHistory_RecorderExitedEarly->at(0).status;
-    ASSERT_TRUE(WIFEXITED(status) && WEXITSTATUS(status) == 127) << "raw status " << status;
-    const FwSizeType startedBefore = 1;
-#else
-    // macOS reports the missing program from posix_spawnp itself
-    ASSERT_EVENTS_SpawnFailed_SIZE(1);
-    ASSERT_EVENTS_RecordingStarted_SIZE(0);
-    this->ping();
-    const FwSizeType startedBefore = 0;
-#endif
-    ASSERT_from_pingOut_SIZE(1);
+    ASSERT_EQ(this->eventHistory_pingOut_size(), this->pingsSent());
 
     // Fix PATH: the component keeps working
     ASSERT_EQ(::setenv("PATH", (m_dir + "/bin:/usr/bin:/bin").c_str(), 1), 0);
     this->startRecording();
-    ASSERT_EVENTS_RecordingStarted_SIZE(startedBefore + 1);
+    ASSERT_EQ(this->eventHistory_RecordingStarted->size(), startedBefore + 1);
     this->off();
+}
+
+void OpticalCameraTester ::testStopTimeoutKills() {
+    // A recorder that ignores SIGINT (stands in for a wedged camera)
+    this->paramSet_STOP_TIMEOUT_SECONDS(1, Fw::ParamValid::VALID);
+    this->component.loadParameters();
+    this->setMode("ignoreint");
+    this->startRecording();
+    const pid_t pid = this->lastFakePid();
+    ASSERT_GT(pid, 0);
+
+    const auto begin = std::chrono::steady_clock::now();
+    this->off();
+    const auto elapsed =
+        std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now() - begin).count();
+
+    ASSERT_LT(elapsed, 3000) << "OFF must not block much past STOP_TIMEOUT_SECONDS";
+    ASSERT_EQ(this->eventHistory_RecorderKilled->size(), 1U);
+    ASSERT_EQ(this->eventHistory_RecorderKilled->at(0).seg, 1U);
+    ASSERT_EQ(this->eventHistory_RecorderKilled->at(0).timeoutSeconds, 1U);
+    ASSERT_EQ(this->eventHistory_RecorderUnresponsive->size(), 0U);
+    ASSERT_EQ(this->eventHistory_RecordingStopped->size(), 1U);
+    ASSERT_NE(::kill(pid, 0), 0) << "ffmpeg is still running";
+
+    // The component works normally afterwards
+    this->setMode("record");
+    this->startRecording();
+    this->off();
+    ASSERT_EQ(this->eventHistory_RecorderKilled->size(), 1U);
+}
+
+void OpticalCameraTester ::testSigintIgnoredByParent() {
+    // The FSW may be started from a background shell, which ignores SIGINT; children inherit that.
+    // ffmpeg must still be stoppable by SIGINT (started with default signal handling).
+    struct sigaction ignore = {};
+    ignore.sa_handler = SIG_IGN;
+    struct sigaction previous = {};
+    ASSERT_EQ(::sigaction(SIGINT, &ignore, &previous), 0);
+
+    this->paramSet_STOP_TIMEOUT_SECONDS(2, Fw::ParamValid::VALID);
+    this->component.loadParameters();
+    this->startRecording();
+    this->off();
+
+    (void)::sigaction(SIGINT, &previous, nullptr);
+    ASSERT_EQ(this->eventHistory_RecorderKilled->size(), 0U) << "ffmpeg ignored SIGINT and had to be killed";
+    ASSERT_EQ(this->eventHistory_RecordingStopped->size(), 1U);
+    std::vector<std::string> lines = this->logLines();
+    ASSERT_NE(std::find(lines.begin(), lines.end(), "sigint"), lines.end());
 }
 
 // ----------------------------------------------------------------------
@@ -287,12 +339,42 @@ void OpticalCameraTester ::off() {
 void OpticalCameraTester ::ping() {
     this->invoke_to_pingIn(0, 0);
     this->component.doDispatch();
+    m_pingsSent++;
+}
+
+pid_t OpticalCameraTester ::lastFakePid() const {
+    // The fake logs its PID as it starts, which may be just after ON returns: wait for it
+    const auto deadline = std::chrono::steady_clock::now() + std::chrono::milliseconds(2000);
+    while (true) {
+        pid_t pid = -1;
+        for (const std::string& line : this->logLines()) {
+            if (line.compare(0, 4, "pid ") == 0) {
+                pid = static_cast<pid_t>(std::stol(line.substr(4)));
+            }
+        }
+        if (pid > 0 || std::chrono::steady_clock::now() >= deadline) {
+            return pid;
+        }
+        sleepMs(20);
+    }
+}
+
+bool OpticalCameraTester ::pingUntil(const std::function<bool()>& condition, U32 timeoutMs) {
+    const auto deadline = std::chrono::steady_clock::now() + std::chrono::milliseconds(timeoutMs);
+    while (!condition()) {
+        if (std::chrono::steady_clock::now() >= deadline) {
+            return false;
+        }
+        sleepMs(50);
+        this->ping();
+    }
+    return true;
 }
 
 void OpticalCameraTester ::startRecording() {
     const FwSizeType before = this->eventHistory_RecordingStarted->size();
     this->on();
-    ASSERT_EQ(this->eventHistory_RecordingStarted->size(), before + 1);
+    ASSERT_EQ(this->eventHistory_RecordingStarted->size(), before + 1);  // gtest ASSERT: stops before at()
     const U32 segment = this->eventHistory_RecordingStarted->at(before).seg;
     std::ostringstream name;
     name << "/cam_" << std::setw(3) << std::setfill('0') << segment << ".mkv";

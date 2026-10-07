@@ -6,6 +6,7 @@
 
 #include "Mara/Components/OpticalCamera/OpticalCamera.hpp"
 #include "Os/FileSystem.hpp"
+#include "Os/Task.hpp"
 
 #include <array>
 #include <cinttypes>
@@ -24,7 +25,7 @@ namespace Mara {
 OpticalCamera ::OpticalCamera(const char* const compName) : OpticalCameraComponentBase(compName) {}
 
 OpticalCamera ::~OpticalCamera() {
-    stopRecorder();
+    stopRecorder(false);  // no events: at teardown the event components may already be gone
 }
 
 // ----------------------------------------------------------------------
@@ -66,7 +67,22 @@ void OpticalCamera ::Camera_ON_handler(FwIndexType portNum) {
         "-f", "tee", teeSpec.toChar(), // writes to both cards
         nullptr};
 
-    const int err = posix_spawnp(&m_pid, "ffmpeg", nullptr, nullptr, const_cast<char* const*>(argv.data()), environ);
+    // Start ffmpeg with default SIGINT/SIGTERM handling and nothing blocked, whatever this process
+    // inherited: a program started from a background shell has SIGINT ignored, and OFF relies on it.
+    posix_spawnattr_t attr;
+    (void)posix_spawnattr_init(&attr);
+    sigset_t defaults;
+    (void)sigemptyset(&defaults);
+    (void)sigaddset(&defaults, SIGINT);
+    (void)sigaddset(&defaults, SIGTERM);
+    (void)posix_spawnattr_setsigdefault(&attr, &defaults);
+    sigset_t noneBlocked;
+    (void)sigemptyset(&noneBlocked);
+    (void)posix_spawnattr_setsigmask(&attr, &noneBlocked);
+    (void)posix_spawnattr_setflags(&attr, static_cast<short>(POSIX_SPAWN_SETSIGDEF | POSIX_SPAWN_SETSIGMASK));
+
+    const int err = posix_spawnp(&m_pid, "ffmpeg", nullptr, &attr, const_cast<char* const*>(argv.data()), environ);
+    (void)posix_spawnattr_destroy(&attr);
     if (err != 0) {
         m_pid = -1;
         this->log_WARNING_HI_SpawnFailed(err);
@@ -121,13 +137,39 @@ void OpticalCamera::checkRecorder() {
     }
 }
 
-void OpticalCamera::stopRecorder() {
+void OpticalCamera::stopRecorder(bool report) {
     if (!isRecording()) {
         return;
     }
+    Fw::ParamValid valid;
+    const U32 timeoutSeconds = this->paramGet_STOP_TIMEOUT_SECONDS(valid);
+
     (void)kill(m_pid, SIGINT);  // ffmpeg finalises the files and exits
-    (void)waitpid(m_pid, nullptr, 0);
+    if (!waitForExit(timeoutSeconds * 1000)) {
+        // Not stopping (e.g. the camera wedged): kill it rather than block this component forever
+        (void)kill(m_pid, SIGKILL);
+        if (report) {
+            this->log_WARNING_HI_RecorderKilled(m_segment, timeoutSeconds);
+        }
+        if (!waitForExit(KILL_TIMEOUT_MS) && report) {
+            // Stuck in the kernel (uninterruptible). Stop tracking it; a new ON starts a new ffmpeg.
+            this->log_WARNING_HI_RecorderUnresponsive(m_segment);
+        }
+    }
     m_pid = -1;
+}
+
+bool OpticalCamera::waitForExit(U32 timeoutMs) {
+    for (U32 waited = 0;; waited += POLL_MS) {
+        const pid_t result = waitpid(m_pid, nullptr, WNOHANG);
+        if (result == m_pid || result < 0) {
+            return true;  // reaped (or not our child any more)
+        }
+        if (waited >= timeoutMs) {
+            return false;
+        }
+        (void)Os::Task::delay(Fw::TimeInterval(0, POLL_MS * 1000));
+    }
 }
 
 }  // namespace Mara
