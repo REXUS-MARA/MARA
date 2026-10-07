@@ -1,6 +1,6 @@
 # Mara::PlatformMotor
 
-Moves the drill platform. The drive is a Technosoft iPOS (closed-loop stepper) using CANopen CiA 402 in profile position mode. It is reached through a Waveshare USB-CAN-A adapter, which appears as a CH341 serial port at 2 Mbps and is driven by `Drv.LinuxUartDriver` (`motorUart`).
+Moves the drill platform. The drive is a Technosoft iPOS (closed-loop stepper) using CANopen CiA 402 in profile position mode. It is reached through a Waveshare USB-CAN-A adapter, which appears as a CH341 serial port at 2 Mbps and is driven by `Mara.ReconnectingUartDriver` (`motorUart`).
 
 The component has no commands of its own. Only the Orchestrator drives it, so the platform can move only in TEST (from ground commands) or during the EXPERIMENT timeline.
 
@@ -32,6 +32,13 @@ If both `MIN_POSITION` and `MAX_POSITION` are 0, `enable` raises `LimitsUnset` (
 - A move writes controlword 0x0F (so the next setpoint is a rising edge), then the target (0x607A), then 0x3F (new setpoint, change immediately). A retract therefore overrides an unfinished advance.
 - Position 0 is wherever the platform was at drive power-up. Homing is not implemented yet.
 - There are no FATAL events. If a send fails (adapter unplugged, driver not connected), the handler stops at that write, skips the rest of the command and raises a single `SendFailed` (WARNING_HI). `Enabled`/`MovingTo`/`Stopped` and the `TargetPosition` telemetry are only emitted when the whole command was sent.
+
+## Adapter or drive unplugged
+- **Adapter missing or unplugged:** `motorUart` keeps retrying and logs `AdapterNotConnected`/`AdapterDisconnected` once. Every platform command meanwhile logs one `SendFailed` and does nothing. When the adapter comes back, `motorUart` logs `AdapterConnected` and the next command goes through, with no restart.
+- **Drive power-cycled:** reconnecting the adapter does not re-enable the drive. Re-enter TEST (`exitTestMode`, `enterTestMode`), or wait for EXPERIMENT entry, to send `enable` again. Position 0 is then wherever the platform was when the drive powered up.
+
+## Reply handling (for when replies are parsed)
+`fromByteStreamDriver` runs on `motorUart`'s read task, not on this component's thread. Today it only returns the buffer, which is safe. When drive replies are parsed, hand the parsed result to the component thread (an internal or async port) instead of touching component state from that handler.
 
 ## Not done yet
 - Parsing drive replies: SDO aborts as events, statusword and actual position as telemetry.

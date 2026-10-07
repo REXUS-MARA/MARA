@@ -65,6 +65,14 @@ void configureTopology() {
     motorBins.bins[0].numBuffers = MOTOR_BUFFER_COUNT;
     motorBufferManager.setup(MotorBufferManagerId, 0, mallocator, motorBins);
 
+    // Platform motor: Waveshare USB-CAN-A at 2 Mbps. Only stores the settings; the driver's read task
+    // opens the adapter and keeps retrying, so the software runs without it and picks up a hot-plug.
+    // 2 Mbps only exists on Linux.
+#ifdef TGT_OS_TYPE_LINUX
+    motorUart.configure(MotorUartDevice, ReconnectingUartDriver::BAUD_2000K, ReconnectingUartDriver::NO_FLOW,
+                        ReconnectingUartDriver::PARITY_NONE, MOTOR_BUFFER_SIZE);
+#endif
+
     if (not I2CDriver.open("/dev/i2c-1")) {
         Fw::Logger::log("[ERROR] I2C driver open failed\n");
     }
@@ -118,13 +126,10 @@ void setupTopology(const TopologyState& state) {
             printf("Failed to open UART device %s at baud rate %" PRIu32 "\n", state.uartDevice, state.baudRate);
         }
     }
-    // Platform motor: Waveshare USB-CAN-A at 2 Mbps (baud rates above 230400 only exist on Linux)
+    // Platform motor UART read task: connects to the adapter whenever it is present
 #ifdef TGT_OS_TYPE_LINUX
-    if (motorUart.open(MotorUartDevice, Drv::LinuxUartDriver::BAUD_2000K, Drv::LinuxUartDriver::NO_FLOW,
-                       Drv::LinuxUartDriver::PARITY_NONE, MOTOR_BUFFER_SIZE)) {
-        motorUart.start(MOTOR_UART_PRIORITY, Default::STACK_SIZE);
-    } else {
-        Fw::Logger::log("[ERROR] Failed to open platform motor UART %s\n", MotorUartDevice);
+    if (motorUart.start(MOTOR_UART_PRIORITY, Default::STACK_SIZE) != Os::Task::OP_OK) {
+        Fw::Logger::log("[ERROR] Failed to start platform motor UART task\n");
     }
 #endif
 }

@@ -97,7 +97,7 @@ module Mara {
   instance EODSgpioDriver: Drv.LinuxGpioDriver base id 0x10040000
 
   @ UART to the Waveshare USB-CAN-A adapter for the platform motor drive
-  instance motorUart: Drv.LinuxUartDriver base id 0x10041000
+  instance motorUart: Mara.ReconnectingUartDriver base id 0x10041000
 
   @ Receive buffers for motorUart
   instance motorBufferManager: Svc.BufferManager base id 0x10042000
