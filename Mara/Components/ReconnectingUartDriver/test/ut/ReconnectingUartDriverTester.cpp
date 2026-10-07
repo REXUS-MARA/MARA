@@ -355,10 +355,10 @@ std::string ReconnectingUartDriverTester ::readFromDriver(FwSizeType count, U32 
     while (out.size() < count && std::chrono::steady_clock::now() < deadline) {
         struct pollfd pfd = {m_master, POLLIN, 0};
         if (::poll(&pfd, 1, 50) > 0 && (pfd.revents & POLLIN) != 0) {
-            char chunk[64];
-            const ssize_t n = ::read(m_master, chunk, sizeof chunk);
+            std::array<char, 64> chunk{};
+            const ssize_t n = ::read(m_master, chunk.data(), chunk.size());
             if (n > 0) {
-                out.append(chunk, static_cast<size_t>(n));
+                out.append(chunk.data(), static_cast<size_t>(n));
             }
         }
     }
