@@ -124,7 +124,10 @@ module Mara {
             on EnterTest enter TEST
         }
 
-        @ On the ground, connected to the rocket: hardware is driven by ground commands
+        @ On the ground, connected to the rocket: hardware is driven by ground commands.
+        @ LO/SOE/EODS are deliberately only logged here, at ESA's request for this flight
+        @ (against the usual practice of leaving TEST on LO). The operator must send
+        @ exitTestMode before launch, or the experiment will not run.
         state TEST {
             entry do { notifyEnterTEST, platformEnable }
             on ExitTest enter IDLE
@@ -139,7 +142,9 @@ module Mara {
             on testOpticalCameraOFF do { cameraOff }
             on testThermalCameraON do { doTestThermalCameraON }
             on testThermalCameraOFF do { doTestThermalCameraOFF }
-            exit do { notifyExitTEST }
+            @ Leave in a known state: drill and camera off, platform back to 0.
+            @ The retract is a move to 0 rather than a halt, so it never freezes mid-way.
+            exit do { drillOff, cameraOff, platformRetract, notifyExitTEST }
         }
 
         @ After lift-off, waiting for the start of the experiment

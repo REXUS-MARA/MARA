@@ -28,10 +28,14 @@ The timeline parameters are read once, on entry to EXPERIMENT. Each phase logs a
 | `SPIN_UP_SECONDS` | 3 | drill spin-up before advancing |
 | `ADVANCE_SECONDS` | 60 | drilling time |
 | `RETRACT_SECONDS` | 60 | time allowed for the retract (only marks DONE) |
-| `DRILL_POSITION` | 0 | platform target in counts. **TODO**, and also limited by PlatformMotor `MAX_POSITION` |
+| `DRILL_POSITION` | 0 | platform target in counts. **TODO**, and also limited by PlatformMotor `MAX_POSITION`. If it is 0 when the experiment starts, `DrillPositionUnset` (WARNING_HI) is raised and the timeline still runs |
 
 ## TEST mode (on the ground, connected to the rocket)
-Entering TEST enables the platform drive. LO/SOE/EODS are only logged. The test commands below are accepted in every state but act only in TEST, so ground commands can't move hardware in flight.
+Entering TEST enables the platform drive. LO/SOE/EODS are only logged. This is deliberate, at ESA's request for this flight, against the usual practice of leaving TEST on LO. **Pre-launch step: send `exitTestMode`.** If the software is still in TEST at lift-off, the experiment will not run.
+
+The test commands below only act in TEST. In any other state they are not executed: the Orchestrator logs `TestCommandIgnored` (WARNING_LO) and responds `EXECUTION_ERROR`, which also aborts a test sequence file that runs in the wrong state. Likewise `enterTestMode` is only accepted in IDLE (`EnterTestIgnored`) and `exitTestMode` only in TEST (`ExitTestIgnored`).
+
+Leaving TEST puts the hardware in a known state: drill off, camera off, platform moving back to 0. The retract is a move to 0, not a halt, so it never stops mid-way.
 
 | Command | Effect |
 |---|---|

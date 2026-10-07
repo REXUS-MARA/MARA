@@ -311,6 +311,15 @@ class Orchestrator final : public OrchestratorComponentBase {
 
   private:
     // ----------------------------------------------------------------------
+    // Helpers
+    // ----------------------------------------------------------------------
+
+    //! Test commands only act in TEST. Otherwise logs TestCommandIgnored and responds EXECUTION_ERROR.
+    //! \return true if the command may proceed
+    bool acceptTestCommand(FwOpcodeType opCode, U32 cmdSeq);
+
+  private:
+    // ----------------------------------------------------------------------
     // Experiment timeline state
     // ----------------------------------------------------------------------
 

@@ -44,51 +44,85 @@ void Orchestrator ::schedIn_handler(FwIndexType portNum, U32 context) {
 // ----------------------------------------------------------------------
 
 void Orchestrator ::enterTestMode_cmdHandler(FwOpcodeType opCode, U32 cmdSeq) {
+    if (this->OrchestratorStateMachine_getState() != Mara_OrchestratorStateMachine::State::IDLE) {
+        this->log_WARNING_LO_EnterTestIgnored();
+        this->cmdResponse_out(opCode, cmdSeq, Fw::CmdResponse::EXECUTION_ERROR);
+        return;
+    }
     this->OrchestratorStateMachine_sendSignal_EnterTest();
     this->cmdResponse_out(opCode, cmdSeq, Fw::CmdResponse::OK);
 }
 
 void Orchestrator ::exitTestMode_cmdHandler(FwOpcodeType opCode, U32 cmdSeq) {
+    if (this->OrchestratorStateMachine_getState() != Mara_OrchestratorStateMachine::State::TEST) {
+        this->log_WARNING_LO_ExitTestIgnored();
+        this->cmdResponse_out(opCode, cmdSeq, Fw::CmdResponse::EXECUTION_ERROR);
+        return;
+    }
     this->OrchestratorStateMachine_sendSignal_ExitTest();
     this->cmdResponse_out(opCode, cmdSeq, Fw::CmdResponse::OK);
 }
 
 void Orchestrator ::testDrillON_cmdHandler(FwOpcodeType opCode, U32 cmdSeq) {
+    if (!this->acceptTestCommand(opCode, cmdSeq)) {
+        return;
+    }
     this->OrchestratorStateMachine_sendSignal_testDrillON();
     this->cmdResponse_out(opCode, cmdSeq, Fw::CmdResponse::OK);
 }
 
 void Orchestrator ::testDrillOFF_cmdHandler(FwOpcodeType opCode, U32 cmdSeq) {
+    if (!this->acceptTestCommand(opCode, cmdSeq)) {
+        return;
+    }
     this->OrchestratorStateMachine_sendSignal_testDrillOFF();
     this->cmdResponse_out(opCode, cmdSeq, Fw::CmdResponse::OK);
 }
 
 void Orchestrator ::testPlatformMoveTo_cmdHandler(FwOpcodeType opCode, U32 cmdSeq, I32 position) {
+    if (!this->acceptTestCommand(opCode, cmdSeq)) {
+        return;
+    }
     this->OrchestratorStateMachine_sendSignal_testPlatformMoveTo(position);
     this->cmdResponse_out(opCode, cmdSeq, Fw::CmdResponse::OK);
 }
 
 void Orchestrator ::testPlatformStop_cmdHandler(FwOpcodeType opCode, U32 cmdSeq) {
+    if (!this->acceptTestCommand(opCode, cmdSeq)) {
+        return;
+    }
     this->OrchestratorStateMachine_sendSignal_testPlatformStop();
     this->cmdResponse_out(opCode, cmdSeq, Fw::CmdResponse::OK);
 }
 
 void Orchestrator ::testOpticalCameraON_cmdHandler(FwOpcodeType opCode, U32 cmdSeq) {
+    if (!this->acceptTestCommand(opCode, cmdSeq)) {
+        return;
+    }
     this->OrchestratorStateMachine_sendSignal_testOpticalCameraON();
     this->cmdResponse_out(opCode, cmdSeq, Fw::CmdResponse::OK);
 }
 
 void Orchestrator ::testOpticalCameraOFF_cmdHandler(FwOpcodeType opCode, U32 cmdSeq) {
+    if (!this->acceptTestCommand(opCode, cmdSeq)) {
+        return;
+    }
     this->OrchestratorStateMachine_sendSignal_testOpticalCameraOFF();
     this->cmdResponse_out(opCode, cmdSeq, Fw::CmdResponse::OK);
 }
 
 void Orchestrator ::testThermalCameraON_cmdHandler(FwOpcodeType opCode, U32 cmdSeq) {
+    if (!this->acceptTestCommand(opCode, cmdSeq)) {
+        return;
+    }
     this->OrchestratorStateMachine_sendSignal_testThermalCameraON();
     this->cmdResponse_out(opCode, cmdSeq, Fw::CmdResponse::OK);
 }
 
 void Orchestrator ::testThermalCameraOFF_cmdHandler(FwOpcodeType opCode, U32 cmdSeq) {
+    if (!this->acceptTestCommand(opCode, cmdSeq)) {
+        return;
+    }
     this->OrchestratorStateMachine_sendSignal_testThermalCameraOFF();
     this->cmdResponse_out(opCode, cmdSeq, Fw::CmdResponse::OK);
 }
@@ -196,6 +230,9 @@ void Orchestrator ::Mara_OrchestratorStateMachine_action_loadTimeline(SmId smId,
     m_advanceSeconds = this->paramGet_ADVANCE_SECONDS(valid);
     m_retractSeconds = this->paramGet_RETRACT_SECONDS(valid);
     m_drillPosition = this->paramGet_DRILL_POSITION(valid);
+    if (m_drillPosition == 0) {
+        this->log_WARNING_HI_DrillPositionUnset();
+    }
 }
 
 void Orchestrator ::Mara_OrchestratorStateMachine_action_resetPhaseTimer(SmId smId,
@@ -276,6 +313,19 @@ bool Orchestrator ::Mara_OrchestratorStateMachine_guard_retractDone(
     SmId smId,
     Mara_OrchestratorStateMachine::Signal signal) const {
     return m_phaseSeconds >= m_retractSeconds;
+}
+
+// ----------------------------------------------------------------------
+// Helpers
+// ----------------------------------------------------------------------
+
+bool Orchestrator ::acceptTestCommand(FwOpcodeType opCode, U32 cmdSeq) {
+    if (this->OrchestratorStateMachine_getState() == Mara_OrchestratorStateMachine::State::TEST) {
+        return true;
+    }
+    this->log_WARNING_LO_TestCommandIgnored();
+    this->cmdResponse_out(opCode, cmdSeq, Fw::CmdResponse::EXECUTION_ERROR);
+    return false;
 }
 
 }  // namespace Mara

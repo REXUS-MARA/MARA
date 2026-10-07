@@ -65,6 +65,26 @@ module Mara {
         event EnterAfterExperiment severity activity high format "Entered AfterExperiment state."
         event EnterSafe severity activity high format "Entered Safe state."
 
+        @ DRILL_POSITION is 0 when the experiment starts
+        event DrillPositionUnset \
+            severity warning high \
+            format "DRILL_POSITION is 0, the platform will not move during the experiment"
+
+        @ A test command was sent outside TEST mode and was not executed
+        event TestCommandIgnored \
+            severity warning low \
+            format "Not in TEST mode, command ignored"
+
+        @ enterTestMode is only accepted in IDLE
+        event EnterTestIgnored \
+            severity warning low \
+            format "Not in IDLE, enterTestMode ignored"
+
+        @ exitTestMode is only accepted in TEST
+        event ExitTestIgnored \
+            severity warning low \
+            format "Not in TEST mode, exitTestMode ignored"
+
         event PhaseSpinUp(seconds: U32) \
             severity activity high \
             format "Experiment: drill ON, spinning up for {} s"
