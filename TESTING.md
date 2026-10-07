@@ -61,10 +61,13 @@ CI runs the unit tests in the `fprime-arm:4.1.1` image. To reproduce that locall
 
 ```bash
 container run --arch amd64 --rm -u "`id -u`:`id -g`" -v "$(pwd):/project" ghcr.io/filipjsowa/fprime-arm:4.1.1 \
-    -c "fprime-util generate --ut --build-cache /tmp/ut && fprime-util check --all --build-cache /tmp/ut"
+    -c "fprime-util generate --ut --build-cache build-fprime-linux-ut && fprime-util check --all --build-cache build-fprime-linux-ut"
 ```
 
-Use a build cache inside the container (`/tmp/...`), so it doesn't overwrite your macOS `build-fprime-automatic-native-ut`.
+The image is amd64, so on an Apple-silicon Mac every compile is emulated and slow.
+- **Keep the build cache in the repo** (`build-fprime-linux-ut`, gitignored), not inside the throwaway container, so later runs only rebuild what changed.
+- **Skip the `generate` step** on later runs unless you added modules or changed CMake files.
+- **Use a separate cache from macOS:** it must not be the macOS `build-fprime-automatic-native-ut`.
 
 ---
 

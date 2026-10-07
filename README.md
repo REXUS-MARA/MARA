@@ -1,5 +1,8 @@
 # Mara F´ project
 
+[![CI](https://github.com/REXUS-MARA/MARA/actions/workflows/build.yml/badge.svg?branch=main)](https://github.com/REXUS-MARA/MARA/actions/workflows/build.yml)
+[![coverage](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/REXUS-MARA/MARA/badges/coverage.json)](TESTING.md)
+
 To clone the project and get F' running, do the following
 1. (Not necessary, but reccomended) Create a python venv ().
 2. Make sure that Python is **not** in version 3.14 (some bug in F' 4.1.0)

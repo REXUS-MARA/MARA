@@ -3,6 +3,8 @@ name: CI
 on:
   pull_request:
     branches: [main]   # PRs targeting main; drop this line to run on all PRs
+  push:
+    branches: [main]   # keeps the README badges (CI status, coverage) current for main
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -22,3 +24,50 @@ jobs:
       - run: |
           fprime-util generate aarch64-linux
           fprime-util build aarch64-linux
+
+  unit-tests:
+    runs-on: ubuntu-latest
+    container:
+      image: ghcr.io/filipjsowa/fprime-arm:4.1.1
+    permissions:
+      contents: write   # only used on main, to publish coverage.json to the 'badges' branch
+
+    steps:
+      - uses: actions/checkout@v7
+        with:
+            submodules: recursive
+
+      # Unit-test builds run under AddressSanitizer, UBSan and LeakSanitizer (see TESTING.md)
+      - name: Unit tests
+        run: |
+          fprime-util generate --ut
+          fprime-util check --all
+
+      # Line coverage of the hand-written component code only (not F´, not generated code, not tests)
+      - name: Coverage
+        run: |
+          mkdir -p coverage
+          gcovr -r . --filter 'Mara/Components/' --exclude '.*/test/.*' \
+              --json-summary coverage-summary.json --html-details coverage/index.html --txt-summary \
+              build-fprime-automatic-native-ut
+          python3 .github/scripts/coverage_badge.py coverage-summary.json coverage.json
+
+      - name: Upload coverage report
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-report
+          path: coverage/
+
+      # The README's coverage badge is drawn by shields.io from badges/coverage.json
+      - name: Publish coverage badge
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        shell: bash
+        run: |
+          cd "$(mktemp -d)"
+          git init -q
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          cp "$GITHUB_WORKSPACE/coverage.json" .
+          git add coverage.json
+          git commit -q -m "Coverage badge for ${GITHUB_SHA::7}"
+          git push -q -f "https://x-access-token:${{ github.token }}@github.com/${{ github.repository }}.git" HEAD:badges
