@@ -36,7 +36,10 @@ PlatformMotorTester ::PlatformMotorTester()
     this->connectPorts();
 }
 
-PlatformMotorTester ::~PlatformMotorTester() {}
+PlatformMotorTester ::~PlatformMotorTester() {
+    // Free the component's message queue (allocated in init)
+    static_cast<PlatformMotorComponentBase&>(this->component).deinit();
+}
 
 // ----------------------------------------------------------------------
 // Tests

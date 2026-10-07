@@ -7,6 +7,7 @@
 #include "OpticalCameraTester.hpp"
 
 #include <sys/stat.h>
+#include <sys/wait.h>
 #include <unistd.h>
 #include <chrono>
 #include <cstdlib>
@@ -108,7 +109,10 @@ OpticalCameraTester ::OpticalCameraTester()
 
 OpticalCameraTester ::~OpticalCameraTester() {
     (void)::setenv("PATH", m_savedPath.c_str(), 1);
-    // The temp dir is left for inspection; the component's destructor stops any recorder.
+    // Free the component's message queue (allocated in init). The component's own
+    // destructor still stops any running recorder afterwards.
+    static_cast<OpticalCameraComponentBase&>(this->component).deinit();
+    // The temp dir is left for inspection.
 }
 
 // ----------------------------------------------------------------------
@@ -238,15 +242,31 @@ void OpticalCameraTester ::testSpawnFailed() {
     ASSERT_EQ(::setenv("PATH", emptyDir.c_str(), 1), 0);
 
     this->on();
+#ifdef TGT_OS_TYPE_LINUX
+    // glibc's posix_spawnp succeeds even when the program is not found; the child exits 127.
+    // So on Linux (the flight target) a missing ffmpeg shows up as RecordingStarted followed
+    // by RecorderExitedEarly on the next ping, never as SpawnFailed. Reported as a finding.
+    ASSERT_EVENTS_SpawnFailed_SIZE(0);
+    ASSERT_EVENTS_RecordingStarted_SIZE(1);
+    sleepMs(300);
+    this->ping();
+    ASSERT_EVENTS_RecorderExitedEarly_SIZE(1);
+    const I32 status = this->eventHistory_RecorderExitedEarly->at(0).status;
+    ASSERT_TRUE(WIFEXITED(status) && WEXITSTATUS(status) == 127) << "raw status " << status;
+    const FwSizeType startedBefore = 1;
+#else
+    // macOS reports the missing program from posix_spawnp itself
     ASSERT_EVENTS_SpawnFailed_SIZE(1);
     ASSERT_EVENTS_RecordingStarted_SIZE(0);
     this->ping();
+    const FwSizeType startedBefore = 0;
+#endif
     ASSERT_from_pingOut_SIZE(1);
 
     // Fix PATH: the component keeps working
     ASSERT_EQ(::setenv("PATH", (m_dir + "/bin:/usr/bin:/bin").c_str(), 1), 0);
     this->startRecording();
-    ASSERT_EVENTS_RecordingStarted_SIZE(1);
+    ASSERT_EVENTS_RecordingStarted_SIZE(startedBefore + 1);
     this->off();
 }
 

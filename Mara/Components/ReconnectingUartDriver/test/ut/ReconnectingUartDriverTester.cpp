@@ -259,6 +259,12 @@ void ReconnectingUartDriverTester ::testSendBufferFull() {
     while (status == Drv::ByteStreamStatus::OP_OK && sent < 1000000) {
         status = this->send(frame);
         sent += (status == Drv::ByteStreamStatus::OP_OK) ? 1 : 0;
+        if (sent % 500 == 0) {
+            // Each send writes BytesSent telemetry; a Linux pty buffers far more than the
+            // history holds. Only this thread writes telemetry here (no data is incoming).
+            std::lock_guard<std::recursive_mutex> lock(m_lock);
+            this->clearTlm();
+        }
     }
     ASSERT_EQ(status, Drv::ByteStreamStatus::OTHER_ERROR) << "output buffer never filled";
     ASSERT_GT(sent, 0U);

@@ -27,7 +27,10 @@ OrchestratorTester ::OrchestratorTester()
     this->connectPorts();
 }
 
-OrchestratorTester ::~OrchestratorTester() {}
+OrchestratorTester ::~OrchestratorTester() {
+    // Free the component's message queue (allocated in init)
+    static_cast<OrchestratorComponentBase&>(this->component).deinit();
+}
 
 // ----------------------------------------------------------------------
 // Tests
