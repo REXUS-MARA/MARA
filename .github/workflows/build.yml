@@ -41,7 +41,7 @@ jobs:
       - name: Unit tests
         run: |
           fprime-util generate --ut
-          fprime-util check --all
+          fprime-util check --all --pass-through --output-on-failure   # print a failing test's output
 
       # Line coverage of the hand-written component code only (not F´, not generated code, not tests)
       - name: Coverage

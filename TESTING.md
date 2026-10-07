@@ -28,7 +28,7 @@ To run one component, `cd` into its directory (e.g. `Mara/Components/PlatformMot
 | PlatformMotor | 24 | Byte-exact CAN frames, clamping, velocity choice for both sign conventions, send failures, queue overflow; negative tests for inverted limits, 0 outside the limits, invalid NODE_ID and extreme targets |
 | ReconnectingUartDriver | 16 (21 on Linux) | Real pseudo-terminals: hot-plug cycles, no event floods, buffer ownership, every baud/parity/flow setting, full output buffer |
 | GPIOWatcher | 11 | Debounce, spikes, re-arming, failed reads |
-| OpticalCamera | 9 | A fake `ffmpeg` on `PATH`: arguments, SIGINT on stop, segments, early exit, stalls, missing ffmpeg |
+| OpticalCamera | 11 | A fake `ffmpeg` on `PATH`: arguments, SIGINT on stop, segments, early exit, stalls, missing ffmpeg, a recorder that ignores SIGINT is killed after `STOP_TIMEOUT_SECONDS`, and stopping works even when the FSW was started with SIGINT ignored |
 
 ### Sanitizers (memory errors, leaks, undefined behaviour, data races)
 
@@ -170,6 +170,7 @@ Then run the pre-flight checklist.
 | A command with a file path fails with `FORMAT_ERROR` | Command string arguments are limited to 40 characters at runtime (`FW_CMD_STRING_MAX_SIZE`), although the dictionary says more. Use short paths, e.g. `/tmp/mara_pad_check.bin`. |
 | `fprime-gds --uart-device /tmp/...` says "not valid" | The GDS only accepts serial ports pyserial lists. Use `pty_link.py` and the GDS's `--ip-client` mode. |
 | Unit tests pass on macOS but fail on Linux with `LeakSanitizer` | A Tester didn't call `deinit()` on an active component. |
-| A missing ffmpeg shows `RecorderExitedEarly` (status 127) instead of `SpawnFailed` | glibc's `posix_spawnp` succeeds even when the program doesn't exist; the child exits 127. It's still reported, just under that event. |
+| A missing ffmpeg shows `RecorderExitedEarly` (status 127) instead of `SpawnFailed` | Seen only in the amd64 container emulated on an Apple-silicon Mac: there `posix_spawnp` starts a child that fails to exec and exits 127. Native Linux (CI) reports `SpawnFailed`. Both are reported; the camera test accepts either. |
+| A unit test aborts with no output in CI | CI runs ctest with `--output-on-failure`, so the failing test's output is in the job log. An abort right after a failed check usually means a history was indexed (`->at(i)`) after an F´ `ASSERT_EVENTS_*` macro failed: those macros don't stop the test. Check the size with a gtest `ASSERT_*` first. |
 | `PrmDb.dat` is empty after `PRM_SAVE_FILE` | The values were set but not staged: run `<PARAM>_PRM_SAVE` first. |
 | GPIO tests can't open lines | Wrong `--mara-gpio-chip`; check with `gpiodetect`. |

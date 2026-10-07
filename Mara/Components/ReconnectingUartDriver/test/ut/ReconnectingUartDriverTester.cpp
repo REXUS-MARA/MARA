@@ -97,6 +97,7 @@ void ReconnectingUartDriverTester ::testConnectReceiveSend() {
     ASSERT_EQ(this->readFromDriver(frame.size(), 1000), frame);
     {
         std::lock_guard<std::recursive_mutex> lock(m_lock);
+        ASSERT_GE(this->tlmHistory_BytesSent->size(), 1U);  // guard: History::at asserts on a bad index
         ASSERT_EQ(this->tlmHistory_BytesSent->at(this->tlmHistory_BytesSent->size() - 1).arg, 13U);
     }
 

@@ -288,7 +288,8 @@ void PlatformMotorTester ::testReceiveReturnsBuffer() {
     // Sync port: handled on the caller's thread, no dispatch
     this->invoke_to_fromByteStreamDriver(0, buffer, Drv::ByteStreamStatus::OP_OK);
 
-    ASSERT_from_fromByteStreamDriverReturn_SIZE(1);
+    // gtest ASSERT (not the F´ macro, which doesn't stop the test) before indexing the history
+    ASSERT_EQ(this->fromPortHistory_fromByteStreamDriverReturn->size(), 1U);
     ASSERT_EQ(this->fromPortHistory_fromByteStreamDriverReturn->at(0).fwBuffer.getData(), data.data());
     ASSERT_EQ(m_frames.size(), 0U);  // nothing sent in reply
 }
