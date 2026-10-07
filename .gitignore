@@ -15,3 +15,6 @@ build-fprime-*
 .DS_Store
 *.gcov
 Mara/ansible/inventory.ini
+# STest random seeds (local replay files)
+seed
+seed-history

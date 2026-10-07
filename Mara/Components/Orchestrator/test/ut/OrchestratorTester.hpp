@@ -43,6 +43,9 @@ class OrchestratorTester final : public OrchestratorGTestBase {
         THERMAL_OFF,
     };
 
+    //! Kinds of step a random scenario can take
+    enum class Step { LO, SOE, EODS, TICK, ENTER_TEST, EXIT_TEST, TEST_COMMAND };
+
   public:
     // ----------------------------------------------------------------------
     // Construction and destruction
@@ -106,6 +109,9 @@ class OrchestratorTester final : public OrchestratorGTestBase {
     // Helpers (also used by the STest rules)
     // ----------------------------------------------------------------------
 
+    //! Clear all histories (public wrapper for the rules)
+    void clearHistories() { this->clearHistory(); }
+
     //! Dispatch until the queue is empty (handlers queue state machine signals)
     void dispatchAll();
 
@@ -135,6 +141,13 @@ class OrchestratorTester final : public OrchestratorGTestBase {
 
     //! Total number of hardware output port invocations recorded
     FwSizeType hardwareOutputs() const;
+
+    //! Check the safety invariants after one random step (STest rules).
+    //! \param before the state before the step; histories were cleared before the step
+    void checkStep(State before, Step step, Fw::CmdResponse response);
+
+    //! Order of the flight states; TEST and SAFE are not part of the order
+    static int flightRank(State s);
 
     //! The component under test (exposed for the rules)
     Orchestrator component;

@@ -4,7 +4,11 @@
 // \brief  cpp file for Orchestrator component test main function
 // ======================================================================
 
+#include "OrchestratorRules.hpp"
 #include "OrchestratorTester.hpp"
+#include "STest/Random/Random.hpp"
+
+#include <cstdio>
 
 TEST(Flight, Path) {
     Mara::OrchestratorTester tester;
@@ -76,7 +80,18 @@ TEST(Queue, OverflowDrops) {
     tester.testQueueOverflowDrops();
 }
 
+// Random inputs (STest rules) on fresh components with random timelines; every step is
+// checked against the safety invariants in OrchestratorTester::checkStep().
+// The seed comes from the file "seed" if present (replay), else from the clock, and is
+// appended to "seed-history".
+TEST(Random, SafetyInvariants) {
+    const U32 steps = Mara::runRandomScenarios(300, 60);
+    std::printf("Ran %u random steps.\n", steps);
+    ASSERT_GT(steps, 0U);
+}
+
 int main(int argc, char** argv) {
     ::testing::InitGoogleTest(&argc, argv);
+    STest::Random::seed();
     return RUN_ALL_TESTS();
 }

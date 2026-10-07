@@ -476,6 +476,77 @@ FwSizeType OrchestratorTester ::hardwareOutputs() const {
            this->fromPortHistory_PlatformMoveTo->size();
 }
 
+void OrchestratorTester ::checkStep(State before, Step step, Fw::CmdResponse response) {
+    const State after = this->state();
+    const FwSizeType outputs = this->hardwareOutputs();
+
+    // 1. Hardware only moves on a transition, or for an accepted test command in TEST
+    const bool acceptedTestCommand = step == Step::TEST_COMMAND && before == State::TEST;
+    if (before == after && !acceptedTestCommand) {
+        ASSERT_EQ(outputs, 0U) << "hardware output without a state change";
+    }
+
+    // 2. Leaving DRILLING always stops the drill and retracts the platform
+    if (isDrilling(before) && !isDrilling(after)) {
+        ASSERT_GE(this->fromPortHistorySize_DrillOFF, 1U) << "left DRILLING without DrillOFF";
+        ASSERT_GE(this->fromPortHistory_PlatformMoveTo->size(), 1U) << "left DRILLING without a retract";
+        ASSERT_EQ(this->fromPortHistory_PlatformMoveTo->at(this->fromPortHistory_PlatformMoveTo->size() - 1).position, 0)
+            << "last platform target after DRILLING is not 0";
+    }
+
+    // 3. Test commands outside TEST are rejected and do nothing
+    if (step == Step::TEST_COMMAND && before != State::TEST) {
+        ASSERT_EQ(response, Fw::CmdResponse::EXECUTION_ERROR);
+        ASSERT_EQ(outputs, 0U);
+        ASSERT_EQ(after, before);
+    }
+
+    // 4. In TEST, LO/SOE/EODS and ticks never change the state (ESA requirement)
+    if (before == State::TEST && (step == Step::LO || step == Step::SOE || step == Step::EODS || step == Step::TICK)) {
+        ASSERT_EQ(after, State::TEST);
+    }
+
+    // 5. Outside TEST the flight states only move forward
+    if (before != State::TEST && after != State::TEST) {
+        ASSERT_GE(flightRank(after), flightRank(before)) << "flight state went backwards";
+    }
+
+    // 6. TEST is only entered from IDLE and only left to IDLE
+    if (after == State::TEST && before != State::TEST) {
+        ASSERT_EQ(before, State::IDLE);
+    }
+    if (before == State::TEST && after != State::TEST) {
+        ASSERT_EQ(after, State::IDLE);
+        ASSERT_EQ(step, Step::EXIT_TEST);
+    }
+
+    // 7. Reaching AFTER_EXPERIMENT from the experiment closes the recordings
+    if (after == State::AFTER_EXPERIMENT && before != State::AFTER_EXPERIMENT) {
+        ASSERT_EQ(this->fromPortHistorySize_OpticalCameraOFF, 1U);
+    }
+}
+
+int OrchestratorTester ::flightRank(State s) {
+    switch (s) {
+        case State::IDLE:
+            return 0;
+        case State::FLIGHT:
+            return 1;
+        case State::EXPERIMENT_DRILLING_SPIN_UP:
+            return 2;
+        case State::EXPERIMENT_DRILLING_ADVANCE:
+            return 3;
+        case State::EXPERIMENT_RETRACTING:
+            return 4;
+        case State::EXPERIMENT_DONE:
+            return 5;
+        case State::AFTER_EXPERIMENT:
+            return 6;
+        default:
+            return -1;  // TEST, SAFE: not part of the flight order
+    }
+}
+
 void OrchestratorTester ::startExperiment() {
     this->lo();
     this->soe();

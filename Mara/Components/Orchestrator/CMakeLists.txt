@@ -32,6 +32,7 @@ register_fprime_ut(
     SOURCES
         "${CMAKE_CURRENT_LIST_DIR}/test/ut/OrchestratorTestMain.cpp"
         "${CMAKE_CURRENT_LIST_DIR}/test/ut/OrchestratorTester.cpp"
+        "${CMAKE_CURRENT_LIST_DIR}/test/ut/OrchestratorRules.cpp"
     DEPENDS
         STest # For rules-based testing
     UT_AUTO_HELPERS
