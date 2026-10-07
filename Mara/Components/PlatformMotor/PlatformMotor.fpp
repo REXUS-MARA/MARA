@@ -89,6 +89,17 @@ module Mara {
             severity warning low \
             format "Platform target {} outside limits, clamped to {}"
 
+        @ MIN_POSITION > MAX_POSITION, or 0 (fully down) is outside [MIN_POSITION, MAX_POSITION],
+        @ so the retract to 0 would be clamped short of the bottom
+        event LimitsInvalid(minPosition: I32, maxPosition: I32) \
+            severity warning high \
+            format "Platform limits invalid: MIN {} MAX {} (need MIN <= 0 <= MAX)"
+
+        @ NODE_ID is not a valid CANopen node ID (1 to 127); the command was not sent
+        event NodeIdInvalid(nodeId: U8) \
+            severity warning high \
+            format "NODE_ID {} is not a valid CANopen node (1-127), command not sent"
+
         # ------------------------------------------------------------------
         # Telemetry
         # ------------------------------------------------------------------

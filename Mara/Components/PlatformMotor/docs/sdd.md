@@ -27,6 +27,11 @@ Which velocity a move uses is decided by comparing the distance from 0 of the ne
 
 If both `MIN_POSITION` and `MAX_POSITION` are 0, `enable` raises `LimitsUnset` (WARNING_HI), because every move would be clamped to 0.
 
+Misconfigurations are refused or flagged rather than acted on:
+- **`MIN_POSITION` > `MAX_POSITION`:** `enable` warns `LimitsInvalid`, and every `moveTo` is refused with `LimitsInvalid`. With inverted limits the clamp would send every target, including the retract to 0, to `MIN_POSITION`.
+- **0 outside `[MIN_POSITION, MAX_POSITION]`:** `enable` warns `LimitsInvalid`, because the retract to 0 would be clamped short of the bottom. Moves inside the limits still work.
+- **`NODE_ID` outside 1–127** (not a valid CANopen node): every command logs one `NodeIdInvalid` and sends nothing.
+
 ## Behaviour
 - Writes are fire-and-forget expedited SDOs with a 10 ms gap between them. Replies are not parsed yet; received buffers are returned straight away.
 - A move writes controlword 0x0F (so the next setpoint is a rising edge), then the target (0x607A), then 0x3F (new setpoint, change immediately). A retract therefore overrides an unfinished advance.

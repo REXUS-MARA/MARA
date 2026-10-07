@@ -118,6 +118,22 @@ class PlatformMotorTester final : public PlatformMotorGTestBase {
     //! A full queue drops messages instead of asserting
     void testQueueOverflowDrops();
 
+    // ----------------------------------------------------------------------
+    // Negative tests: misconfiguration
+    // ----------------------------------------------------------------------
+
+    //! MIN > MAX: enable warns LimitsInvalid; no move is sent (not even to 0)
+    void testInvertedLimitsRefuseToMove();
+
+    //! 0 outside [MIN, MAX]: enable warns LimitsInvalid (the retract could not reach the bottom)
+    void testZeroOutsideLimitsWarns();
+
+    //! NODE_ID outside 1..127: one NodeIdInvalid per command, nothing sent
+    void testInvalidNodeIdSendsNothing();
+
+    //! Extreme targets are clamped, never wrapped
+    void testExtremeTargetsClamped();
+
   private:
     // ----------------------------------------------------------------------
     // Handlers for typed from ports

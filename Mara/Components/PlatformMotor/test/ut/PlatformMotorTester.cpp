@@ -7,6 +7,7 @@
 #include "PlatformMotorTester.hpp"
 
 #include <algorithm>
+#include <limits>
 
 namespace Mara {
 
@@ -311,6 +312,75 @@ void PlatformMotorTester ::testQueueOverflowDrops() {
     }
     ASSERT_EVENTS_MovingTo_SIZE(depth);
     ASSERT_EVENTS_MovingTo(depth - 1, static_cast<I32>(depth - 1));
+}
+
+void PlatformMotorTester ::testInvertedLimitsRefuseToMove() {
+    this->setParams(500, 100);  // MIN > MAX
+    this->enable();
+    ASSERT_EVENTS_LimitsInvalid_SIZE(1);
+    ASSERT_EVENTS_LimitsInvalid(0, 500, 100);
+
+    // With inverted limits the clamp max(MIN, min(target, MAX)) would send every move, including
+    // the retract to 0, to MIN. Refuse instead.
+    this->clearAll();
+    this->moveTo(0);
+    this->moveTo(300);
+    ASSERT_EQ(m_frames.size(), 0U);
+    ASSERT_EVENTS_LimitsInvalid_SIZE(2);
+    ASSERT_EVENTS_MovingTo_SIZE(0);
+}
+
+void PlatformMotorTester ::testZeroOutsideLimitsWarns() {
+    this->setParams(100, 500);  // 0 is below MIN
+    this->enable();
+    ASSERT_EVENTS_LimitsInvalid_SIZE(1);
+    ASSERT_EVENTS_LimitsInvalid(0, 100, 500);
+    ASSERT_EVENTS_Enabled_SIZE(1);  // still enabled: moves inside the limits are valid
+
+    this->setParams(-500, -100);  // 0 is above MAX
+    this->clearAll();
+    this->enable();
+    ASSERT_EVENTS_LimitsInvalid_SIZE(1);
+
+    // Valid limits: no warning
+    this->setParams(-500, 500);
+    this->clearAll();
+    this->enable();
+    ASSERT_EVENTS_LimitsInvalid_SIZE(0);
+}
+
+void PlatformMotorTester ::testInvalidNodeIdSendsNothing() {
+    for (const U8 node : {static_cast<U8>(0), static_cast<U8>(128), static_cast<U8>(255)}) {
+        this->setParams(0, 1000, 0, 0, 0, node);
+        this->clearAll();
+        this->enable();
+        this->moveTo(100);
+        this->stop();
+        ASSERT_EQ(m_sendAttempts, 0U) << "node " << static_cast<U32>(node);
+        ASSERT_EVENTS_NodeIdInvalid_SIZE(3);  // one per command
+        ASSERT_EVENTS_NodeIdInvalid(0, node);
+        ASSERT_EVENTS_SendFailed_SIZE(0);
+        ASSERT_EVENTS_Enabled_SIZE(0);
+        ASSERT_EVENTS_MovingTo_SIZE(0);
+    }
+
+    // The valid range ends are accepted
+    for (const U8 node : {static_cast<U8>(1), static_cast<U8>(127)}) {
+        this->setParams(0, 1000, 0, 0, 0, node);
+        this->clearAll();
+        this->stop();
+        ASSERT_EQ(m_frames.size(), 1U);
+        ASSERT_EQ(this->decode(0).cobId, 0x600 + node);
+    }
+}
+
+void PlatformMotorTester ::testExtremeTargetsClamped() {
+    this->setParams(-1000, 1000);
+    this->moveTo(std::numeric_limits<I32>::max());
+    this->assertSdo(1, TARGET_POSITION, 1000, 4);
+    this->clearAll();
+    this->moveTo(std::numeric_limits<I32>::min());
+    this->assertSdo(1, TARGET_POSITION, static_cast<U32>(-1000), 4);
 }
 
 // ----------------------------------------------------------------------

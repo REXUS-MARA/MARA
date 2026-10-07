@@ -106,6 +106,26 @@ TEST(Queue, OverflowDrops) {
     tester.testQueueOverflowDrops();
 }
 
+TEST(Negative, InvertedLimitsRefuseToMove) {
+    Mara::PlatformMotorTester tester;
+    tester.testInvertedLimitsRefuseToMove();
+}
+
+TEST(Negative, ZeroOutsideLimitsWarns) {
+    Mara::PlatformMotorTester tester;
+    tester.testZeroOutsideLimitsWarns();
+}
+
+TEST(Negative, InvalidNodeIdSendsNothing) {
+    Mara::PlatformMotorTester tester;
+    tester.testInvalidNodeIdSendsNothing();
+}
+
+TEST(Negative, ExtremeTargetsClamped) {
+    Mara::PlatformMotorTester tester;
+    tester.testExtremeTargetsClamped();
+}
+
 int main(int argc, char** argv) {
     ::testing::InitGoogleTest(&argc, argv);
     return RUN_ALL_TESTS();

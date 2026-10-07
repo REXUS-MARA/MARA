@@ -64,8 +64,13 @@ void PlatformMotor ::byteStreamDriverReady_handler(FwIndexType portNum) {
 void PlatformMotor ::enable_handler(FwIndexType portNum) {
     (void)portNum;
     Fw::ParamValid valid;
-    if (this->paramGet_MIN_POSITION(valid) == 0 && this->paramGet_MAX_POSITION(valid) == 0) {
+    const I32 minPosition = this->paramGet_MIN_POSITION(valid);
+    const I32 maxPosition = this->paramGet_MAX_POSITION(valid);
+    if (minPosition == 0 && maxPosition == 0) {
         this->log_WARNING_HI_LimitsUnset();
+    } else if (minPosition > 0 || maxPosition < 0) {
+        // Also covers MIN > MAX. The retract to 0 could not reach the bottom.
+        this->log_WARNING_HI_LimitsInvalid(minPosition, maxPosition);
     }
 
     if (!sdoWriteAll({{MODE_OF_OPERATION, PROFILE_POSITION_MODE, 1}})) {
@@ -100,6 +105,11 @@ void PlatformMotor ::moveTo_handler(FwIndexType portNum, I32 position) {
     Fw::ParamValid valid;
     const I32 minPosition = this->paramGet_MIN_POSITION(valid);
     const I32 maxPosition = this->paramGet_MAX_POSITION(valid);
+    if (minPosition > maxPosition) {
+        // The clamp below would send every target, even the retract to 0, to MIN_POSITION
+        this->log_WARNING_HI_LimitsInvalid(minPosition, maxPosition);
+        return;
+    }
 
     const I32 target = std::max(minPosition, std::min(position, maxPosition));
     if (target != position) {
@@ -144,7 +154,13 @@ void PlatformMotor ::stop_handler(FwIndexType portNum) {
 
 bool PlatformMotor ::sdoWriteAll(std::initializer_list<SdoWrite> writes) {
     Fw::ParamValid valid;
-    const U16 cobId = 0x600 + this->paramGet_NODE_ID(valid);  // SDO request to this node
+    const U8 nodeId = this->paramGet_NODE_ID(valid);
+    if (nodeId < 1 || nodeId > 127) {
+        // Outside CANopen's node range the COB-ID would not address the drive's SDO server
+        this->log_WARNING_HI_NodeIdInvalid(nodeId);
+        return false;
+    }
+    const U16 cobId = 0x600 + nodeId;  // SDO request to this node
 
     for (const SdoWrite& write : writes) {
         const U8 command = (write.size == 4) ? SDO_DOWNLOAD_4 : (write.size == 2) ? SDO_DOWNLOAD_2 : SDO_DOWNLOAD_1;
