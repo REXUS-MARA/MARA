@@ -71,3 +71,74 @@ To simulate a connection between your pc and rpi with the rocket in between, you
 1. After ssh into the pi `./MARA -d /dev/serial0 -b 115200`
 2. In a terminal, within the fprime-venv (I mean doesn't have to be, but it's just so hapens that it has all the needed packages) `python uart_tcp_bridge.py --serial-port /dev/cu.usbserial-BG02CR1I --baudrate 115200 --host 127.0.0.1 --port 50000`
 3. In another teminal `fprime-gds -n --dictionary build-artifacts/aarch64-linux/Mara_MaraRPiUART/dict/MaraRPiUARTTopologyDictionary.json --ip-client --ip-address 127.0.0.1`
+
+# Testing
+How to run the unit tests, the integration tests and the hardware tests (including the pre-flight checklist) is in **[TESTING.md](TESTING.md)**.
+
+# Platform motor setup
+The drill platform is moved by a **Technosoft iPOS drive** (closed-loop stepper with an incremental encoder), using CANopen CiA 402 in profile position mode. The Pi talks to it through a **Waveshare USB-CAN-A** adapter. That adapter is not a Linux CAN interface: it shows up as a USB serial port (CH341) running at 2 Mbps with Waveshare's own frame format. The FSW side is `Mara/Components/PlatformMotor` (CANopen), with `Mara/Components/ReconnectingUartDriver` handling the serial link.
+
+Do these steps in order. Each one has to work before the next makes sense.
+
+## 1. Wiring
+- CAN_H, CAN_L and GND between the adapter and the drive.
+- A **120 Ω terminator at both ends** of the bus. The adapter and the drive may each have a switchable one; use exactly two.
+- An isolated adapter or transceiver is recommended, because the motor supply and the Pi share a ground otherwise.
+
+## 2. Commission the drive (once, in Technosoft EasySetUp over RS232)
+1. Select stepper, closed loop with an incremental encoder.
+2. Enter the motor current and the encoder line count. Write the line count down: you'll need it in step 5.
+3. Tune the loops.
+4. Select the **CANopen** protocol (not TMLCAN).
+5. Set the CAN bitrate and the **node ID** (1–127). Write both down.
+6. Set the profile velocity and acceleration you want as defaults.
+7. Save to EEPROM.
+8. Jog the motor from EasySetUp. **If it doesn't move here, no software will move it.**
+
+## 3. Configure the adapter (once, with Waveshare's PC tool)
+Set the CAN bitrate to match the drive, and select the **variable-length** protocol. The serial side runs at 2 Mbps.
+
+## 4. Tell the FSW where the adapter is
+On the Pi, plug in the adapter and run `ls -l /dev/serial/by-id/`. Copy the adapter's link, which looks like `usb-1a86_USB_Serial-…`, into `MotorUartDevice` in `Mara/MaraRPiUART/Top/MaraRPiUARTTopologyDefs.hpp`, then rebuild. Use the `by-id` link rather than `/dev/ttyUSB0`, so the adapter is found again after a replug.
+
+The adapter can be plugged and unplugged while the FSW runs:
+- **Missing at boot:** `AdapterNotConnected` is logged once, and the FSW keeps retrying every second.
+- **Plugged in:** `AdapterConnected` is logged, and commands work again with no restart.
+- **Drive power-cycled:** reconnecting the adapter doesn't re-enable the drive. Enter TEST mode again (`exitTestMode`, then `enterTestMode`), which sends the enable sequence.
+
+## 5. Set the parameters
+All positions are **drive encoder counts**. 0 is wherever the platform was when the drive powered up; there is no homing yet, so **power the drive with the platform fully down**. 1 mm = 4 × (encoder lines) / 0.794 counts.
+
+| Parameter | Set it to |
+|---|---|
+| `Mara.platformMotor.NODE_ID` | the drive's node ID from step 2 (1–127) |
+| `Mara.platformMotor.MIN_POSITION`, `MAX_POSITION` | the safe travel range. **0 must be inside it**, or the retract can't reach the bottom. Both 0 means the platform never moves. |
+| `Mara.platformMotor.ADVANCE_VELOCITY` | drilling feed speed (moves away from 0), in Technosoft units. 0 = keep the drive's stored value. |
+| `Mara.platformMotor.RETRACT_VELOCITY` | retract speed (moves towards 0). 0 = keep the drive's value. |
+| `Mara.platformMotor.ACCELERATION` | written on enable. 0 = keep the drive's value. |
+| `Mara.orchestrator.DRILL_POSITION` | how far to drill, inside `[MIN, MAX]` |
+| `Mara.orchestrator.SPIN_UP_SECONDS`, `ADVANCE_SECONDS`, `RETRACT_SECONDS` | the flight timeline (see `Mara/Components/Orchestrator/docs/sdd.md`) |
+
+**Find the sign convention before setting the limits.** With small temporary limits (for example `MIN_POSITION -200`, `MAX_POSITION 200`), send `enterTestMode`, then `testPlatformMoveTo 100`, and watch which way the platform goes.
+- **Towards the sample:** "up" is positive. Use `MIN_POSITION` ≤ 0 < `MAX_POSITION` and a positive `DRILL_POSITION`.
+- **Away from it:** "up" is negative. Use `MIN_POSITION` < 0, `MAX_POSITION` 0 and a negative `DRILL_POSITION`. The velocity parameters keep their meaning either way.
+
+Send `testPlatformMoveTo 0` and then `exitTestMode` when done.
+
+`PRM_SET` only changes the value until the next reboot. **To keep a value**: `<component>.<PARAM>_PRM_SET`, then `<component>.<PARAM>_PRM_SAVE`, then `FileHandling.prmDb.PRM_SAVE_FILE`.
+
+## 6. Check it
+1. Run the pad-check sequence `Mara/MaraRPiUART/seq/pad_check.seq`; see [TESTING.md](TESTING.md).
+2. Run the hardware tests with an operator present (`-m hardware`).
+3. Last, before integration, run the **pre-flight checklist** test. It reads the saved parameters from the Pi and checks the limits, the drill position, the adapter and free disk space.
+
+## Troubleshooting
+| Event | Meaning |
+|---|---|
+| `AdapterNotConnected` | The adapter isn't at `MotorUartDevice`: check the cable and the path from step 4. |
+| `SendFailed` | A command couldn't be sent (adapter missing). Nothing was moved; the rest of that command was skipped. |
+| `LimitsUnset` | `MIN_POSITION` and `MAX_POSITION` are both 0: every move is clamped to 0. |
+| `LimitsInvalid` | `MIN` > `MAX` (moves are refused), or 0 is outside the limits (the retract can't reach the bottom). |
+| `NodeIdInvalid` | `NODE_ID` isn't 1–127: nothing is sent. |
+| `PositionClamped` | A target was outside the limits and was clamped. |
+| Platform doesn't move, no warnings | The drive's stored profile velocity may be 0 (set `ADVANCE_VELOCITY`/`RETRACT_VELOCITY`), the drive may be in fault (re-enter TEST to reset it), or it was never commissioned (step 2). PlatformMotor doesn't read the drive's replies yet, so drive-side faults aren't reported. |
