@@ -7,6 +7,7 @@ Suites, selected by marker and by what the run is pointed at (see README.md):
   fakedrive  dev Pi with fake_drive.py standing in for the motor drive
   gpio       dev Pi with spare outputs wired to LO/SOE/EODS: flight-timeline rehearsal
   hardware   flight Pi with the real hardware; operator present (run with -s)
+  stability  soak tests for leaks and instability (laptop or dev Pi)
 
 Every test ends with exitTestMode, so the hardware is left in a known state even when a test fails.
 """
@@ -27,6 +28,7 @@ TARGETS = {
     "fakedrive": {"devpi"},
     "gpio": {"devpi"},
     "hardware": {"flightpi"},
+    "stability": {"laptop", "devpi"},
 }
 
 
@@ -51,6 +53,7 @@ def pytest_addoption(parser):
         help="BCM output pins wired to the LO,SOE,EODS inputs, e.g. 5,6,13",
     )
     group.addoption("--mara-test-position", type=int, default=None, help="small safe platform target (counts)")
+    group.addoption("--mara-soak-minutes", type=float, default=30, help="length of the soak test [default: 30]")
     group.addoption(
         "--mara-camera-dirs",
         default="/mnt/sd1/camera,/mnt/sd2/camera",
@@ -65,6 +68,7 @@ def pytest_configure(config):
         ("fakedrive", "dev Pi with the fake drive"),
         ("gpio", "dev Pi with LO/SOE/EODS jumpered to spare outputs"),
         ("hardware", "flight Pi with the real hardware, operator present"),
+        ("stability", "soak tests for leaks and instability"),
     ]:
         config.addinivalue_line("markers", f"{marker}: {description}")
 
@@ -78,7 +82,7 @@ def pytest_collection_modifyitems(config, items):
             reason = None
             if target not in TARGETS[suite]:
                 reason = f"{suite} tests need --mara-target {'/'.join(sorted(TARGETS[suite]))}"
-            elif suite != "software" and not has_pi:
+            elif suite not in ("software", "stability") and not has_pi:
                 reason = f"{suite} tests need --mara-pi"
             elif suite in ("fakedrive", "gpio") and not config.getoption("--mara-fake-drive"):
                 reason = f"{suite} tests need --mara-fake-drive"
