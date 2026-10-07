@@ -21,3 +21,7 @@ seed-history
 
 # fprime-util check --coverage reports
 coverage/
+
+# Python
+__pycache__/
+*.pyc
