@@ -45,6 +45,8 @@ Only the read task opens and closes the device.
 | `AdapterDisconnected(device, err)` | WARNING_HI | Device went away; `err` is errno, or 0 for a hangup or EOF |
 | `NoBuffers(device)` | WARNING_HI | No receive buffer; once until one is available again |
 
+`AdapterNotConnected` and `NoBuffers` use FPP event throttling (`throttle 1`). The read task clears the throttle (`..._ThrottleClear()`) when the device connects or a buffer is available again, so each is logged once per episode.
+
 ## Telemetry
 `BytesSent`, `BytesReceived`: running totals, written when they change.
 

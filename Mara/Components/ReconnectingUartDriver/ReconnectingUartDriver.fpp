@@ -19,10 +19,12 @@ module Mara {
         # Events
         # ------------------------------------------------------------------
 
-        @ The device could not be opened. Logged once per disconnected period.
+        @ The device could not be opened. Throttled to once per disconnected period:
+        @ the throttle is cleared when the device connects.
         event AdapterNotConnected(device: string size 80) \
             severity warning high \
-            format "Serial device {} not connected, retrying"
+            format "Serial device {} not connected, retrying" \
+            throttle 1
 
         @ The device was opened and configured
         event AdapterConnected(device: string size 80) \
@@ -34,10 +36,11 @@ module Mara {
             severity warning high \
             format "Serial device {} disconnected, errno {}"
 
-        @ No receive buffer available. Logged once until a buffer is available again.
+        @ No receive buffer available. Throttled to once until a buffer is available again.
         event NoBuffers(device: string size 80) \
             severity warning high \
-            format "Serial device {}: no receive buffers"
+            format "Serial device {}: no receive buffers" \
+            throttle 1
 
         # ------------------------------------------------------------------
         # Telemetry

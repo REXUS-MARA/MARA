@@ -107,9 +107,6 @@ void ReconnectingUartDriver ::readTaskEntry(void* ptr) {
 }
 
 void ReconnectingUartDriver ::readLoop() {
-    bool warnedNotConnected = false;
-    bool warnedNoBuffers = false;
-
     while (!m_quitReadThread) {
         int fd = -1;
         {
@@ -117,14 +114,11 @@ void ReconnectingUartDriver ::readLoop() {
             fd = m_fd;
         }
 
-        // Not connected: try to open, warn once per disconnected period
+        // Not connected: try to open. AdapterNotConnected is throttled to once per disconnected period.
         if (fd < 0) {
             fd = tryOpen();
             if (fd < 0) {
-                if (!warnedNotConnected) {
-                    this->log_WARNING_HI_AdapterNotConnected(m_device);
-                    warnedNotConnected = true;
-                }
+                this->log_WARNING_HI_AdapterNotConnected(m_device);
                 (void)Os::Task::delay(RECONNECT_INTERVAL);
                 continue;
             }
@@ -132,7 +126,7 @@ void ReconnectingUartDriver ::readLoop() {
                 Os::ScopeLock lock(m_fdLock);
                 m_fd = fd;
             }
-            warnedNotConnected = false;
+            this->log_WARNING_HI_AdapterNotConnected_ThrottleClear();
             this->log_ACTIVITY_HI_AdapterConnected(m_device);
             if (this->isConnected_ready_OutputPort(0)) {
                 this->ready_out(0);
@@ -161,14 +155,11 @@ void ReconnectingUartDriver ::readLoop() {
 
         Fw::Buffer buffer = this->allocate_out(0, m_allocationSize);
         if (buffer.getData() == nullptr) {
-            if (!warnedNoBuffers) {
-                this->log_WARNING_HI_NoBuffers(m_device);
-                warnedNoBuffers = true;
-            }
+            this->log_WARNING_HI_NoBuffers(m_device);  // throttled to once until a buffer is available
             (void)Os::Task::delay(NO_BUFFER_RETRY);
             continue;
         }
-        warnedNoBuffers = false;
+        this->log_WARNING_HI_NoBuffers_ThrottleClear();
 
         const ssize_t received = ::read(fd, buffer.getData(), static_cast<size_t>(buffer.getSize()));
         if (received > 0) {
