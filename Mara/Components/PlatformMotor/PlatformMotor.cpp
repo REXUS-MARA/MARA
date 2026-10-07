@@ -6,6 +6,7 @@
 
 #include "Mara/Components/PlatformMotor/PlatformMotor.hpp"
 
+#include "Fw/Types/Serializable.hpp"
 #include "Os/Task.hpp"
 
 #include <algorithm>
@@ -23,6 +24,17 @@ constexpr U16 PROFILE_VELOCITY = 0x6081;
 constexpr U16 PROFILE_ACCELERATION = 0x6083;
 
 constexpr U32 PROFILE_POSITION_MODE = 1;
+
+// Waveshare USB-CAN-A variable-length frame: header, type, CAN ID (LE), data, end code
+constexpr U8 FRAME_HEADER = 0xAA;
+constexpr U8 FRAME_TYPE_STD_DATA_8 = 0xC8;  // standard 11-bit ID, data frame, DLC 8
+constexpr U8 FRAME_END = 0x55;
+constexpr FwSizeType FRAME_SIZE = 13;  // header + type + ID(2) + 8 data bytes + end
+
+// CANopen SDO expedited download command bytes, by value size
+constexpr U8 SDO_DOWNLOAD_1 = 0x2F;
+constexpr U8 SDO_DOWNLOAD_2 = 0x2B;
+constexpr U8 SDO_DOWNLOAD_4 = 0x23;
 
 // Controlword values
 constexpr U32 CW_FAULT_RESET = 0x0080;
@@ -135,27 +147,25 @@ bool PlatformMotor ::sdoWriteAll(std::initializer_list<SdoWrite> writes) {
     const U16 cobId = 0x600 + this->paramGet_NODE_ID(valid);  // SDO request to this node
 
     for (const SdoWrite& write : writes) {
-        // SDO expedited download: the command byte encodes the value size
-        const U8 command = (write.size == 4) ? 0x23 : (write.size == 2) ? 0x2B : 0x2F;
+        const U8 command = (write.size == 4) ? SDO_DOWNLOAD_4 : (write.size == 2) ? SDO_DOWNLOAD_2 : SDO_DOWNLOAD_1;
 
-        // Waveshare USB-CAN-A frame: header, type (standard data frame, 8 bytes),
-        // CAN ID little-endian, 8 data bytes, end code. CANopen data is little-endian too.
-        std::array<U8, 13> frame{0xAA,
-                                 0xC8,
-                                 static_cast<U8>(cobId),
-                                 static_cast<U8>(cobId >> 8),
-                                 command,
-                                 static_cast<U8>(write.index),
-                                 static_cast<U8>(write.index >> 8),
-                                 0x00,  // subindex
-                                 static_cast<U8>(write.value),
-                                 static_cast<U8>(write.value >> 8),
-                                 static_cast<U8>(write.value >> 16),
-                                 static_cast<U8>(write.value >> 24),
-                                 0x55};
+        // CAN ID and CANopen data are little-endian. The 8 data bytes are the SDO command,
+        // index, subindex and a 4-byte value (unused high bytes are 0 for 1/2-byte objects).
+        std::array<U8, FRAME_SIZE> frame{};
+        Fw::ExternalSerializeBuffer serializer(frame.data(), frame.size());
+        const Fw::Endianness le = Fw::Endianness::LITTLE;
+        const bool built = serializer.serializeFrom(FRAME_HEADER) == Fw::FW_SERIALIZE_OK &&
+                           serializer.serializeFrom(FRAME_TYPE_STD_DATA_8) == Fw::FW_SERIALIZE_OK &&
+                           serializer.serializeFrom(cobId, le) == Fw::FW_SERIALIZE_OK &&
+                           serializer.serializeFrom(command) == Fw::FW_SERIALIZE_OK &&
+                           serializer.serializeFrom(write.index, le) == Fw::FW_SERIALIZE_OK &&
+                           serializer.serializeFrom(static_cast<U8>(0)) == Fw::FW_SERIALIZE_OK &&  // subindex
+                           serializer.serializeFrom(write.value, le) == Fw::FW_SERIALIZE_OK &&
+                           serializer.serializeFrom(FRAME_END) == Fw::FW_SERIALIZE_OK &&
+                           serializer.getSize() == FRAME_SIZE;
 
         Drv::ByteStreamStatus status = Drv::ByteStreamStatus::OTHER_ERROR;
-        if (this->isConnected_toByteStreamDriver_OutputPort(0)) {
+        if (built && this->isConnected_toByteStreamDriver_OutputPort(0)) {
             Fw::Buffer buffer(frame.data(), frame.size());
             status = this->toByteStreamDriver_out(0, buffer);
         }
