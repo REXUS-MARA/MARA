@@ -242,6 +242,33 @@ void PlatformMotorTester ::testSendFailureStop() {
     ASSERT_EVENTS_Stopped_SIZE(0);
 }
 
+void PlatformMotorTester ::testSendFailureAcceleration() {
+    this->setParams(0, 1000, 0, 0, 500);
+    m_failSendIndex = 1;  // mode, then acceleration
+    this->enable();
+
+    ASSERT_EQ(m_sendAttempts, 2U);
+    ASSERT_EVENTS_SendFailed_SIZE(1);
+    ASSERT_EVENTS_Enabled_SIZE(0);
+}
+
+void PlatformMotorTester ::testSendFailureVelocity() {
+    this->setParams(0, 1000, 111, 222);
+    m_failSendIndex = 0;  // the velocity is the first write of the move
+    this->moveTo(500);
+
+    ASSERT_EQ(m_sendAttempts, 1U);
+    ASSERT_EVENTS_SendFailed_SIZE(1);
+    ASSERT_EVENTS_MovingTo_SIZE(0);
+    ASSERT_TLM_TargetPosition_SIZE(0);
+}
+
+void PlatformMotorTester ::testDriverReady() {
+    this->invoke_to_byteStreamDriverReady(0);  // sync port
+    ASSERT_EQ(m_sendAttempts, 0U);
+    ASSERT_EVENTS_SIZE(0);
+}
+
 void PlatformMotorTester ::testPing() {
     this->invoke_to_pingIn(0, 0x1234);
     this->component.doDispatch();

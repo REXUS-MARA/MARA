@@ -18,3 +18,6 @@ Mara/ansible/inventory.ini
 # STest random seeds (local replay files)
 seed
 seed-history
+
+# fprime-util check --coverage reports
+coverage/

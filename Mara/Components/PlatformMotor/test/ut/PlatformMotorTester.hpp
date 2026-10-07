@@ -100,6 +100,15 @@ class PlatformMotorTester final : public PlatformMotorGTestBase {
     //! A failed send during stop does not report Stopped
     void testSendFailureStop();
 
+    //! A failed acceleration write abandons the enable
+    void testSendFailureAcceleration();
+
+    //! A failed velocity write abandons the move
+    void testSendFailureVelocity();
+
+    //! The driver's ready signal needs no action
+    void testDriverReady();
+
     //! Pings are answered
     void testPing();
 

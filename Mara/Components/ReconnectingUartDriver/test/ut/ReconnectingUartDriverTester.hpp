@@ -78,6 +78,20 @@ class ReconnectingUartDriverTester final : public ReconnectingUartDriverGTestBas
     //! An empty send is rejected
     void testEmptySend();
 
+    //! The device opens with every supported baud rate, parity and flow control setting
+    void testAllSettingsConnect(ReconnectingUartDriver::UartBaudRate baud,
+                                ReconnectingUartDriver::UartParity parity,
+                                ReconnectingUartDriver::UartFlowControl flowControl);
+
+    //! A device path that is not a serial port never connects, and nothing asserts
+    void testNotASerialPort();
+
+    //! An unsupported baud rate never connects, and nothing asserts
+    void testUnsupportedBaud();
+
+    //! A full output buffer makes $send fail without an event or a disconnect; it recovers
+    void testSendBufferFull();
+
   private:
     // ----------------------------------------------------------------------
     // Handlers for typed from ports (called on the driver's read task)

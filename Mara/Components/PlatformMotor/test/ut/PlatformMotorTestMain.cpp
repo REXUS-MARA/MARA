@@ -76,6 +76,21 @@ TEST(SendFailure, Stop) {
     tester.testSendFailureStop();
 }
 
+TEST(SendFailure, Acceleration) {
+    Mara::PlatformMotorTester tester;
+    tester.testSendFailureAcceleration();
+}
+
+TEST(SendFailure, Velocity) {
+    Mara::PlatformMotorTester tester;
+    tester.testSendFailureVelocity();
+}
+
+TEST(Ports, DriverReady) {
+    Mara::PlatformMotorTester tester;
+    tester.testDriverReady();
+}
+
 TEST(Ports, Ping) {
     Mara::PlatformMotorTester tester;
     tester.testPing();

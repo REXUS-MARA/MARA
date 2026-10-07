@@ -216,6 +216,64 @@ void ReconnectingUartDriverTester ::testEmptySend() {
     ASSERT_EQ(this->invoke_to_send(0, zeroSize), Drv::ByteStreamStatus::OTHER_ERROR);
 }
 
+void ReconnectingUartDriverTester ::testAllSettingsConnect(ReconnectingUartDriver::UartBaudRate baud,
+                                                           ReconnectingUartDriver::UartParity parity,
+                                                           ReconnectingUartDriver::UartFlowControl flowControl) {
+    this->component.configure(m_link.c_str(), baud, flowControl, parity, BUFFER_SIZE);
+    this->plug();
+    this->start();
+    ASSERT_TRUE(this->waitFor([this]() { return this->eventHistory_AdapterConnected->size() == 1; }, DETECT_MS))
+        << "baud " << static_cast<U32>(baud) << ", parity " << parity << ", flow " << flowControl;
+    ASSERT_EQ(this->notConnectedCount(), 0U);
+}
+
+void ReconnectingUartDriverTester ::testNotASerialPort() {
+    // Opens fine, but has no terminal attributes
+    ASSERT_EQ(::symlink("/dev/null", m_link.c_str()), 0);
+    this->start();
+    sleepMs(2500);
+    ASSERT_EQ(this->notConnectedCount(), 1U);
+    ASSERT_EQ(this->connectedCount(), 0U);
+    ASSERT_EQ(this->send("x"), Drv::ByteStreamStatus::OTHER_ERROR);
+}
+
+void ReconnectingUartDriverTester ::testUnsupportedBaud() {
+    this->component.configure(m_link.c_str(), static_cast<ReconnectingUartDriver::UartBaudRate>(12345),
+                              ReconnectingUartDriver::NO_FLOW, ReconnectingUartDriver::PARITY_NONE, BUFFER_SIZE);
+    this->plug();
+    this->start();
+    sleepMs(2500);
+    ASSERT_EQ(this->notConnectedCount(), 1U);
+    ASSERT_EQ(this->connectedCount(), 0U);
+}
+
+void ReconnectingUartDriverTester ::testSendBufferFull() {
+    this->plug();
+    this->start();
+    ASSERT_TRUE(this->waitFor([this]() { return this->eventHistory_AdapterConnected->size() == 1; }, DETECT_MS));
+
+    // Nobody reads the "adapter": the driver's non-blocking writes eventually fail
+    const std::string frame(13, 'F');
+    FwSizeType sent = 0;
+    Drv::ByteStreamStatus status = Drv::ByteStreamStatus::OP_OK;
+    while (status == Drv::ByteStreamStatus::OP_OK && sent < 1000000) {
+        status = this->send(frame);
+        sent += (status == Drv::ByteStreamStatus::OP_OK) ? 1 : 0;
+    }
+    ASSERT_EQ(status, Drv::ByteStreamStatus::OTHER_ERROR) << "output buffer never filled";
+    ASSERT_GT(sent, 0U);
+
+    // A send failure is the caller's to report: no event, and the device stays connected
+    sleepMs(1500);
+    ASSERT_EQ(this->disconnectedCount(), 0U);
+    ASSERT_EQ(this->notConnectedCount(), 0U);
+
+    // Drain the "adapter": sending works again
+    (void)this->readFromDriver(sent * frame.size(), 2000);
+    ASSERT_EQ(this->send(frame), Drv::ByteStreamStatus::OP_OK);
+    ASSERT_EQ(this->readFromDriver(frame.size(), 1000), frame);
+}
+
 // ----------------------------------------------------------------------
 // Handlers for typed from ports
 // ----------------------------------------------------------------------
