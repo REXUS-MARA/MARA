@@ -233,20 +233,21 @@ int ReconnectingUartDriver ::tryOpen() const {
         return -1;
     }
 
-    // Raw 8-bit, receiver on, ignore modem control lines
-    cfg.c_cflag |= CS8 | CLOCAL | CREAD;
-    cfg.c_cflag &= static_cast<tcflag_t>(~(PARENB | PARODD | CRTSCTS));
-    if (m_parity == PARITY_ODD) {
-        cfg.c_cflag |= PARENB | PARODD;
-    } else if (m_parity == PARITY_EVEN) {
+    // Raw mode: 8 data bits, no parity, no echo, no line editing or character translation
+    ::cfmakeraw(&cfg);
+    // Receiver on, ignore modem control lines
+    cfg.c_cflag |= CLOCAL | CREAD;
+    cfg.c_cflag &= static_cast<tcflag_t>(~CRTSCTS);
+    if (m_parity != PARITY_NONE) {
         cfg.c_cflag |= PARENB;
+        cfg.c_iflag |= INPCK;
+        if (m_parity == PARITY_ODD) {
+            cfg.c_cflag |= PARODD;
+        }
     }
     if (m_flowControl == HW_FLOW) {
         cfg.c_cflag |= CRTSCTS;
     }
-    cfg.c_oflag = 0;
-    cfg.c_lflag = 0;
-    cfg.c_iflag = INPCK;
     // read() returns what is available; poll() does the waiting
     cfg.c_cc[VMIN] = 0;
     cfg.c_cc[VTIME] = 0;
