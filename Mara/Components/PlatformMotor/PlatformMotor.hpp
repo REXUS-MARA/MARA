@@ -9,6 +9,8 @@
 
 #include "Mara/Components/PlatformMotor/PlatformMotorComponentAc.hpp"
 
+#include <initializer_list>
+
 namespace Mara {
 
 class PlatformMotor final : public PlatformMotorComponentBase {
@@ -75,9 +77,16 @@ class PlatformMotor final : public PlatformMotorComponentBase {
     // Helpers
     // ----------------------------------------------------------------------
 
-    //! Write one value into the drive's object dictionary (CANopen SDO download).
-    //! \param size value size in bytes: 1, 2 or 4
-    void sdoWrite(U16 index, U32 value, U8 size);
+    //! One value to write into the drive's object dictionary
+    struct SdoWrite {
+        U16 index;
+        U32 value;
+        U8 size;  //!< value size in bytes: 1, 2 or 4
+    };
+
+    //! Send CANopen SDO downloads in order. Stops at the first failed send and logs one SendFailed.
+    //! \return true if every write was sent
+    bool sdoWriteAll(std::initializer_list<SdoWrite> writes);
 
     I32 m_target = 0;  //!< Last commanded target; 0 is the power-up position
 };

@@ -10,6 +10,7 @@
 
 #include <algorithm>
 #include <array>
+#include <cstdlib>
 
 namespace Mara {
 
@@ -50,18 +51,26 @@ void PlatformMotor ::byteStreamDriverReady_handler(FwIndexType portNum) {
 
 void PlatformMotor ::enable_handler(FwIndexType portNum) {
     (void)portNum;
-    sdoWrite(MODE_OF_OPERATION, PROFILE_POSITION_MODE, 1);
-
     Fw::ParamValid valid;
-    const U32 acceleration = this->paramGet_ACCELERATION(valid);
-    if (acceleration != 0) {
-        sdoWrite(PROFILE_ACCELERATION, acceleration, 4);
+    if (this->paramGet_MIN_POSITION(valid) == 0 && this->paramGet_MAX_POSITION(valid) == 0) {
+        this->log_WARNING_HI_LimitsUnset();
     }
 
-    sdoWrite(CONTROLWORD, CW_FAULT_RESET, 2);
-    sdoWrite(CONTROLWORD, CW_SHUTDOWN, 2);
-    sdoWrite(CONTROLWORD, CW_SWITCH_ON, 2);
-    sdoWrite(CONTROLWORD, CW_ENABLE, 2);
+    if (!sdoWriteAll({{MODE_OF_OPERATION, PROFILE_POSITION_MODE, 1}})) {
+        return;
+    }
+
+    const U32 acceleration = this->paramGet_ACCELERATION(valid);
+    if (acceleration != 0 && !sdoWriteAll({{PROFILE_ACCELERATION, acceleration, 4}})) {
+        return;
+    }
+
+    if (!sdoWriteAll({{CONTROLWORD, CW_FAULT_RESET, 2},
+                      {CONTROLWORD, CW_SHUTDOWN, 2},
+                      {CONTROLWORD, CW_SWITCH_ON, 2},
+                      {CONTROLWORD, CW_ENABLE, 2}})) {
+        return;
+    }
     this->log_ACTIVITY_HI_Enabled();
 }
 
@@ -85,16 +94,19 @@ void PlatformMotor ::moveTo_handler(FwIndexType portNum, I32 position) {
         this->log_WARNING_LO_PositionClamped(position, target);
     }
 
-    // Upward is the drilling feed, downward is the retract
-    const U32 velocity =
-        (target > m_target) ? this->paramGet_ADVANCE_VELOCITY(valid) : this->paramGet_RETRACT_VELOCITY(valid);
-    if (velocity != 0) {
-        sdoWrite(PROFILE_VELOCITY, velocity, 4);
+    // Away from 0 is the drilling feed, towards 0 is the retract. Comparing distances from 0
+    // keeps this right whichever sign the drive uses for "towards the sample".
+    const U32 velocity = (std::abs(target) > std::abs(m_target)) ? this->paramGet_ADVANCE_VELOCITY(valid)
+                                                                 : this->paramGet_RETRACT_VELOCITY(valid);
+    if (velocity != 0 && !sdoWriteAll({{PROFILE_VELOCITY, velocity, 4}})) {
+        return;
     }
 
-    sdoWrite(CONTROLWORD, CW_ENABLE, 2);  // clear new-setpoint so the next write is a rising edge
-    sdoWrite(TARGET_POSITION, static_cast<U32>(target), 4);
-    sdoWrite(CONTROLWORD, CW_START_MOVE, 2);
+    if (!sdoWriteAll({{CONTROLWORD, CW_ENABLE, 2},  // clear new-setpoint so the next write is a rising edge
+                      {TARGET_POSITION, static_cast<U32>(target), 4},
+                      {CONTROLWORD, CW_START_MOVE, 2}})) {
+        return;
+    }
 
     m_target = target;
     this->tlmWrite_TargetPosition(target);
@@ -108,7 +120,9 @@ void PlatformMotor ::pingIn_handler(FwIndexType portNum, U32 key) {
 
 void PlatformMotor ::stop_handler(FwIndexType portNum) {
     (void)portNum;
-    sdoWrite(CONTROLWORD, CW_HALT, 2);
+    if (!sdoWriteAll({{CONTROLWORD, CW_HALT, 2}})) {
+        return;
+    }
     this->log_ACTIVITY_HI_Stopped();
 }
 
@@ -116,39 +130,44 @@ void PlatformMotor ::stop_handler(FwIndexType portNum) {
 // Helpers
 // ----------------------------------------------------------------------
 
-void PlatformMotor ::sdoWrite(U16 index, U32 value, U8 size) {
+bool PlatformMotor ::sdoWriteAll(std::initializer_list<SdoWrite> writes) {
     Fw::ParamValid valid;
     const U16 cobId = 0x600 + this->paramGet_NODE_ID(valid);  // SDO request to this node
 
-    // SDO expedited download: the command byte encodes the value size
-    const U8 command = (size == 4) ? 0x23 : (size == 2) ? 0x2B : 0x2F;
+    for (const SdoWrite& write : writes) {
+        // SDO expedited download: the command byte encodes the value size
+        const U8 command = (write.size == 4) ? 0x23 : (write.size == 2) ? 0x2B : 0x2F;
 
-    // Waveshare USB-CAN-A frame: header, type (standard data frame, 8 bytes),
-    // CAN ID little-endian, 8 data bytes, end code. CANopen data is little-endian too.
-    std::array<U8, 13> frame{0xAA,
-                             0xC8,
-                             static_cast<U8>(cobId),
-                             static_cast<U8>(cobId >> 8),
-                             command,
-                             static_cast<U8>(index),
-                             static_cast<U8>(index >> 8),
-                             0x00,  // subindex
-                             static_cast<U8>(value),
-                             static_cast<U8>(value >> 8),
-                             static_cast<U8>(value >> 16),
-                             static_cast<U8>(value >> 24),
-                             0x55};
+        // Waveshare USB-CAN-A frame: header, type (standard data frame, 8 bytes),
+        // CAN ID little-endian, 8 data bytes, end code. CANopen data is little-endian too.
+        std::array<U8, 13> frame{0xAA,
+                                 0xC8,
+                                 static_cast<U8>(cobId),
+                                 static_cast<U8>(cobId >> 8),
+                                 command,
+                                 static_cast<U8>(write.index),
+                                 static_cast<U8>(write.index >> 8),
+                                 0x00,  // subindex
+                                 static_cast<U8>(write.value),
+                                 static_cast<U8>(write.value >> 8),
+                                 static_cast<U8>(write.value >> 16),
+                                 static_cast<U8>(write.value >> 24),
+                                 0x55};
 
-    if (this->isConnected_toByteStreamDriver_OutputPort(0)) {
-        Fw::Buffer buffer(frame.data(), frame.size());
-        const Drv::ByteStreamStatus status = this->toByteStreamDriver_out(0, buffer);
+        Drv::ByteStreamStatus status = Drv::ByteStreamStatus::OTHER_ERROR;
+        if (this->isConnected_toByteStreamDriver_OutputPort(0)) {
+            Fw::Buffer buffer(frame.data(), frame.size());
+            status = this->toByteStreamDriver_out(0, buffer);
+        }
         if (status != Drv::ByteStreamStatus::OP_OK) {
             this->log_WARNING_HI_SendFailed(status);
+            return false;
         }
-    }
 
-    // Give the drive time to handle this request before the next one
-    (void)Os::Task::delay(Fw::TimeInterval(0, 10 * 1000));
+        // Give the drive time to handle this request before the next one
+        (void)Os::Task::delay(Fw::TimeInterval(0, 10 * 1000));
+    }
+    return true;
 }
 
 }  // namespace Mara

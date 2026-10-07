@@ -8,7 +8,7 @@ module Mara {
     @ Driven only by the Orchestrator, so the platform can't move outside TEST/EXPERIMENT.
     active component PlatformMotor {
 
-        @ Serial link to the USB-CAN adapter (connects to a Drv.LinuxUartDriver)
+        @ Serial link to the USB-CAN adapter (connects to a byte stream driver)
         import Drv.PassiveByteStreamDriverClient
 
         @ Enable the drive. Also clears a drive fault.
@@ -29,6 +29,11 @@ module Mara {
 
         # ------------------------------------------------------------------
         # Parameters
+        #
+        # Positions are drive encoder counts, 0 = platform position at drive
+        # power-up (fully down). After commissioning, confirm which sign moves
+        # the platform towards the sample: if it is negative, set MIN_POSITION
+        # negative, MAX_POSITION to 0 and DRILL_POSITION negative.
         # ------------------------------------------------------------------
 
         @ CANopen node ID of the drive, as set in EasySetUp
@@ -42,11 +47,11 @@ module Mara {
         @ Default 0 means the platform will not move until this is set.
         param MAX_POSITION: I32 default 0
 
-        @ Profile velocity (0x6081) for upward moves, i.e. drilling feed. Technosoft internal units.
+        @ Profile velocity (0x6081) for moves away from 0, i.e. the drilling feed. Technosoft internal units.
         @ 0 keeps the value stored in the drive.
         param ADVANCE_VELOCITY: U32 default 0
 
-        @ Profile velocity (0x6081) for downward moves. Technosoft internal units.
+        @ Profile velocity (0x6081) for moves towards 0, i.e. the retract. Technosoft internal units.
         @ 0 keeps the value stored in the drive.
         param RETRACT_VELOCITY: U32 default 0
 
@@ -58,9 +63,15 @@ module Mara {
         # Events
         # ------------------------------------------------------------------
 
+        @ A platform command could not be sent; the rest of that command was skipped
         event SendFailed(status: Drv.ByteStreamStatus) \
             severity warning high \
-            format "Sending to the CAN adapter failed: {}"
+            format "Platform command not sent, CAN adapter unavailable: {}"
+
+        @ MIN_POSITION and MAX_POSITION are both 0, so every move is clamped to 0
+        event LimitsUnset \
+            severity warning high \
+            format "Platform limits are 0, the platform will not move"
 
         event Enabled \
             severity activity high \
