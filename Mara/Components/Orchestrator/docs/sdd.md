@@ -46,3 +46,6 @@ Leaving TEST puts the hardware in a known state: drill off, camera off, platform
 | `testThermalCameraON` / `testThermalCameraOFF` | TODO |
 
 Example test: `enterTestMode`, `testOpticalCameraON`, `testPlatformMoveTo 2000`, wait, `testPlatformMoveTo 0`, `testOpticalCameraOFF`, `exitTestMode`.
+
+## Queue overflow
+Every async port, command and state-machine signal uses the `drop` queue-full policy instead of the F´ default, which asserts (FATAL). A dropped message is silent apart from the internal dropped-message counter, and a dropped command gets no response. With a queue depth of 10 and a few messages per minute this is theoretical, but a drop is recoverable and a FATAL is not.

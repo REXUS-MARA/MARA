@@ -12,17 +12,17 @@ module Mara {
         import Drv.PassiveByteStreamDriverClient
 
         @ Enable the drive. Also clears a drive fault.
-        async input port enable: Fw.Signal
+        async input port enable: Fw.Signal drop
 
         @ Move to an absolute position in encoder counts, clamped to [MIN_POSITION, MAX_POSITION].
         @ 0 is the position at drive power-up.
-        async input port moveTo: PlatformMoveTo
+        async input port moveTo: PlatformMoveTo drop
 
         @ Stop and hold position
-        async input port stop: Fw.Signal
+        async input port stop: Fw.Signal drop
 
         @ Health ping
-        async input port pingIn: Svc.Ping
+        async input port pingIn: Svc.Ping drop
 
         @ Health ping response
         output port pingOut: Svc.Ping

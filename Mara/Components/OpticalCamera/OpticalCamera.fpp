@@ -3,13 +3,13 @@ module Mara {
     active component OpticalCamera {
 
         @ Turns on the camera recording
-        async input port Camera_ON: Fw.Signal
+        async input port Camera_ON: Fw.Signal drop
 
         @ Turns off the camera recording
-        async input port Camera_OFF: Fw.Signal
+        async input port Camera_OFF: Fw.Signal drop
 
         @ Health ping
-        async input port pingIn: Svc.Ping
+        async input port pingIn: Svc.Ping drop
 
         @ Health ping response
         output port pingOut: Svc.Ping

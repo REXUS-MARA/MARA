@@ -37,3 +37,6 @@ If both `MIN_POSITION` and `MAX_POSITION` are 0, `enable` raises `LimitsUnset` (
 - Parsing drive replies: SDO aborts as events, statusword and actual position as telemetry.
 - Homing.
 - The real `/dev/serial/by-id/` path, which is `MotorUartDevice` in `MaraRPiUARTTopologyDefs.hpp`.
+
+## Queue overflow
+Every async port, command and state-machine signal uses the `drop` queue-full policy instead of the F´ default, which asserts (FATAL). A dropped message is silent apart from the internal dropped-message counter, and a dropped command gets no response. With a queue depth of 10 and a few messages per minute this is theoretical, but a drop is recoverable and a FATAL is not.

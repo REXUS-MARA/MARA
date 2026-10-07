@@ -2,37 +2,37 @@ module Mara {
     @ Orchestrator of the whole experiment
     active component Orchestrator {
 
-        async command enterTestMode
+        async command enterTestMode drop
 
-        async command exitTestMode
+        async command exitTestMode drop
 
         @ TEST mode: start the drill
-        async command testDrillON
+        async command testDrillON drop
 
         @ TEST mode: stop the drill
-        async command testDrillOFF
+        async command testDrillOFF drop
 
         @ TEST mode: move the platform to an absolute position in encoder counts.
         @ PlatformMotor clamps it to [MIN_POSITION, MAX_POSITION]. 0 is fully down.
-        async command testPlatformMoveTo(position: I32)
+        async command testPlatformMoveTo(position: I32) drop
 
         @ TEST mode: halt the platform where it is
-        async command testPlatformStop
+        async command testPlatformStop drop
 
-        async command testOpticalCameraON
-        async command testOpticalCameraOFF
+        async command testOpticalCameraON drop
+        async command testOpticalCameraOFF drop
 
-        async command testThermalCameraON
-        async command testThermalCameraOFF
+        async command testThermalCameraON drop
+        async command testThermalCameraOFF drop
 
-        state machine instance OrchestratorStateMachine : OrchestratorStateMachine
+        state machine instance OrchestratorStateMachine : OrchestratorStateMachine drop
 
-        async input port LOHigh: Fw.Signal
-        async input port SOEHigh: Fw.Signal
-        async input port EODSHigh: Fw.Signal
+        async input port LOHigh: Fw.Signal drop
+        async input port SOEHigh: Fw.Signal drop
+        async input port EODSHigh: Fw.Signal drop
 
         @ 1 Hz tick, drives the experiment timeline
-        async input port schedIn: Svc.Sched
+        async input port schedIn: Svc.Sched drop
 
         # ------------------------------------------------------------------
         # Experiment timeline parameters
