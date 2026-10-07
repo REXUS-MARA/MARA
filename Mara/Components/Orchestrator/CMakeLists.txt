@@ -25,13 +25,14 @@ register_fprime_library(
 )
 
 ### Unit Tests ###
-# register_fprime_ut(
-#     AUTOCODER_INPUTS
-#         "${CMAKE_CURRENT_LIST_DIR}/Orchestrator.fpp"
-#     SOURCES
-#         "${CMAKE_CURRENT_LIST_DIR}/test/ut/OrchestratorTestMain.cpp"
-#         "${CMAKE_CURRENT_LIST_DIR}/test/ut/OrchestratorTester.cpp"
-#     DEPENDS
-#         STest # For rules-based testing
-#     UT_AUTO_HELPERS
-# )
+register_fprime_ut(
+    AUTOCODER_INPUTS
+        "${CMAKE_CURRENT_LIST_DIR}/Orchestrator.fpp"
+        "${CMAKE_CURRENT_LIST_DIR}/OrchestratorStateMachine.fpp"
+    SOURCES
+        "${CMAKE_CURRENT_LIST_DIR}/test/ut/OrchestratorTestMain.cpp"
+        "${CMAKE_CURRENT_LIST_DIR}/test/ut/OrchestratorTester.cpp"
+    DEPENDS
+        STest # For rules-based testing
+    UT_AUTO_HELPERS
+)
