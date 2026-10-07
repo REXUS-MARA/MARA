@@ -24,13 +24,13 @@ register_fprime_library(
 )
 
 ### Unit Tests ###
-# register_fprime_ut(
-#     AUTOCODER_INPUTS
-#         "${CMAKE_CURRENT_LIST_DIR}/PlatformMotor.fpp"
-#     SOURCES
-#         "${CMAKE_CURRENT_LIST_DIR}/test/ut/PlatformMotorTestMain.cpp"
-#         "${CMAKE_CURRENT_LIST_DIR}/test/ut/PlatformMotorTester.cpp"
-#     DEPENDS
-#         STest # For rules-based testing
-#     UT_AUTO_HELPERS
-# )
+register_fprime_ut(
+    AUTOCODER_INPUTS
+        "${CMAKE_CURRENT_LIST_DIR}/PlatformMotor.fpp"
+    SOURCES
+        "${CMAKE_CURRENT_LIST_DIR}/test/ut/PlatformMotorTestMain.cpp"
+        "${CMAKE_CURRENT_LIST_DIR}/test/ut/PlatformMotorTester.cpp"
+    DEPENDS
+        STest # For rules-based testing
+    UT_AUTO_HELPERS
+)
