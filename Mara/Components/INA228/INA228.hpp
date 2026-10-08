@@ -56,53 +56,57 @@ class INA228 final : public INA228ComponentBase {
     // Implementations for internal state machine actions
     // ----------------------------------------------------------------------
 
-    //! Implementation for action doReset of state machine Mara_I2CSensorStateMachine
+    //! Implementation for action doReset of state machine Mara_INAStateMachine
     //!
     //! Perform reset commands
-    void Mara_I2CSensorStateMachine_action_doReset(SmId smId,                                 //!< The state machine id
-                                                   Mara_I2CSensorStateMachine::Signal signal  //!< The signal
+    void Mara_INAStateMachine_action_doReset(SmId smId,                                 //!< The state machine id
+                                                   Mara_INAStateMachine::Signal signal  //!< The signal
                                                    ) override;
 
-    //! Implementation for action checkReset of state machine Mara_I2CSensorStateMachine
+    //! Implementation for action checkReset of state machine Mara_INAStateMachine
     //!
     //! Check reset took place
-    void Mara_I2CSensorStateMachine_action_checkReset(SmId smId,  //!< The state machine id
-                                                      Mara_I2CSensorStateMachine::Signal signal  //!< The signal
+    void Mara_INAStateMachine_action_checkReset(SmId smId,  //!< The state machine id
+                                                      Mara_INAStateMachine::Signal signal  //!< The signal
                                                       ) override;
 
-    //! Implementation for action doEnable of state machine Mara_I2CSensorStateMachine
+    //! Implementation for action doEnable of state machine Mara_INAStateMachine
     //!
     //! Perform enable commands
-    void Mara_I2CSensorStateMachine_action_doEnable(SmId smId,                                 //!< The state machine id
-                                                    Mara_I2CSensorStateMachine::Signal signal  //!< The signal
-                                                    ) override;
+//    void Mara_INAStateMachine_action_doEnable(SmId smId,                                 //!< The state machine id
+  //                                                  Mara_INAStateMachine::Signal signal  //!< The signal
+    //                                                ) override;
 
-    //! Implementation for action doConfigure of state machine Mara_I2CSensorStateMachine
+    //! Implementation for action doConfigure of state machine Mara_INAStateMachine
     //!
     //! Perform configure commands
-    void Mara_I2CSensorStateMachine_action_doConfigure(SmId smId,  //!< The state machine id
-                                                       Mara_I2CSensorStateMachine::Signal signal  //!< The signal
+    void Mara_INAStateMachine_action_doConfigure(SmId smId,  //!< The state machine id
+                                                       Mara_INAStateMachine::Signal signal  //!< The signal
                                                        ) override;
 
-    //! Implementation for action doRead of state machine Mara_I2CSensorStateMachine
+    //! Implementation for action doRead of state machine Mara_INAStateMachine
     //!
     //! Read the sensor
-    void Mara_I2CSensorStateMachine_action_doRead(SmId smId,                                 //!< The state machine id
-                                                  Mara_I2CSensorStateMachine::Signal signal  //!< The signal
+    void Mara_INAStateMachine_action_doRead(SmId smId,                                 //!< The state machine id
+                                                  Mara_INAStateMachine::Signal signal  //!< The signal
 
                                                   ) override;
 
     // Private funcs
-    Drv::I2cStatus reset();
-    Drv::I2cStatus configure_device();
-    Drv::I2cStatus write_register();
-    Drv::I2cStatus read(INAData& data);
 
     // Private vars
     U8 m_address;
     FwSizeType m_count;       //!< Count of serialized records
     DpContainer m_container;  //!< Data product container (currently allocated)
     bool m_containerValid;    //!< Whether the container is valid
+
+ public:
+    Drv::I2cStatus reset();
+    Drv::I2cStatus check_reset();
+    Drv::I2cStatus configure_device();
+    Drv::I2cStatus read_register(U8 registerAddress, I32* value);
+    Drv::I2cStatus write_register(U8 registerAddress, U16 value);
+    Drv::I2cStatus read(INAData* data);
 
 };
 }  // namespace Mara

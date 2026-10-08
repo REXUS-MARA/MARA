@@ -1,7 +1,7 @@
 module Mara {
-    @ Define Ltr State Machine
+    @ Define INA State Machine
     @ Stolen from MpuImu from fprimesensors repo
-    state machine LtrStateMachine {
+    state machine INAStateMachine {
         @ Initial state: reset the device
         initial enter RESET
 

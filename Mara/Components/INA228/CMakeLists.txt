@@ -21,6 +21,7 @@ register_fprime_library(
         "${CMAKE_CURRENT_LIST_DIR}/INAStateMachine.fpp"
     SOURCES
         "${CMAKE_CURRENT_LIST_DIR}/INA228.cpp"
+        "${CMAKE_CURRENT_LIST_DIR}/INAHelper.cpp"
 #   DEPENDS
 #       MyPackage_MyOtherModule
 )

@@ -8,23 +8,32 @@ module Mara {
         @ Port for I2C bus communication
         output port busWrite: Drv.I2c
 
-        @ Sync port, grandfathered in from INA-303
+        @ Sync port, grandfathered in from LTR-303
         sync input port run: Svc.Sched
 
         @ Telemetry reading for current/voltage data
         telemetry Reading: INAData
 
-        @ I2C error event, grandfathered in from INA-303
+        @ I2C error event, grandfathered in from LTR-303
         event I2cError(
             address: U32,
             status: Drv.I2cStatus
         ) severity warning high format "I2C error on address {} with status {}" throttle 5
 
+        event debug(
+            message: U32
+        ) severity warning high format "message {}"
+
+        event debugRead(
+            voltage: F32
+            current: F32
+        ) severity warning high format "read: {} V, {} A"
+
         @ Command to force a RESET
         async command RESET()
 
         @ I2CSensor SM instance
-        state machine instance INAStateMachine: Mara.I2CSensorStateMachine
+        state machine instance INAStateMachine: INAStateMachine
 
         @ Port for current time
         time get port timeCaller

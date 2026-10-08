@@ -40,7 +40,7 @@ void INA228 ::RESET_cmdHandler(FwOpcodeType opCode, U32 cmdSeq) {
 // Implementations for internal state machine actions
 // ----------------------------------------------------------------------
 
-void INA228 ::Mara_I2CSensorStateMachine_action_doReset(SmId smId, Mara_I2CSensorStateMachine::Signal signal) {
+void INA228 ::Mara_INAStateMachine_action_doReset(SmId smId, Mara_INAStateMachine::Signal signal) {
     Drv::I2cStatus status = this->reset();
     // Transition to RESET state on failure
     if (status != Drv::I2cStatus::I2C_OK) {
@@ -51,25 +51,18 @@ void INA228 ::Mara_I2CSensorStateMachine_action_doReset(SmId smId, Mara_I2CSenso
     }
 }
 
-void INA228 ::Mara_I2CSensorStateMachine_action_checkReset(SmId smId, Mara_I2CSensorStateMachine::Signal signal) {
-//    U8 reset_val = 0;
-//    Drv::I2cStatus status = this->read_ALS_CONTR(reset_val);
-    Drv::I2cStatus status = Drv::I2cStatus::I2C_OK;
-    // When reset is complete, the second low bit will be 0
-    if ((status != Drv::I2cStatus::I2C_OK)) {
+void INA228 ::Mara_INAStateMachine_action_checkReset(SmId smId, Mara_INAStateMachine::Signal signal) {
+    Drv::I2cStatus status = this->check_reset();
+    if (status != Drv::I2cStatus::I2C_OK) {
         this->log_WARNING_HI_I2cError(this->m_address, status);
         this->INAStateMachine_sendSignal_error();
-    } else { // TODO: check if the thang was reset
+    } else {
         this->INAStateMachine_sendSignal_success();
     }
 }
 
-void INA228 ::Mara_I2CSensorStateMachine_action_doEnable(SmId smId, Mara_I2CSensorStateMachine::Signal signal) {
-    // TODO
-    // why is this here?
-}
 
-void INA228 ::Mara_I2CSensorStateMachine_action_doConfigure(SmId smId, Mara_I2CSensorStateMachine::Signal signal) {
+void INA228 ::Mara_INAStateMachine_action_doConfigure(SmId smId, Mara_INAStateMachine::Signal signal) {
     Drv::I2cStatus status = this->configure_device();
     if (status != Drv::I2cStatus::I2C_OK) {
         this->log_WARNING_HI_I2cError(this->m_address, status);
@@ -79,10 +72,10 @@ void INA228 ::Mara_I2CSensorStateMachine_action_doConfigure(SmId smId, Mara_I2CS
     }
 }
 
-void INA228 ::Mara_I2CSensorStateMachine_action_doRead(SmId smId, Mara_I2CSensorStateMachine::Signal signal) {
+void INA228 ::Mara_INAStateMachine_action_doRead(SmId smId, Mara_INAStateMachine::Signal signal) {
 
     INAData INAData;
-    Drv::I2cStatus status = this->read(INAData);
+    Drv::I2cStatus status = this->read(&INAData);
     if (status != Drv::I2cStatus::I2C_OK) {
         this->log_WARNING_HI_I2cError(this->m_address, status);
         this->INAStateMachine_sendSignal_error();
