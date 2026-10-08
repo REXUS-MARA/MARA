@@ -46,6 +46,9 @@ module Mara {
     instance EODSgpioDriver
     instance SOEgpioDriver
     instance opticalCamera
+    instance platformMotor
+    instance motorUart
+    instance motorBufferManager
 
   # ----------------------------------------------------------------------
   # Pattern graph specifiers
@@ -123,6 +126,7 @@ module Mara {
       rateGroup1.RateGroupMemberOut[4] -> ComCcsds.aggregator.timeout
       rateGroup1.RateGroupMemberOut[5] -> cmdSeq.schedIn
       rateGroup1.RateGroupMemberOut[6] -> adxl345Manager.run
+      rateGroup1.RateGroupMemberOut[7] -> orchestrator.schedIn
       
 
       # Rate group 2
@@ -160,6 +164,21 @@ module Mara {
 
       orchestrator.OpticalCameraON -> opticalCamera.Camera_ON
       orchestrator.OpticalCameraOFF -> opticalCamera.Camera_OFF
+
+      orchestrator.PlatformEnable -> platformMotor.enable
+      orchestrator.PlatformMoveTo -> platformMotor.moveTo
+      orchestrator.PlatformStop   -> platformMotor.stop
+    }
+
+    # Platform motor drive over CANopen, through the USB-CAN adapter's UART
+    connections PlatformMotor {
+      platformMotor.toByteStreamDriver         -> motorUart.$send
+      motorUart.$recv                          -> platformMotor.fromByteStreamDriver
+      platformMotor.fromByteStreamDriverReturn -> motorUart.recvReturnIn
+      motorUart.ready                          -> platformMotor.byteStreamDriverReady
+
+      motorUart.allocate   -> motorBufferManager.bufferGetCallee
+      motorUart.deallocate -> motorBufferManager.bufferSendIn
     }
 
     # Connect ADXL345 to I2C driver

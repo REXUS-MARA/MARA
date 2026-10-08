@@ -33,6 +33,9 @@ U32 rateGroup4Context[Svc::ActiveRateGroup::CONNECTION_COUNT_MAX] = {};
 
 enum TopologyConstants {
     COMM_PRIORITY = 34,
+    MOTOR_UART_PRIORITY = 35,
+    MOTOR_BUFFER_SIZE = 64,   // largest UART read for motorUart; drive replies are 13-byte frames
+    MOTOR_BUFFER_COUNT = 10,
 };
 
 /**
@@ -55,6 +58,20 @@ void configureTopology() {
     // Command sequencer needs to allocate memory to hold contents of command sequences
     cmdSeq.allocateBuffer(0, mallocator, 5 * 1024);
 
+
+    // Receive buffers for the platform motor UART
+    Svc::BufferManager::BufferBins motorBins{};
+    motorBins.bins[0].bufferSize = MOTOR_BUFFER_SIZE;
+    motorBins.bins[0].numBuffers = MOTOR_BUFFER_COUNT;
+    motorBufferManager.setup(MotorBufferManagerId, 0, mallocator, motorBins);
+
+    // Platform motor: Waveshare USB-CAN-A at 2 Mbps. Only stores the settings; the driver's read task
+    // opens the adapter and keeps retrying, so the software runs without it and picks up a hot-plug.
+    // 2 Mbps only exists on Linux.
+#ifdef TGT_OS_TYPE_LINUX
+    motorUart.configure(MotorUartDevice, ReconnectingUartDriver::BAUD_2000K, ReconnectingUartDriver::NO_FLOW,
+                        ReconnectingUartDriver::PARITY_NONE, MOTOR_BUFFER_SIZE);
+#endif
 
     if (not I2CDriver.open("/dev/i2c-1")) {
         Fw::Logger::log("[ERROR] I2C driver open failed\n");
@@ -109,6 +126,12 @@ void setupTopology(const TopologyState& state) {
             printf("Failed to open UART device %s at baud rate %" PRIu32 "\n", state.uartDevice, state.baudRate);
         }
     }
+    // Platform motor UART read task: connects to the adapter whenever it is present
+#ifdef TGT_OS_TYPE_LINUX
+    if (motorUart.start(MOTOR_UART_PRIORITY, Default::STACK_SIZE) != Os::Task::OP_OK) {
+        Fw::Logger::log("[ERROR] Failed to start platform motor UART task\n");
+    }
+#endif
 }
 
 void startRateGroups(const Fw::TimeInterval& interval) {
@@ -131,9 +154,12 @@ void teardownTopology(const TopologyState& state) {
     // Other task clean-up.
     comDriver.quitReadThread();
     (void)comDriver.join();
+    motorUart.quitReadThread();
+    (void)motorUart.join();
 
     // Resource deallocation
     cmdSeq.deallocateBuffer(mallocator);
+    motorBufferManager.cleanup();
 
     tearDownComponents(state);
 }

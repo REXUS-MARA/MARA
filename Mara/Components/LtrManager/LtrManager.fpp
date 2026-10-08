@@ -32,10 +32,10 @@ module Mara {
         ) severity warning high format "I2C error on address {} with status {}" throttle 5
 
         @ Command to force a RESET
-        async command RESET()
+        async command RESET() drop
 
         @ I2CSensor SM instance
-        state machine instance LtrStateMachine: Mara.LtrStateMachine
+        state machine instance LtrStateMachine: Mara.LtrStateMachine drop
 
         @ Enables command handling
         import Fw.Command

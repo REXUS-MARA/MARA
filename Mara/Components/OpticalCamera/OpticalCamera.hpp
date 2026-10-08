@@ -24,7 +24,13 @@ class OpticalCamera final : public OpticalCameraComponentBase {
     void pingIn_handler(FwIndexType portNum, U32 key) override;
 
     void checkRecorder();
-    void stopRecorder();
+
+    //! SIGINT, wait up to STOP_TIMEOUT_SECONDS, then SIGKILL if needed. Never blocks indefinitely.
+    //! \param report log RecorderKilled/RecorderUnresponsive (not from the destructor, at teardown)
+    void stopRecorder(bool report = true);
+
+    //! Poll for the recorder's exit for up to timeoutMs. \return true if it was reaped
+    bool waitForExit(U32 timeoutMs);
     bool isRecording() const { return m_pid > 0; }
 
     pid_t m_pid = -1;
@@ -33,6 +39,8 @@ class OpticalCamera final : public OpticalCameraComponentBase {
     FwSizeType m_lastSize = 0;
     U32 m_stalls = 0;
     static const U32 STALL_PINGS = 5;
+    static const U32 POLL_MS = 50;           //!< how often to check for ffmpeg's exit while stopping
+    static const U32 KILL_TIMEOUT_MS = 1000;  //!< how long to wait for the exit after SIGKILL
 };
 
 }  // namespace Mara

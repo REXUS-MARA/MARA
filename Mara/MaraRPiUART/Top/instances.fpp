@@ -60,6 +60,12 @@ module Mara {
     queue size Default.QUEUE_SIZE \
     stack size Default.STACK_SIZE \
     priority 37
+
+  instance platformMotor: Mara.PlatformMotor base id 0x10008000 \
+    queue size Default.QUEUE_SIZE \
+    stack size Default.STACK_SIZE \
+    priority 36
+
   # ----------------------------------------------------------------------
   # Queued component instances
   # ----------------------------------------------------------------------
@@ -89,5 +95,11 @@ module Mara {
   instance SOEgpioDriver: Drv.LinuxGpioDriver base id 0x10039000
 
   instance EODSgpioDriver: Drv.LinuxGpioDriver base id 0x10040000
+
+  @ UART to the Waveshare USB-CAN-A adapter for the platform motor drive
+  instance motorUart: Mara.ReconnectingUartDriver base id 0x10041000
+
+  @ Receive buffers for motorUart
+  instance motorBufferManager: Svc.BufferManager base id 0x10042000
 
 }
