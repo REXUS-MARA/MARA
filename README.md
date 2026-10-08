@@ -78,6 +78,9 @@ To simulate a connection between your pc and rpi with the rocket in between, you
 # Testing
 How to run the unit tests, the integration tests and the hardware tests (including the pre-flight checklist) is in **[TESTING.md](TESTING.md)**.
 
+# Data products
+Where the sensor data is stored, how to downlink it and how to turn it into CSV tables is in **[DATA_PRODUCTS.md](DATA_PRODUCTS.md)**.
+
 # Platform motor setup
 The drill platform is moved by a **Technosoft iPOS drive** (closed-loop stepper with an incremental encoder), using CANopen CiA 402 in profile position mode. The Pi talks to it through a **Waveshare USB-CAN-A** adapter. That adapter is not a Linux CAN interface: it shows up as a USB serial port (CH341) running at 2 Mbps with Waveshare's own frame format. The FSW side is `Mara/Components/PlatformMotor` (CANopen), with `Mara/Components/ReconnectingUartDriver` handling the serial link.
 

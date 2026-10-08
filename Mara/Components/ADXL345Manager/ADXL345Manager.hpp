@@ -9,6 +9,7 @@
 
 #include "Mara/Components/ADXL345Manager/ADXL345ManagerComponentAc.hpp"
 #include "Mara/Components/ADXL345Manager/AccelDataTimedSerializableAc.hpp"
+#include "Mara/Components/ADXL345Manager/ADXL345ConfigSerializableAc.hpp"
 
 namespace Mara {
 
@@ -38,8 +39,12 @@ class ADXL345Manager final : public ADXL345ManagerComponentBase {
     U8 getI2cAddr();
     F32 getScaleFactor();
 
+    //! Sends the open container early: its readings were taken with the previous configuration
+    void closeContainer();
+
     bool m_initialized = false;
     U8 m_range = 0;
+    U8 m_rate = 0x0A;  //!< BW_RATE register value (power-on default 100 Hz)
 };
 
 }  // namespace Mara
