@@ -1,6 +1,9 @@
 module Mara {
     
-
+  struct MotorRpmSample {
+      time_stamp: Fw.TimeValue
+      rpm: F32
+  }
 
   @ Controls a drill motor via GPIO: combined on/off+rpm pin, a direction
   @ pin, and a read-only status pin. Uses libgpiod v2 directly (no shell
@@ -22,8 +25,8 @@ module Mara {
     @ Direction pin. HIGH = clockwise, LOW = counter-clockwise.
     output port directionPinWrite: Drv.GpioWrite
 
-    @ Status pin, read-only.
-    output port statusPinRead: Drv.GpioRead
+    @ Read pin interupts for RPM
+    sync input port tachPulseIn: Svc.Cycle
 
     # ------------------------------------------------------------------
     # Commands
@@ -54,7 +57,7 @@ module Mara {
     telemetry MotorDirection: Direction
 
     @ Last read state of the status input pin
-    telemetry StatusPinState: bool
+    telemetry MotorRpm: F32 format "{.1f} rpm"
 
     # ------------------------------------------------------------------
     # Events
@@ -77,12 +80,11 @@ module Mara {
       severity activity high \
       format "Direction set to {}"
 
-    @ Status pin read
-    event StatusPinRead(
-      pinState: bool    
+    event MotorRpmReported(
+        rpm: F32
     ) \
-      severity activity low \
-      format "Status pin is {}"
+        severity activity low \
+        format "Motor speed is {.1f} rpm"
 
     @ A GPIO operation failed
     event GpioError(
@@ -92,7 +94,32 @@ module Mara {
       severity warning high \
       format "GPIO operation '{}' failed (code {})"
 
+ @ Could not allocate memory for a data product container
+    event DpMemoryFailure(
+      containerSize: FwSizeType
+      ) \
+      severity warning high \
+      format "Could not get {} bytes for the status pin data product container" \
+      throttle 3
 
+      @ Container holding a batch of status pin samples
+    # ------------------------------------------------------------
+    # Data products - motor RPM samples
+    # ------------------------------------------------------------
+
+    @ Container holding a batch of motor RPM samples
+    product container MotorRpmContainer id 0 default priority 10
+
+    @ A single timestamped motor RPM sample
+    product record MotorRpmRecord: MotorRpmSample id 0
+
+    @ Port for getting memory for a data product container
+    product get port productGetOut
+
+    @ Port for sending a filled data product container
+    product send port productSendOut
+    
+  
     @ Scheduler input for periodic status-pin polling
     sync input port schedIn: Svc.Sched
 

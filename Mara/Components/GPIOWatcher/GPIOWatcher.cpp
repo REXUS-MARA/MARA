@@ -22,6 +22,7 @@ GPIOWatcher ::~GPIOWatcher() {}
 // ----------------------------------------------------------------------
 
 void GPIOWatcher ::schedIn_handler(FwIndexType portNum, U32 context) {
+    // Active-low: the pin idles HIGH, and a sustained LOW means the signal was received.
     auto check_pins = [&](   std::function<bool(FwIndexType)> prerequisite,
                             std::function<Drv::GpioStatus(FwIndexType, Fw::Logic&)> pin_read,
                             std::function<void()> log_spike,
@@ -30,9 +31,10 @@ void GPIOWatcher ::schedIn_handler(FwIndexType portNum, U32 context) {
                             int & state_counter,
                             bool & signal_emmited){
         FW_ASSERT(prerequisite(0));
-        Fw::Logic pin_state{Fw::Logic::LOW};
+        // Default to the idle level so a failed read is not mistaken for a signal.
+        Fw::Logic pin_state{Fw::Logic::HIGH};
         pin_read(0, pin_state);
-        if(pin_state == Fw::Logic::HIGH and not signal_emmited){
+        if(pin_state == Fw::Logic::LOW and not signal_emmited){
             state_counter++;
             if(state_counter >= m_consecutive_highs_threshold){
                 log_signal();
@@ -40,15 +42,16 @@ void GPIOWatcher ::schedIn_handler(FwIndexType portNum, U32 context) {
                 state_counter = 0;
                 signal_emmited = true;
             }
-        } else if (pin_state == Fw::Logic::LOW ) {
+        } else if (pin_state == Fw::Logic::HIGH) {
             if(state_counter > 0 and state_counter < m_consecutive_highs_threshold){
                 log_spike();
             }
             state_counter = 0;
             signal_emmited = false;
         }
-
+ 
     };
+
     // I'm really sorry for this monstrosity below
     // KISS was violated here
     // I promise that no LLM was used here, but maybe it should have

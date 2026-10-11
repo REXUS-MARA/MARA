@@ -174,7 +174,9 @@ module Mara {
     connections DrillMotor {
         drillMotor.motorPinWrite     -> drillMotorOnDriver.gpioWrite
         drillMotor.directionPinWrite -> drillMotorDirDriver.gpioWrite
-        drillMotor.statusPinRead     -> drillMotorStatusDriver.gpioRead
+        drillMotorStatusDriver.gpioInterrupt -> drillMotor.tachPulseIn
+        drillMotor.productGetOut  -> DataProducts.dpMgr.productGetIn
+        drillMotor.productSendOut -> DataProducts.dpMgr.productSendIn
     }
 
   }

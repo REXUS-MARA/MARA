@@ -71,9 +71,10 @@ struct TopologyState {
     FileHandling::SubtopologyState fileHandling; //!< Subtopology state for FileHandling
 };
 
-static constexpr int EODSGpioPin {17};
-static constexpr int LOGpioPin {27};
-static constexpr int SOEGpioPin {22};
+//Need to take out EODS later
+static constexpr int EODSGpioPin {7};
+static constexpr int LOGpioPin {17};
+static constexpr int SOEGpioPin {27};
 static constexpr int DrillMotorOnGpioPin {1};
 static constexpr int DrillMotorDirGpioPin {12};
 static constexpr int DrillMotorStatusGpioPin {16}; 

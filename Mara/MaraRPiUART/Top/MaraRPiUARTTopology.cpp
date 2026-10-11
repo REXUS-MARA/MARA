@@ -94,7 +94,7 @@ void configureTopology() {
     }
 
     Os::File::Status DrillMotorStatusStatus =
-        drillMotorStatusDriver.open("/dev/gpiochip4", DrillMotorStatusGpioPin, Drv::LinuxGpioDriver::GpioConfiguration::GPIO_INPUT);
+        drillMotorStatusDriver.open("/dev/gpiochip4", DrillMotorStatusGpioPin, Drv::LinuxGpioDriver::GpioConfiguration::GPIO_INTERRUPT_RISING_EDGE);
     if (DrillMotorStatusStatus != Os::File::Status::OP_OK) {
         Fw::Logger::log("[ERROR] Failed to open GPIO pin for drill motor status line\n");
     }
@@ -117,6 +117,10 @@ void setupTopology(const TopologyState& state) {
     loadParameters();
     // Autocoded task kick-off (active components). Function provided by autocoder.
     startTasks(state);
+    Drv::GpioStatus tachStartStatus = drillMotorStatusDriver.start();
+    if (tachStartStatus != Drv::GpioStatus::OP_OK) {
+        Fw::Logger::log("[ERROR] Failed to start drill motor tach interrupt thread\n");
+    }
     if (state.uartDevice != nullptr) {
         Os::TaskString name("ReceiveTask");
         // Uplink is configured for receive so a socket task is started
@@ -144,7 +148,9 @@ void stopRateGroups() {
 void teardownTopology(const TopologyState& state) {
     // Autocoded (active component) task clean-up. Functions provided by topology autocoder.
     stopTasks(state);
+    drillMotorStatusDriver.stop();
     freeThreads(state);
+    drillMotorStatusDriver.join();
 
     // Other task clean-up.
     comDriver.quitReadThread();
