@@ -70,6 +70,10 @@ module Mara {
   # Queued component instances
   # ----------------------------------------------------------------------
 
+  @ BMP280 pressure/temperature sensor on I2C-1
+  instance bmp280Manager: Mara.Bmp280Manager base id 0x10043000 \
+    queue size Default.QUEUE_SIZE
+
   # ----------------------------------------------------------------------
   # Passive component instances
   # ----------------------------------------------------------------------
