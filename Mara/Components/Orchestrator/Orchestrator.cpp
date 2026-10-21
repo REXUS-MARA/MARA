@@ -111,6 +111,11 @@ void Orchestrator ::testOpticalCameraOFF_cmdHandler(FwOpcodeType opCode, U32 cmd
     this->cmdResponse_out(opCode, cmdSeq, Fw::CmdResponse::OK);
 }
 
+void Orchestrator ::testDrill_cmdHandler(FwOpcodeType opCode, U32 cmdSeq) {
+    OrchestratorStateMachine_sendSignal_startDrill();
+    cmdResponse_out(opCode, cmdSeq, Fw::CmdResponse::OK);
+}
+
 void Orchestrator ::testThermalCameraON_cmdHandler(FwOpcodeType opCode, U32 cmdSeq) {
     if (!this->acceptTestCommand(opCode, cmdSeq)) {
         return;
@@ -130,6 +135,11 @@ void Orchestrator ::testThermalCameraOFF_cmdHandler(FwOpcodeType opCode, U32 cmd
 // ----------------------------------------------------------------------
 // Implementations for internal state machine actions
 // ----------------------------------------------------------------------
+
+void Orchestrator ::Mara_OrchestratorStateMachine_action_doStartDrill(SmId smId,
+                                                                     Mara_OrchestratorStateMachine::Signal signal) {
+    // TODO
+}
 
 void Orchestrator ::Mara_OrchestratorStateMachine_action_drillOn(SmId smId,
                                                                  Mara_OrchestratorStateMachine::Signal signal) {
