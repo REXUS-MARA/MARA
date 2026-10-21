@@ -16,24 +16,21 @@
 
 register_fprime_library(
     AUTOCODER_INPUTS
-        "${CMAKE_CURRENT_LIST_DIR}/LtrManager.fpp"
-        "${CMAKE_CURRENT_LIST_DIR}/Types.fpp"
-        "${CMAKE_CURRENT_LIST_DIR}/LtrStateMachine.fpp"
+        "${CMAKE_CURRENT_LIST_DIR}/ReconnectingUartDriver.fpp"
     SOURCES
-        "${CMAKE_CURRENT_LIST_DIR}/LtrManager.cpp"
-        "${CMAKE_CURRENT_LIST_DIR}/LtrHelpers.cpp"
+        "${CMAKE_CURRENT_LIST_DIR}/ReconnectingUartDriver.cpp"
 #   DEPENDS
 #       MyPackage_MyOtherModule
 )
 
 ### Unit Tests ###
-# register_fprime_ut(
-#     AUTOCODER_INPUTS
-#         "${CMAKE_CURRENT_LIST_DIR}/LtrManager.fpp"
-#     SOURCES
-#         "${CMAKE_CURRENT_LIST_DIR}/test/ut/LtrManagerTestMain.cpp"
-#         "${CMAKE_CURRENT_LIST_DIR}/test/ut/LtrManagerTester.cpp"
-#     DEPENDS
-#         STest # For rules-based testing
-#     UT_AUTO_HELPERS
-# )
+register_fprime_ut(
+    AUTOCODER_INPUTS
+        "${CMAKE_CURRENT_LIST_DIR}/ReconnectingUartDriver.fpp"
+    SOURCES
+        "${CMAKE_CURRENT_LIST_DIR}/test/ut/ReconnectingUartDriverTestMain.cpp"
+        "${CMAKE_CURRENT_LIST_DIR}/test/ut/ReconnectingUartDriverTester.cpp"
+    DEPENDS
+        STest # For rules-based testing
+    UT_AUTO_HELPERS
+)

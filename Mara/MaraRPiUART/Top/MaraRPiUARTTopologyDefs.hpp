@@ -50,6 +50,8 @@ namespace PingEntries {
     namespace Mara_rateGroup3 {enum { WARN = 3, FATAL = 5 };}
     namespace Mara_rateGroup4 {enum { WARN = 3, FATAL = 5 };}
     namespace Mara_cmdSeq {enum { WARN = 3, FATAL = 5 };}
+    namespace Mara_opticalCamera {enum { WARN = 3, FATAL = 5 };}
+    namespace Mara_platformMotor {enum { WARN = 3, FATAL = 5 };}
 }  // namespace PingEntries
 
 // Definitions are placed within the same namespace as the FPP module that contains the topology.
@@ -78,6 +80,11 @@ static constexpr int SOEGpioPin {27};
 static constexpr int DrillMotorOnGpioPin {1};
 static constexpr int DrillMotorDirGpioPin {12};
 static constexpr int DrillMotorStatusGpioPin {16}; 
+
+// Waveshare USB-CAN-A (CH341) for the platform motor drive.
+// TODO: replace with the real /dev/serial/by-id/ link from the flight Pi.
+static constexpr const char* MotorUartDevice {"/dev/serial/by-id/usb-1a86_USB_Serial-if00-port0"};
+static constexpr U16 MotorBufferManagerId {201};
 
 namespace PingEntries = ::PingEntries;
 }  // namespace Mara
