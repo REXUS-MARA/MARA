@@ -114,6 +114,8 @@ void Orchestrator ::testOpticalCameraOFF_cmdHandler(FwOpcodeType opCode, U32 cmd
 void Orchestrator ::testDrill_cmdHandler(FwOpcodeType opCode, U32 cmdSeq) {
     OrchestratorStateMachine_sendSignal_startDrill();
     cmdResponse_out(opCode, cmdSeq, Fw::CmdResponse::OK);
+}
+
 void Orchestrator ::testThermalCameraON_cmdHandler(FwOpcodeType opCode, U32 cmdSeq) {
     if (!this->acceptTestCommand(opCode, cmdSeq)) {
         return;
