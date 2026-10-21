@@ -139,6 +139,8 @@ void Orchestrator ::testThermalCameraOFF_cmdHandler(FwOpcodeType opCode, U32 cmd
 void Orchestrator ::Mara_OrchestratorStateMachine_action_doStartDrill(SmId smId,
                                                                      Mara_OrchestratorStateMachine::Signal signal) {
     // TODO
+}
+
 void Orchestrator ::Mara_OrchestratorStateMachine_action_drillOn(SmId smId,
                                                                  Mara_OrchestratorStateMachine::Signal signal) {
     if (this->isConnected_DrillON_OutputPort(0)) {
