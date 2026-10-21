@@ -102,7 +102,8 @@ module Mara {
 
   instance drillMotorStatusDriver: Drv.LinuxGpioDriver base id 0x10045000
 
-  instance drillMotor: Mara.DrillMotor base id 0x10044000
+  instance drillMotor: Mara.DrillMotor base id 0x10046000
+
   @ UART to the Waveshare USB-CAN-A adapter for the platform motor drive
   instance motorUart: Mara.ReconnectingUartDriver base id 0x10041000
 
