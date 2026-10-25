@@ -24,8 +24,7 @@ module Mara {
         @ Unrecoverable error
         signal error
 
-        @ test the main drill
-        signal startDrill
+
         @ 1 Hz tick from the rate group, drives the experiment timeline
         signal tick
 
