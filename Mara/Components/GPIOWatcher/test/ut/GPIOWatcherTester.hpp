@@ -103,7 +103,7 @@ class GPIOWatcherTester final : public GPIOWatcherGTestBase {
     GPIOWatcher component;
 
     //! Scripted pin levels
-    std::array<Fw::Logic, 3> m_level{{Fw::Logic::LOW, Fw::Logic::LOW, Fw::Logic::LOW}};
+    std::array<Fw::Logic, 3> m_level{{Fw::Logic::HIGH, Fw::Logic::HIGH, Fw::Logic::HIGH}};
 
     //! Status returned by every pin read
     Drv::GpioStatus m_readStatus = Drv::GpioStatus::OP_OK;

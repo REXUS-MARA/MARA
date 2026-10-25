@@ -9,7 +9,7 @@
 namespace Mara {
 
 namespace {
-//! Consecutive HIGH reads needed to accept a signal (GPIOWatcher's threshold)
+//! Consecutive LOW reads needed to accept a signal (GPIOWatcher's threshold)
 constexpr U32 THRESHOLD = 4;
 }  // namespace
 
@@ -30,7 +30,7 @@ GPIOWatcherTester ::~GPIOWatcherTester() {}
 // ----------------------------------------------------------------------
 
 void GPIOWatcherTester ::testDetect(Line line) {
-    this->set(line, Fw::Logic::HIGH);
+    this->set(line, Fw::Logic::LOW);
 
     this->tick(THRESHOLD - 1);
     ASSERT_EQ(this->signals(line), 0U);
@@ -40,7 +40,7 @@ void GPIOWatcherTester ::testDetect(Line line) {
     ASSERT_EQ(this->signals(line), 1U);
     ASSERT_EQ(this->detected(line), 1U);
 
-    // Held HIGH: no repeat
+    // Held LOW: no repeat
     this->tick(20);
     ASSERT_EQ(this->signals(line), 1U);
     ASSERT_EQ(this->detected(line), 1U);
@@ -49,42 +49,42 @@ void GPIOWatcherTester ::testDetect(Line line) {
 
 void GPIOWatcherTester ::testSpike(Line line) {
     FwSizeType expectedSpikes = 0;
-    for (U32 highs = 1; highs < THRESHOLD; highs++) {
-        this->set(line, Fw::Logic::HIGH);
-        this->tick(highs);
+    for (U32 lows = 1; lows < THRESHOLD; lows++) {
         this->set(line, Fw::Logic::LOW);
+        this->tick(lows);
+        this->set(line, Fw::Logic::HIGH);
         this->tick();
         expectedSpikes++;
-        ASSERT_EQ(this->spikes(line), expectedSpikes) << highs << " HIGH ticks";
+        ASSERT_EQ(this->spikes(line), expectedSpikes) << lows << " LOW ticks";
     }
     ASSERT_EQ(this->signals(line), 0U);
 
-    // LOW with no preceding HIGH is not a spike
+    // HIGH with no preceding LOW is not a spike
     this->tick(5);
     ASSERT_EQ(this->spikes(line), expectedSpikes);
 }
 
 void GPIOWatcherTester ::testRefire(Line line) {
-    this->set(line, Fw::Logic::HIGH);
+    this->set(line, Fw::Logic::LOW);
     this->tick(THRESHOLD);
     ASSERT_EQ(this->signals(line), 1U);
 
-    // LOW right after firing: the counter was reset, so no spike
-    this->set(line, Fw::Logic::LOW);
+    // HIGH right after firing: the counter was reset, so no spike
+    this->set(line, Fw::Logic::HIGH);
     this->tick();
     ASSERT_EQ(this->spikes(line), 0U);
 
-    this->set(line, Fw::Logic::HIGH);
+    this->set(line, Fw::Logic::LOW);
     this->tick(THRESHOLD);
     ASSERT_EQ(this->signals(line), 2U);
     ASSERT_EQ(this->detected(line), 2U);
 }
 
 void GPIOWatcherTester ::testIndependentLines() {
-    // LO held HIGH, SOE toggling every tick (never 4 in a row), EODS LOW
-    this->set(LO, Fw::Logic::HIGH);
+    // LO held LOW, SOE toggling every tick (never 4 in a row), EODS HIGH
+    this->set(LO, Fw::Logic::LOW);
     for (U32 i = 0; i < 12; i++) {
-        this->set(SOE, (i % 2 == 0) ? Fw::Logic::HIGH : Fw::Logic::LOW);
+        this->set(SOE, (i % 2 == 0) ? Fw::Logic::LOW : Fw::Logic::HIGH);
         this->tick();
     }
     ASSERT_EQ(this->signals(LO), 1U);
@@ -98,9 +98,9 @@ void GPIOWatcherTester ::testIndependentLines() {
 void GPIOWatcherTester ::testReadFailureNeverFires() {
     // No GPIO hardware: every read fails. The level the driver would report is ignored.
     m_readStatus = Drv::GpioStatus::NOT_OPENED;
-    this->set(LO, Fw::Logic::HIGH);
-    this->set(SOE, Fw::Logic::HIGH);
-    this->set(EODS, Fw::Logic::HIGH);
+    this->set(LO, Fw::Logic::LOW);
+    this->set(SOE, Fw::Logic::LOW);
+    this->set(EODS, Fw::Logic::LOW);
     this->tick(50);
 
     ASSERT_EQ(this->signals(LO) + this->signals(SOE) + this->signals(EODS), 0U);
