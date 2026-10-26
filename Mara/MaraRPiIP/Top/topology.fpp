@@ -131,12 +131,22 @@ module Mara {
     }
 
 
+<<<<<<< Updated upstream
     connections ina228 {
       ina228.busWriteRead      -> I2CDriver.writeRead
       ina228.busWrite          -> I2CDriver.write
       ina228.productGetOut     -> DataProducts.dpMgr.productGetIn
       ina228.productSendOut    -> DataProducts.dpMgr.productSendIn
     }
+=======
+    # Connect ADXL345 to I2C driver
+    connections ADXL345 {
+        adxl345Manager.i2cReadWrite -> I2CDriver.writeRead
+        adxl345Manager.i2cWrite -> I2CDriver.write
+        adxl345Manager.productGetOut  -> DataProducts.dpMgr.productGetIn
+        adxl345Manager.productSendOut -> DataProducts.dpMgr.productSendIn
+
+>>>>>>> Stashed changes
   }
 
 }

@@ -59,6 +59,13 @@ void configureTopology() {
         Fw::Logger::log("[INFO] I2C driver open successful\\n");
     }
 
+<<<<<<< Updated upstream
+=======
+<<<<<<< HEAD
+    ltrManager.configure(0x29); // Device I2C address from datasheet
+=======
+>>>>>>> INA-228
+>>>>>>> Stashed changes
 }
 
 void setupTopology(const TopologyState& state) {
