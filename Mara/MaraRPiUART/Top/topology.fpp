@@ -133,6 +133,7 @@ module Mara {
 
       # Rate group 2
       rateGroupDriver.CycleOut[Ports_RateGroups.rateGroup2] -> rateGroup2.CycleIn
+      rateGroup2.RateGroupMemberOut[0] -> gpioWatcher.schedIn
 
 
       # Rate group 3
@@ -196,7 +197,6 @@ module Mara {
       ina228.productGetOut     -> DataProducts.dpMgr.productGetIn
       ina228.productSendOut    -> DataProducts.dpMgr.productSendIn
     }
-
   }
 
 }

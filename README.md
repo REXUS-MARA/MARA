@@ -1,5 +1,8 @@
 # Mara F´ project
 
+[![CI](https://github.com/REXUS-MARA/MARA/actions/workflows/build.yml/badge.svg?branch=main)](https://github.com/REXUS-MARA/MARA/actions/workflows/build.yml)
+[![coverage](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/REXUS-MARA/MARA/badges/coverage.json)](TESTING.md)
+
 To clone the project and get F' running, do the following
 1. (Not necessary, but reccomended) Create a python venv ().
 2. Make sure that Python is **not** in version 3.14 (some bug in F' 4.1.0)
@@ -14,9 +17,9 @@ I'll describe the process for Mac (it's only one of couple ways, this one I just
 We'll start with gathering requirements. We'll be cross-compiling using a docker image, so you need to have docker installed.
 I reccomend colima + docker cli - `brew install docker colima`. After you have that, do the following:
 1. In a terminal, run `colima start --vm-type=vz --vz-rosetta -f`. It's important to add --vz-rosetta - the default qemu in my experience is not adequate, and your comlipation will crash (and also it will be slow before it crashes. Rosetta is also slow but not as much). I also run it with `-f` option, to keep it in the foreground. You can skip that and run it in the background, but it will be running a very small vm in the background, slowly eating at your battery after you forget it for a month. 
-2. In a new terminal (preferably within the repo rood being your current pwd), run ```docker run --platform=linux/amd64 --net host -e USER=$USER -u "`id -u`:`id -g`" -v "$(pwd):/project" -it ghcr.io/filipjsowa/fprime-arm:latest``` . some important things `--net host` allows you to use your computer network, important for sending the deployment over scp. `-v "$(pwd):/project"` is attaching the current pwd as a volume, that's why it's important where you call it. But you can just change it to the root path. The last thing - I know that the tutorial calls for `nasafprime/fprime-arm:latest` as the image. I've built my own on top of this one, for more info you can go here - https://github.com/nasa/fprime/issues/4837 .
+2. In a new terminal (preferably within the repo rood being your current pwd), run ```docker run --platform=linux/amd64 --net host -e USER=$USER -u "`id -u`:`id -g`" -v "$(pwd):/project" -it ghcr.io/filipjsowa/fprime-arm:4.1.1``` . some important things `--net host` allows you to use your computer network, important for sending the deployment over scp. `-v "$(pwd):/project"` is attaching the current pwd as a volume, that's why it's important where you call it. But you can just change it to the root path. The last thing - I know that the tutorial calls for `nasafprime/fprime-arm:4.1.1` as the image. I've built my own on top of this one, for more info you can go here - https://github.com/nasa/fprime/issues/4837 . You can also see how it's being built here - https://github.com/filipjsowa/fprime-arm-docker .
 3. ---BELOW INSTRUCTIONS ARE IDENTICAL TO THE ONES IN THE TUTORIAL, IT'S JUST EASIER TO HAVE THEM HERE---
-4. `fprime-util generate aarch64-linux` (you may need to run`fprime-util generate -f aarch64-linux` if for some reason that architecture was already present)
+4. `fprime-util generate aarch64-linux` (you may need to run`yes | fprime-util purge aarch64-linux && fprime-util generate aarch64-linux` if for some reason that architecture was already present)
 5. `fprime-util build aarch64-linux` (this will take some time. Unless you're building on linux, then it will take less time I guess? Or if you're on Linux on ARM, then it should be quick. Unless you're building directly on the Pi (linux + arm), that will be also slow. You know what, it will just be slow).
 6. Great, now you have the deployment, and the dictionary (you can search more on the fprime website about what those things are). Time to copy the deployment to the pi, and to run the gds. I'll assume that you have the pi connected over the network you your device , you know it's IP address (need that for the GDS), and that you can ssh into it (need that for scp).
 7. `scp build-artifacts/aarch64-linux/<name-of-deployment>/bin/<name-of-deployment> <username>@<device-address>:deployment` - still from the container (for my case it's `scp build-artifacts/aarch64-linux/Mara_MaraRPiIP/bin/Mara_MaraRPiIP fsowa@pi-fsowa.local:MARA`)
@@ -35,6 +38,10 @@ This is the way I do it - but it's not connected to the official tutorial, so th
 If you need to find the uart device, on mac after connecting the FT232 not much was needed - jsut allow it to connect, and then do ls /dev/cu.usbserial-* in the terminal. No drivers, I expect the same on linux. god speed to our windows brothers.
 Also make sure that uart is enabled on the pi (sudo raspi-config and then interfaces, serial, first no then yes - you want hardware).
 Below are older steps for doing the IP deploy. All the cool kids are using UART tho.
+
+2. `scp build-artifacts/aarch64-linux/Mara_MaraRPiIP/bin/Mara_MaraRPiIP pi-fsowa.local:MARA`
+3. `ssh pi-fsowa.local "./MARA -a 0.0.0.0 -p 50000"`
+4. `fprime-gds -n --dictionary build-artifacts/aarch64-linux/Mara_MaraRPiIP/dict/MaraRPiIPTopologyDictionary.json --ip-client --ip-address $(python3 -c "import socket; print(socket.gethostbyname('pi-fsowa.local'))")`
 
 # On Python and Homebrew (section only for people starting with programming)
 As you can see above, we're usually using python for activating / creating the virtual environments, and brew for installing packages.
@@ -60,3 +67,81 @@ Some of my notes of things that are lackign from fprime tutorials:
 2. man pages don't work? 
 
 **For documentation on F' visit:** https://fprime.jpl.nasa.gov.
+
+
+**For testing the uart locally**
+To simulate a connection between your pc and rpi with the rocket in between, you'll need serial interface - uart. Better yet rpi uart -> rs3232 -> RXSM -> computer serving the tcp server -> switch -> laptop with a gds. As in life we can and will cheat, to test the software part it's enough to have rpi uart -> laptop. On that laptop you need to run a tcp server, that will get the data from serial, and then your gds will try to communicate with that server. It's quite easy to do - first, connect your rpi to uart. Make sure that uart is enabled (sudo raspi-config). Then, run your applications:
+1. After ssh into the pi `./MARA -d /dev/serial0 -b 115200`
+2. In a terminal, within the fprime-venv (I mean doesn't have to be, but it's just so hapens that it has all the needed packages) `python uart_tcp_bridge.py --serial-port /dev/cu.usbserial-BG02CR1I --baudrate 115200 --host 127.0.0.1 --port 50000`
+3. In another teminal `fprime-gds -n --dictionary build-artifacts/aarch64-linux/Mara_MaraRPiUART/dict/MaraRPiUARTTopologyDictionary.json --ip-client --ip-address 127.0.0.1`
+
+# Testing
+How to run the unit tests, the integration tests and the hardware tests (including the pre-flight checklist) is in **[TESTING.md](TESTING.md)**.
+
+# Platform motor setup
+The drill platform is moved by a **Technosoft iPOS drive** (closed-loop stepper with an incremental encoder), using CANopen CiA 402 in profile position mode. The Pi talks to it through a **Waveshare USB-CAN-A** adapter. That adapter is not a Linux CAN interface: it shows up as a USB serial port (CH341) running at 2 Mbps with Waveshare's own frame format. The FSW side is `Mara/Components/PlatformMotor` (CANopen), with `Mara/Components/ReconnectingUartDriver` handling the serial link.
+
+Do these steps in order. Each one has to work before the next makes sense.
+
+## 1. Wiring
+- CAN_H, CAN_L and GND between the adapter and the drive.
+- A **120 Ω terminator at both ends** of the bus. The adapter and the drive may each have a switchable one; use exactly two.
+- An isolated adapter or transceiver is recommended, because the motor supply and the Pi share a ground otherwise.
+
+## 2. Commission the drive (once, in Technosoft EasySetUp over RS232)
+1. Select stepper, closed loop with an incremental encoder.
+2. Enter the motor current and the encoder line count. Write the line count down: you'll need it in step 5.
+3. Tune the loops.
+4. Select the **CANopen** protocol (not TMLCAN).
+5. Set the CAN bitrate and the **node ID** (1–127). Write both down.
+6. Set the profile velocity and acceleration you want as defaults.
+7. Save to EEPROM.
+8. Jog the motor from EasySetUp. **If it doesn't move here, no software will move it.**
+
+## 3. Configure the adapter (once, with Waveshare's PC tool)
+Set the CAN bitrate to match the drive, and select the **variable-length** protocol. The serial side runs at 2 Mbps.
+
+## 4. Tell the FSW where the adapter is
+On the Pi, plug in the adapter and run `ls -l /dev/serial/by-id/`. Copy the adapter's link, which looks like `usb-1a86_USB_Serial-…`, into `MotorUartDevice` in `Mara/MaraRPiUART/Top/MaraRPiUARTTopologyDefs.hpp`, then rebuild. Use the `by-id` link rather than `/dev/ttyUSB0`, so the adapter is found again after a replug.
+
+The adapter can be plugged and unplugged while the FSW runs:
+- **Missing at boot:** `AdapterNotConnected` is logged once, and the FSW keeps retrying every second.
+- **Plugged in:** `AdapterConnected` is logged, and commands work again with no restart.
+- **Drive power-cycled:** reconnecting the adapter doesn't re-enable the drive. Enter TEST mode again (`exitTestMode`, then `enterTestMode`), which sends the enable sequence.
+
+## 5. Set the parameters
+All positions are **drive encoder counts**. 0 is wherever the platform was when the drive powered up; there is no homing yet, so **power the drive with the platform fully down**. 1 mm = 4 × (encoder lines) / 0.794 counts.
+
+| Parameter | Set it to |
+|---|---|
+| `Mara.platformMotor.NODE_ID` | the drive's node ID from step 2 (1–127) |
+| `Mara.platformMotor.MIN_POSITION`, `MAX_POSITION` | the safe travel range. **0 must be inside it**, or the retract can't reach the bottom. Both 0 means the platform never moves. |
+| `Mara.platformMotor.ADVANCE_VELOCITY` | drilling feed speed (moves away from 0), in Technosoft units. 0 = keep the drive's stored value. |
+| `Mara.platformMotor.RETRACT_VELOCITY` | retract speed (moves towards 0). 0 = keep the drive's value. |
+| `Mara.platformMotor.ACCELERATION` | written on enable. 0 = keep the drive's value. |
+| `Mara.orchestrator.DRILL_POSITION` | how far to drill, inside `[MIN, MAX]` |
+| `Mara.orchestrator.SPIN_UP_SECONDS`, `ADVANCE_SECONDS`, `RETRACT_SECONDS` | the flight timeline (see `Mara/Components/Orchestrator/docs/sdd.md`) |
+
+**Find the sign convention before setting the limits.** With small temporary limits (for example `MIN_POSITION -200`, `MAX_POSITION 200`), send `enterTestMode`, then `testPlatformMoveTo 100`, and watch which way the platform goes.
+- **Towards the sample:** "up" is positive. Use `MIN_POSITION` ≤ 0 < `MAX_POSITION` and a positive `DRILL_POSITION`.
+- **Away from it:** "up" is negative. Use `MIN_POSITION` < 0, `MAX_POSITION` 0 and a negative `DRILL_POSITION`. The velocity parameters keep their meaning either way.
+
+Send `testPlatformMoveTo 0` and then `exitTestMode` when done.
+
+`PRM_SET` only changes the value until the next reboot. **To keep a value**: `<component>.<PARAM>_PRM_SET`, then `<component>.<PARAM>_PRM_SAVE`, then `FileHandling.prmDb.PRM_SAVE_FILE`.
+
+## 6. Check it
+1. Run the pad-check sequence `Mara/MaraRPiUART/seq/pad_check.seq`; see [TESTING.md](TESTING.md).
+2. Run the hardware tests with an operator present (`-m hardware`).
+3. Last, before integration, run the **pre-flight checklist** test. It reads the saved parameters from the Pi and checks the limits, the drill position, the adapter and free disk space.
+
+## Troubleshooting
+| Event | Meaning |
+|---|---|
+| `AdapterNotConnected` | The adapter isn't at `MotorUartDevice`: check the cable and the path from step 4. |
+| `SendFailed` | A command couldn't be sent (adapter missing). Nothing was moved; the rest of that command was skipped. |
+| `LimitsUnset` | `MIN_POSITION` and `MAX_POSITION` are both 0: every move is clamped to 0. |
+| `LimitsInvalid` | `MIN` > `MAX` (moves are refused), or 0 is outside the limits (the retract can't reach the bottom). |
+| `NodeIdInvalid` | `NODE_ID` isn't 1–127: nothing is sent. |
+| `PositionClamped` | A target was outside the limits and was clamped. |
+| Platform doesn't move, no warnings | The drive's stored profile velocity may be 0 (set `ADVANCE_VELOCITY`/`RETRACT_VELOCITY`), the drive may be in fault (re-enter TEST to reset it), or it was never commissioned (step 2). PlatformMotor doesn't read the drive's replies yet, so drive-side faults aren't reported. |

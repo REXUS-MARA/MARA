@@ -19,7 +19,7 @@ module Mara {
 
   module Default {
     constant QUEUE_SIZE = 10
-    constant STACK_SIZE = 64 * 1024
+    constant STACK_SIZE = 256 * 1024
   }
 
   # ----------------------------------------------------------------------
@@ -41,16 +41,21 @@ module Mara {
     stack size Default.STACK_SIZE \
     priority 41
 
-  instance cmdSeq: Svc.CmdSequencer base id 0x10004000 \
+  instance rateGroup4: Svc.ActiveRateGroup base id 0x10004000 \
     queue size Default.QUEUE_SIZE \
     stack size Default.STACK_SIZE \
     priority 40
 
+  instance cmdSeq: Svc.CmdSequencer base id 0x10005000 \
+    queue size Default.QUEUE_SIZE \
+    stack size Default.STACK_SIZE \
+    priority 39
+
   # ----------------------------------------------------------------------
   # Queued component instances
   # ----------------------------------------------------------------------
-
   instance ina228: Mara.INA228 base id 0x10019000 \
+
     queue size Default.QUEUE_SIZE
 
   # ----------------------------------------------------------------------
@@ -66,6 +71,8 @@ module Mara {
   instance timer: Svc.LinuxTimer base id 0x10013000
 
   instance comDriver: Drv.TcpServer base id 0x10014000
+
+  instance adxl345Manager: Mara.ADXL345Manager base id 0x10017000
 
   instance I2CDriver: Drv.LinuxI2cDriver base id 0x10016000
 

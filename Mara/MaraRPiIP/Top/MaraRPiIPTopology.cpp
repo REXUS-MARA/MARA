@@ -20,13 +20,16 @@ namespace Mara {
 Fw::MallocAllocator mallocator;
 
 // The reference topology divides the incoming clock signal (1Hz) into sub-signals: 1Hz, 1/2Hz, and 1/4Hz with 0 offset
-Svc::RateGroupDriver::DividerSet rateGroupDivisorsSet{{{1, 0}, {2, 0}, {4, 0}}};
+// For our current needs, I set up a clock signal of 100Hz (you can change that in the Main.cpp file)
+// That will get spili into sub signals - 1Hz (100 / 100), 20hz (100/5), 1/4Hz, 100Hz (100/1)
+Svc::RateGroupDriver::DividerSet rateGroupDivisorsSet{{{100, 0}, {5, 0}, {400, 0}, {1, 0}}};
 
 // Rate groups may supply a context token to each of the attached children whose purpose is set by the project. The
 // reference topology sets each token to zero as these contexts are unused in this project.
 U32 rateGroup1Context[Svc::ActiveRateGroup::CONNECTION_COUNT_MAX] = {};
 U32 rateGroup2Context[Svc::ActiveRateGroup::CONNECTION_COUNT_MAX] = {};
 U32 rateGroup3Context[Svc::ActiveRateGroup::CONNECTION_COUNT_MAX] = {};
+U32 rateGroup4Context[Svc::ActiveRateGroup::CONNECTION_COUNT_MAX] = {};
 
 enum TopologyConstants {
     COMM_PRIORITY = 34,
@@ -47,6 +50,7 @@ void configureTopology() {
     rateGroup1.configure(rateGroup1Context, FW_NUM_ARRAY_ELEMENTS(rateGroup1Context));
     rateGroup2.configure(rateGroup2Context, FW_NUM_ARRAY_ELEMENTS(rateGroup2Context));
     rateGroup3.configure(rateGroup3Context, FW_NUM_ARRAY_ELEMENTS(rateGroup3Context));
+    rateGroup4.configure(rateGroup4Context, FW_NUM_ARRAY_ELEMENTS(rateGroup4Context));
 
     // Command sequencer needs to allocate memory to hold contents of command sequences
     cmdSeq.allocateBuffer(0, mallocator, 5 * 1024);
@@ -59,13 +63,8 @@ void configureTopology() {
         Fw::Logger::log("[INFO] I2C driver open successful\\n");
     }
 
-<<<<<<< Updated upstream
-=======
-<<<<<<< HEAD
     ltrManager.configure(0x29); // Device I2C address from datasheet
-=======
->>>>>>> INA-228
->>>>>>> Stashed changes
+
 }
 
 void setupTopology(const TopologyState& state) {
@@ -84,6 +83,8 @@ void setupTopology(const TopologyState& state) {
     }
     // Project-specific component configuration. Function provided above. May be inlined, if desired.
     configureTopology();
+    // I felt like this is missing - fso
+    readParameters();
     // Autocoded parameter loading. Function provided by autocoder.
     loadParameters();
     // Autocoded task kick-off (active components). Function provided by autocoder.

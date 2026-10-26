@@ -1,0 +1,4 @@
+; Must abort: test commands without enterTestMode are rejected (EXECUTION_ERROR),
+; so the sequencer stops at the first one and never runs the second.
+R00:00:00 Mara.orchestrator.testPlatformStop
+R00:00:01 Mara.orchestrator.testOpticalCameraON

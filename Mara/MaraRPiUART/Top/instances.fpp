@@ -107,5 +107,4 @@ module Mara {
     queue size Default.QUEUE_SIZE \
     stack size Default.STACK_SIZE \
     priority 35
-
-}
+s}

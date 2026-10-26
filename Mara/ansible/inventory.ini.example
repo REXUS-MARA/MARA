@@ -1,0 +1,2 @@
+[pi]
+mara-pi ansible_host=pi-fsowa.local ansible_user=fsowa
