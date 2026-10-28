@@ -103,7 +103,7 @@ module Mara {
   instance motorBufferManager: Svc.BufferManager base id 0x10042000
 
   @ maybe this should be like the others? idk
-  instance ina228: Mara.INA228 base id 0x10043000 \
+  instance ina228: Mara.INA228 base id 0x10048000 \
     queue size Default.QUEUE_SIZE \
     stack size Default.STACK_SIZE \
     priority 35
