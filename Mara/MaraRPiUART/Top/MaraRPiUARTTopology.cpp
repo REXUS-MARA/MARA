@@ -97,6 +97,24 @@ void configureTopology() {
     if (SOEstatus != Os::File::Status::OP_OK) {
         Fw::Logger::log("[ERROR] Failed to open GPIO pin for SOE line\n");
     }
+
+    Os::File::Status DrillMotorOnStatus =
+        drillMotorOnDriver.open("/dev/gpiochip4", DrillMotorOnGpioPin, Drv::LinuxGpioDriver::GpioConfiguration::GPIO_OUTPUT);
+    if (DrillMotorOnStatus != Os::File::Status::OP_OK) {
+        Fw::Logger::log("[ERROR] Failed to open GPIO pin for drill motor on/rpm line\n");
+    }
+
+    Os::File::Status DrillMotorDirStatus =
+        drillMotorDirDriver.open("/dev/gpiochip4", DrillMotorDirGpioPin, Drv::LinuxGpioDriver::GpioConfiguration::GPIO_OUTPUT);
+    if (DrillMotorDirStatus != Os::File::Status::OP_OK) {
+        Fw::Logger::log("[ERROR] Failed to open GPIO pin for drill motor direction line\n");
+    }
+
+    Os::File::Status DrillMotorStatusStatus =
+        drillMotorStatusDriver.open("/dev/gpiochip4", DrillMotorStatusGpioPin, Drv::LinuxGpioDriver::GpioConfiguration::GPIO_INTERRUPT_RISING_EDGE);
+    if (DrillMotorStatusStatus != Os::File::Status::OP_OK) {
+        Fw::Logger::log("[ERROR] Failed to open GPIO pin for drill motor status line\n");
+    }
 }
 
 void setupTopology(const TopologyState& state) {
@@ -116,6 +134,10 @@ void setupTopology(const TopologyState& state) {
     loadParameters();
     // Autocoded task kick-off (active components). Function provided by autocoder.
     startTasks(state);
+    Drv::GpioStatus tachStartStatus = drillMotorStatusDriver.start();
+    if (tachStartStatus != Drv::GpioStatus::OP_OK) {
+        Fw::Logger::log("[ERROR] Failed to start drill motor tach interrupt thread\n");
+    }
     if (state.uartDevice != nullptr) {
         Os::TaskString name("ReceiveTask");
         // Uplink is configured for receive so a socket task is started
@@ -149,7 +171,9 @@ void stopRateGroups() {
 void teardownTopology(const TopologyState& state) {
     // Autocoded (active component) task clean-up. Functions provided by topology autocoder.
     stopTasks(state);
+    drillMotorStatusDriver.stop();
     freeThreads(state);
+    drillMotorStatusDriver.join();
 
     // Other task clean-up.
     comDriver.quitReadThread();

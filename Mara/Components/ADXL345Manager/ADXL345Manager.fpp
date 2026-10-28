@@ -88,6 +88,8 @@ module Mara {
 
 
         product record AccelRecord: AccelDataTimed id 0
+        @ Sensor configuration, first record of every container
+        product record ConfigRecord: ADXL345Config id 1
         product container AccelContainer id 0 default priority 10
         product get port productGetOut
         product send port productSendOut

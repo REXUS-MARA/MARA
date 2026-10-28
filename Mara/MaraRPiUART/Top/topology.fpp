@@ -45,11 +45,16 @@ module Mara {
     instance LOgpioDriver
     instance EODSgpioDriver
     instance SOEgpioDriver
+    instance drillMotorOnDriver
+    instance drillMotorDirDriver
+    instance drillMotorStatusDriver
+    instance drillMotor
     instance opticalCamera
     instance platformMotor
     instance motorUart
     instance motorBufferManager
     instance ina228
+    instance bmp280Manager
 
   # ----------------------------------------------------------------------
   # Pattern graph specifiers
@@ -134,6 +139,8 @@ module Mara {
       # Rate group 2
       rateGroupDriver.CycleOut[Ports_RateGroups.rateGroup2] -> rateGroup2.CycleIn
       rateGroup2.RateGroupMemberOut[0] -> gpioWatcher.schedIn
+      rateGroup2.RateGroupMemberOut[2] -> bmp280Manager.run
+      rateGroup2.RateGroupMemberOut[1] -> drillMotor.schedIn
 
 
       # Rate group 3
@@ -197,6 +204,23 @@ module Mara {
       ina228.productGetOut     -> DataProducts.dpMgr.productGetIn
       ina228.productSendOut    -> DataProducts.dpMgr.productSendIn
     }
+    # Connect BMP280 to I2C driver
+    connections BMP280 {
+        bmp280Manager.busWriteRead   -> I2CDriver.writeRead
+        bmp280Manager.busWrite       -> I2CDriver.write
+        bmp280Manager.productGetOut  -> DataProducts.dpMgr.productGetIn
+        bmp280Manager.productSendOut -> DataProducts.dpMgr.productSendIn
+    }
+    
+    
+    connections DrillMotor {
+        drillMotor.motorPinWrite     -> drillMotorOnDriver.gpioWrite
+        drillMotor.directionPinWrite -> drillMotorDirDriver.gpioWrite
+        drillMotorStatusDriver.gpioInterrupt -> drillMotor.tachPulseIn
+        drillMotor.productGetOut  -> DataProducts.dpMgr.productGetIn
+        drillMotor.productSendOut -> DataProducts.dpMgr.productSendIn
+    }
+
   }
 
 }
