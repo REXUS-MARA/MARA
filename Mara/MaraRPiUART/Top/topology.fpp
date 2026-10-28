@@ -53,6 +53,7 @@ module Mara {
     instance platformMotor
     instance motorUart
     instance motorBufferManager
+    instance ina228
     instance bmp280Manager
 
   # ----------------------------------------------------------------------
@@ -132,6 +133,7 @@ module Mara {
       rateGroup1.RateGroupMemberOut[5] -> cmdSeq.schedIn
       rateGroup1.RateGroupMemberOut[6] -> adxl345Manager.run
       rateGroup1.RateGroupMemberOut[7] -> orchestrator.schedIn
+      rateGroup2.RateGroupMemberOut[8] -> ina228.run
       
 
       # Rate group 2
@@ -196,6 +198,12 @@ module Mara {
         adxl345Manager.productSendOut -> DataProducts.dpMgr.productSendIn
     }
 
+    connections ina228 {
+      ina228.busWriteRead      -> I2CDriver.writeRead
+      ina228.busWrite          -> I2CDriver.write
+      ina228.productGetOut     -> DataProducts.dpMgr.productGetIn
+      ina228.productSendOut    -> DataProducts.dpMgr.productSendIn
+    }
     # Connect BMP280 to I2C driver
     connections BMP280 {
         bmp280Manager.busWriteRead   -> I2CDriver.writeRead
