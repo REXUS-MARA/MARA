@@ -24,12 +24,15 @@ module Mara {
         @ Unrecoverable error
         signal error
 
+
         @ 1 Hz tick from the rate group, drives the experiment timeline
         signal tick
 
         @ test the main drill ON
         signal testDrillON
 
+        @ test the main drill
+        action doStartDrill
         @ test the main drill OFF
         signal testDrillOFF
 
