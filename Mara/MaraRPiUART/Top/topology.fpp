@@ -49,6 +49,7 @@ module Mara {
     instance platformMotor
     instance motorUart
     instance motorBufferManager
+    instance ThermalCamera
 
   # ----------------------------------------------------------------------
   # Pattern graph specifiers
