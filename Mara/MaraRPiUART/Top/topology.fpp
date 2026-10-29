@@ -45,11 +45,17 @@ module Mara {
     instance LOgpioDriver
     instance EODSgpioDriver
     instance SOEgpioDriver
+    instance drillMotorOnDriver
+    instance drillMotorDirDriver
+    instance drillMotorStatusDriver
+    instance drillMotor
     instance opticalCamera
     instance platformMotor
     instance motorUart
     instance motorBufferManager
     instance ThermalCamera
+    instance ina228
+    instance bmp280Manager
 
   # ----------------------------------------------------------------------
   # Pattern graph specifiers
@@ -128,11 +134,14 @@ module Mara {
       rateGroup1.RateGroupMemberOut[5] -> cmdSeq.schedIn
       rateGroup1.RateGroupMemberOut[6] -> adxl345Manager.run
       rateGroup1.RateGroupMemberOut[7] -> orchestrator.schedIn
+      rateGroup2.RateGroupMemberOut[8] -> ina228.run
       
 
       # Rate group 2
       rateGroupDriver.CycleOut[Ports_RateGroups.rateGroup2] -> rateGroup2.CycleIn
       rateGroup2.RateGroupMemberOut[0] -> gpioWatcher.schedIn
+      rateGroup2.RateGroupMemberOut[2] -> bmp280Manager.run
+      rateGroup2.RateGroupMemberOut[1] -> drillMotor.schedIn
 
 
       # Rate group 3
@@ -188,6 +197,29 @@ module Mara {
         adxl345Manager.i2cWrite -> I2CDriver.write
         adxl345Manager.productGetOut  -> DataProducts.dpMgr.productGetIn
         adxl345Manager.productSendOut -> DataProducts.dpMgr.productSendIn
+    }
+
+    connections ina228 {
+      ina228.busWriteRead      -> I2CDriver.writeRead
+      ina228.busWrite          -> I2CDriver.write
+      ina228.productGetOut     -> DataProducts.dpMgr.productGetIn
+      ina228.productSendOut    -> DataProducts.dpMgr.productSendIn
+    }
+    # Connect BMP280 to I2C driver
+    connections BMP280 {
+        bmp280Manager.busWriteRead   -> I2CDriver.writeRead
+        bmp280Manager.busWrite       -> I2CDriver.write
+        bmp280Manager.productGetOut  -> DataProducts.dpMgr.productGetIn
+        bmp280Manager.productSendOut -> DataProducts.dpMgr.productSendIn
+    }
+    
+    
+    connections DrillMotor {
+        drillMotor.motorPinWrite     -> drillMotorOnDriver.gpioWrite
+        drillMotor.directionPinWrite -> drillMotorDirDriver.gpioWrite
+        drillMotorStatusDriver.gpioInterrupt -> drillMotor.tachPulseIn
+        drillMotor.productGetOut  -> DataProducts.dpMgr.productGetIn
+        drillMotor.productSendOut -> DataProducts.dpMgr.productSendIn
     }
 
   }

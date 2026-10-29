@@ -34,8 +34,7 @@ module Mara {
     instance timer
     instance comDriver
     instance cmdSeq
-    instance adxl345Manager
-    instance ltrManager
+    instance ina228
     instance I2CDriver
 
   # ----------------------------------------------------------------------
@@ -112,9 +111,6 @@ module Mara {
       rateGroup1.RateGroupMemberOut[2] -> systemResources.run
       rateGroup1.RateGroupMemberOut[3] -> ComCcsds.comQueue.run
       rateGroup1.RateGroupMemberOut[4] -> ComCcsds.aggregator.timeout
-      rateGroup1.RateGroupMemberOut[5] -> cmdSeq.schedIn
-      rateGroup1.RateGroupMemberOut[6] -> adxl345Manager.run
-      
 
       # Rate group 2
       rateGroupDriver.CycleOut[Ports_RateGroups.rateGroup2] -> rateGroup2.CycleIn
@@ -138,21 +134,12 @@ module Mara {
       CdhCore.cmdDisp.seqCmdStatus -> cmdSeq.cmdResponseIn
     }
 
-    connections MaraRPiIP {
-      ltrManager.busWriteRead      -> I2CDriver.writeRead
-      ltrManager.busWrite          -> I2CDriver.write
-      ltrManager.productGetOut     -> DataProducts.dpMgr.productGetIn
-      ltrManager.productSendOut    -> DataProducts.dpMgr.productSendIn
+    connections ina228 {
+      ina228.busWriteRead      -> I2CDriver.writeRead
+      ina228.busWrite          -> I2CDriver.write
+      ina228.productGetOut     -> DataProducts.dpMgr.productGetIn
+      ina228.productSendOut    -> DataProducts.dpMgr.productSendIn
     }
-
-    # Connect ADXL345 to I2C driver
-    connections ADXL345 {
-        adxl345Manager.i2cReadWrite -> I2CDriver.writeRead
-        adxl345Manager.i2cWrite -> I2CDriver.write
-        adxl345Manager.productGetOut  -> DataProducts.dpMgr.productGetIn
-        adxl345Manager.productSendOut -> DataProducts.dpMgr.productSendIn
-    }
-
   }
 
 }

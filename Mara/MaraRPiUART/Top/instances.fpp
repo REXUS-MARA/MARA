@@ -75,6 +75,10 @@ module Mara {
   # Queued component instances
   # ----------------------------------------------------------------------
 
+  @ BMP280 pressure/temperature sensor on I2C-1
+  instance bmp280Manager: Mara.Bmp280Manager base id 0x10047000 \
+    queue size Default.QUEUE_SIZE
+
   # ----------------------------------------------------------------------
   # Passive component instances
   # ----------------------------------------------------------------------
@@ -101,10 +105,23 @@ module Mara {
 
   instance EODSgpioDriver: Drv.LinuxGpioDriver base id 0x10040000
 
+  instance drillMotorOnDriver: Drv.LinuxGpioDriver base id 0x10043000
+
+  instance drillMotorDirDriver: Drv.LinuxGpioDriver base id 0x10044000
+
+  instance drillMotorStatusDriver: Drv.LinuxGpioDriver base id 0x10045000
+
+  instance drillMotor: Mara.DrillMotor base id 0x10046000
+
   @ UART to the Waveshare USB-CAN-A adapter for the platform motor drive
   instance motorUart: Mara.ReconnectingUartDriver base id 0x10041000
 
   @ Receive buffers for motorUart
   instance motorBufferManager: Svc.BufferManager base id 0x10042000
 
+  @ maybe this should be like the others? idk
+  instance ina228: Mara.INA228 base id 0x10048000 \
+    queue size Default.QUEUE_SIZE \
+    stack size Default.STACK_SIZE \
+    priority 35
 }

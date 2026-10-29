@@ -64,6 +64,7 @@ void configureTopology() {
     }
 
     ltrManager.configure(0x29); // Device I2C address from datasheet
+
 }
 
 void setupTopology(const TopologyState& state) {

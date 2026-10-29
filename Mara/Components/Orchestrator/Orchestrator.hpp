@@ -145,6 +145,10 @@ class Orchestrator final : public OrchestratorComponentBase {
 
     //! Implementation for action platformAdvance of state machine Mara_OrchestratorStateMachine
     //!
+    //! test the main drill
+    void Mara_OrchestratorStateMachine_action_doStartDrill(SmId smId,  //!< The state machine id
+                                                          Mara_OrchestratorStateMachine::Signal signal  //!< The signal
+                                                          ) override;
     //! Move the platform up to DRILL_POSITION
     void Mara_OrchestratorStateMachine_action_platformAdvance(
         SmId smId,                                    //!< The state machine id
