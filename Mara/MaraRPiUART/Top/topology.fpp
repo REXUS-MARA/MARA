@@ -53,6 +53,7 @@ module Mara {
     instance platformMotor
     instance motorUart
     instance motorBufferManager
+    instance ThermalCamera
     instance ina228
     instance bmp280Manager
 
