@@ -45,15 +45,15 @@ module Mara {
         @ Highest allowed target, in encoder counts.
         @ TODO: set after commissioning (1 mm = 4 * encoder lines / 0.794 counts).
         @ Default 0 means the platform will not move until this is set.
-        param MAX_POSITION: I32 default 0
+        param MAX_POSITION: I32 default 251890
 
         @ Profile velocity (0x6081) for moves away from 0, i.e. the drilling feed. Technosoft internal units.
         @ 0 keeps the value stored in the drive.
-        param ADVANCE_VELOCITY: U32 default 0
+        param ADVANCE_VELOCITY: U32 default 550667
 
         @ Profile velocity (0x6081) for moves towards 0, i.e. the retract. Technosoft internal units.
         @ 0 keeps the value stored in the drive.
-        param RETRACT_VELOCITY: U32 default 0
+        param RETRACT_VELOCITY: U32 default 550667
 
         @ Profile acceleration (0x6083), written on enable. Technosoft internal units.
         @ 0 keeps the value stored in the drive.

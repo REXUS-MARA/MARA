@@ -58,6 +58,9 @@ void configureTopology() {
     // Command sequencer needs to allocate memory to hold contents of command sequences
     cmdSeq.allocateBuffer(0, mallocator, 5 * 1024);
 
+    spiDriver1.open(0, 0, Drv::SPI_FREQUENCY_1MHZ, Drv::SPI_MODE_CPOL_LOW_CPHA_LOW);
+    spiDriver2.open(0, 0, Drv::SPI_FREQUENCY_1MHZ, Drv::SPI_MODE_CPOL_LOW_CPHA_LOW);
+
 
     // Receive buffers for the platform motor UART
     Svc::BufferManager::BufferBins motorBins{};
@@ -148,6 +151,7 @@ void setupTopology(const TopologyState& state) {
             printf("Failed to open UART device %s at baud rate %" PRIu32 "\n", state.uartDevice, state.baudRate);
         }
     }
+    
     // Platform motor UART read task: connects to the adapter whenever it is present
 #ifdef TGT_OS_TYPE_LINUX
     if (motorUart.start(MOTOR_UART_PRIORITY, Default::STACK_SIZE) != Os::Task::OP_OK) {
