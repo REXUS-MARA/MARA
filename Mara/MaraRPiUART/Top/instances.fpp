@@ -124,4 +124,10 @@ module Mara {
     queue size Default.QUEUE_SIZE \
     stack size Default.STACK_SIZE \
     priority 35
+
+  instance tc1: Mara.MAX31855Manager base id 0x10049000
+  instance tc2: Mara.MAX31855Manager base id 0x10050000
+  
+  instance spiDriver1: Drv.LinuxSpiDriver base id 0x10051000
+  instance spiDriver2: Drv.LinuxSpiDriver base id 0x10052000
 }
