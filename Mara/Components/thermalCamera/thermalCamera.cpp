@@ -28,7 +28,7 @@ thermalCamera ::~thermalCamera() {}
 
 void thermalCamera ::start_cmdHandler(FwOpcodeType opCode, U32 cmdSeq) {
     this->cmdResponse_out(opCode, cmdSeq, Fw::CmdResponse::OK);
-    char *argV[] = {(const char*)"/bin/python3", (const char*)"/home/mara/camera.py", 0};
+    char *argV[] = {(const char*)"/bin/python3", (const char*)"/home/mara/camera.py", file1, file2, 0};
     if(false == this->isRecording()) {
         if(0 != posix_spawn(&m_pid, "/bin/python3", NULL, NULL, argV, environ)) {
             m_pid = -1;
@@ -47,7 +47,9 @@ void thermalCamera ::stop_cmdHandler(FwOpcodeType opCode, U32 cmdSeq) {
 
 void thermalCamera ::check_cmdHandler(FwOpcodeType opCode, U32 cmdSeq) {
     struct stat st;
-    stat("/home/mara/thermaldata.dat", &st);
+    stat(file1, &st);
+    this->log_ACTIVITY_HI_ReportFileSize(st.st_size/1000);
+    stat(file2, &st);
     this->log_ACTIVITY_HI_ReportFileSize(st.st_size/1000);
     this->cmdResponse_out(opCode, cmdSeq, Fw::CmdResponse::OK);
 }
