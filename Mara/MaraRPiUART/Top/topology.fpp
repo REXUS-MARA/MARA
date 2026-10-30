@@ -58,6 +58,10 @@ module Mara {
     instance ina228drill
     instance ina228platform
     instance bmp280Manager
+    instance tc1
+    instance tc2
+    instance spiDriver1
+    instance spiDriver2
 
   # ----------------------------------------------------------------------
   # Pattern graph specifiers
@@ -134,19 +138,20 @@ module Mara {
       rateGroup1.RateGroupMemberOut[3] -> ComCcsds.comQueue.run
       rateGroup1.RateGroupMemberOut[4] -> ComCcsds.aggregator.timeout
       rateGroup1.RateGroupMemberOut[5] -> cmdSeq.schedIn
-      rateGroup1.RateGroupMemberOut[6] -> adxl345Manager.run
       rateGroup1.RateGroupMemberOut[7] -> orchestrator.schedIn
-      rateGroup2.RateGroupMemberOut[8] -> ina228.run
+      rateGroup1.RateGroupMemberOut[8] -> tc1.run
+      rateGroup1.RateGroupMemberOut[9] -> tc2.run
       
 
       # Rate group 2
       rateGroupDriver.CycleOut[Ports_RateGroups.rateGroup2] -> rateGroup2.CycleIn
       rateGroup2.RateGroupMemberOut[0] -> gpioWatcher.schedIn
-      rateGroup2.RateGroupMemberOut[2] -> bmp280Manager.run
       rateGroup2.RateGroupMemberOut[1] -> drillMotor.schedIn
       rateGroup2.RateGroupMemberOut[3] -> ina228drill.run
       rateGroup2.RateGroupMemberOut[4] -> ina228platform.run
       rateGroup2.RateGroupMemberOut[5] -> ina228supply.run
+      rateGroup2.RateGroupMemberOut[2] -> bmp280Manager.run
+
 
 
       # Rate group 3
@@ -159,6 +164,7 @@ module Mara {
 
       # Rate group 4
       rateGroupDriver.CycleOut[Ports_RateGroups.rateGroup4] -> rateGroup4.CycleIn
+      rateGroup4.RateGroupMemberOut[0] -> adxl345Manager.run
 
     }
 
@@ -230,7 +236,18 @@ module Mara {
         bmp280Manager.productGetOut  -> DataProducts.dpMgr.productGetIn
         bmp280Manager.productSendOut -> DataProducts.dpMgr.productSendIn
     }
+
+    connections thermocouple1 {
+        tc1.spiWriteRead -> spiDriver1.SpiWriteRead
+        tc1.productGetOut -> DataProducts.dpMgr.productGetIn
+        tc1.productSendOut -> DataProducts.dpMgr.productSendIn
+    }    
     
+    connections thermocouple2 {
+        tc2.spiWriteRead -> spiDriver2.SpiWriteRead
+        tc2.productGetOut -> DataProducts.dpMgr.productGetIn
+        tc2.productSendOut -> DataProducts.dpMgr.productSendIn
+    }    
     
     connections DrillMotor {
         drillMotor.motorPinWrite     -> drillMotorOnDriver.gpioWrite

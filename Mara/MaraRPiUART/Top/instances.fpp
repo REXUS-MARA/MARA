@@ -66,6 +66,11 @@ module Mara {
     stack size Default.STACK_SIZE \
     priority 36
 
+  instance ThermalCamera: Mara.thermalCamera base id 0x10009000 \
+    queue size Default.QUEUE_SIZE \
+    stack size Default.STACK_SIZE \
+    priority 35
+
   # ----------------------------------------------------------------------
   # Queued component instances
   # ----------------------------------------------------------------------
