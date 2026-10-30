@@ -115,8 +115,25 @@ module Mara {
   instance motorBufferManager: Svc.BufferManager base id 0x10042000
 
   @ maybe this should be like the others? idk
-  instance ina228: Mara.INA228 base id 0x10048000 \
+  instance ina228supply: Mara.INA228 base id 0x10048000 \
     queue size Default.QUEUE_SIZE \
     stack size Default.STACK_SIZE \
     priority 35
+
+  instance ina228drill: Mara.INA228 base id 0x10053000 \
+    queue size Default.QUEUE_SIZE \
+    stack size Default.STACK_SIZE \
+    priority 35
+
+  instance ina228platform: Mara.INA228 base id 0x10054000 \
+    queue size Default.QUEUE_SIZE \
+    stack size Default.STACK_SIZE \
+    priority 35
+
+
+  instance tc1: Mara.MAX31855Manager base id 0x10049000
+  instance tc2: Mara.MAX31855Manager base id 0x10050000
+  
+  instance spiDriver1: Drv.LinuxSpiDriver base id 0x10051000
+  instance spiDriver2: Drv.LinuxSpiDriver base id 0x10052000
 }

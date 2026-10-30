@@ -20,6 +20,11 @@ module Mara {
             status: Drv.I2cStatus
         ) severity warning high format "I2C error on address {} with status {}" throttle 5
 
+        event initReport(
+            address: U8,
+        ) severity activity high \
+        format "INA on address {} initialized"
+
         event debug(
             message: U32
         ) severity warning high format "message {}"

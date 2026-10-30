@@ -59,6 +59,11 @@ void configureTopology() {
     cmdSeq.allocateBuffer(0, mallocator, 5 * 1024);
 
 
+    //configure INA addresses
+    ina228supply.configure(0x40);
+    ina228drill.configure(0x41);
+    ina228platform.configure(0x44);
+
     // Receive buffers for the platform motor UART
     Svc::BufferManager::BufferBins motorBins{};
     motorBins.bins[0].bufferSize = MOTOR_BUFFER_SIZE;
