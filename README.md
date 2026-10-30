@@ -39,10 +39,6 @@ If you need to find the uart device, on mac after connecting the FT232 not much 
 Also make sure that uart is enabled on the pi (sudo raspi-config and then interfaces, serial, first no then yes - you want hardware).
 Below are older steps for doing the IP deploy. All the cool kids are using UART tho.
 
-2. `scp build-artifacts/aarch64-linux/Mara_MaraRPiIP/bin/Mara_MaraRPiIP pi-fsowa.local:MARA`
-3. `ssh pi-fsowa.local "./MARA -a 0.0.0.0 -p 50000"`
-4. `fprime-gds -n --dictionary build-artifacts/aarch64-linux/Mara_MaraRPiIP/dict/MaraRPiIPTopologyDictionary.json --ip-client --ip-address $(python3 -c "import socket; print(socket.gethostbyname('pi-fsowa.local'))")`
-
 # On Python and Homebrew (section only for people starting with programming)
 As you can see above, we're usually using python for activating / creating the virtual environments, and brew for installing packages.
 
