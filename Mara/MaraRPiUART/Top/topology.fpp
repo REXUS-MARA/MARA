@@ -54,7 +54,9 @@ module Mara {
     instance motorUart
     instance motorBufferManager
     instance ThermalCamera
-    instance ina228
+    instance ina228supply
+    instance ina228drill
+    instance ina228platform
     instance bmp280Manager
     instance tc1
     instance tc2
@@ -145,8 +147,10 @@ module Mara {
       rateGroupDriver.CycleOut[Ports_RateGroups.rateGroup2] -> rateGroup2.CycleIn
       rateGroup2.RateGroupMemberOut[0] -> gpioWatcher.schedIn
       rateGroup2.RateGroupMemberOut[1] -> drillMotor.schedIn
+      rateGroup2.RateGroupMemberOut[3] -> ina228drill.run
+      rateGroup2.RateGroupMemberOut[4] -> ina228platform.run
+      rateGroup2.RateGroupMemberOut[5] -> ina228supply.run
       rateGroup2.RateGroupMemberOut[2] -> bmp280Manager.run
-      rateGroup2.RateGroupMemberOut[3] -> ina228.run
 
 
 
@@ -206,12 +210,25 @@ module Mara {
         adxl345Manager.productSendOut -> DataProducts.dpMgr.productSendIn
     }
 
-    connections ina228 {
-      ina228.busWriteRead      -> I2CDriver.writeRead
-      ina228.busWrite          -> I2CDriver.write
-      ina228.productGetOut     -> DataProducts.dpMgr.productGetIn
-      ina228.productSendOut    -> DataProducts.dpMgr.productSendIn
+    connections ina228drill {
+      ina228drill.busWriteRead      -> I2CDriver.writeRead
+      ina228drill.busWrite          -> I2CDriver.write
+      ina228drill.productGetOut     -> DataProducts.dpMgr.productGetIn
+      ina228drill.productSendOut    -> DataProducts.dpMgr.productSendIn
     }
+    connections ina228platform {
+      ina228platform.busWriteRead      -> I2CDriver.writeRead
+      ina228platform.busWrite          -> I2CDriver.write
+      ina228platform.productGetOut     -> DataProducts.dpMgr.productGetIn
+      ina228platform.productSendOut    -> DataProducts.dpMgr.productSendIn
+    }
+    connections ina228supply {
+      ina228supply.busWriteRead      -> I2CDriver.writeRead
+      ina228supply.busWrite          -> I2CDriver.write
+      ina228supply.productGetOut     -> DataProducts.dpMgr.productGetIn
+      ina228supply.productSendOut    -> DataProducts.dpMgr.productSendIn
+    }
+
     # Connect BMP280 to I2C driver
     connections BMP280 {
         bmp280Manager.busWriteRead   -> I2CDriver.writeRead

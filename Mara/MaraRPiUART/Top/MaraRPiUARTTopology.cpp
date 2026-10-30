@@ -62,6 +62,11 @@ void configureTopology() {
     spiDriver2.open(0, 0, Drv::SPI_FREQUENCY_1MHZ, Drv::SPI_MODE_CPOL_LOW_CPHA_LOW);
 
 
+    //configure INA addresses
+    ina228supply.configure(0x40);
+    ina228drill.configure(0x41);
+    ina228platform.configure(0x44);
+
     // Receive buffers for the platform motor UART
     Svc::BufferManager::BufferBins motorBins{};
     motorBins.bins[0].bufferSize = MOTOR_BUFFER_SIZE;
