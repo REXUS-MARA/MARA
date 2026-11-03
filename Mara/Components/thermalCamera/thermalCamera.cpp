@@ -28,7 +28,7 @@ thermalCamera ::~thermalCamera() {}
 
 void thermalCamera ::start_cmdHandler(FwOpcodeType opCode, U32 cmdSeq) {
     this->cmdResponse_out(opCode, cmdSeq, Fw::CmdResponse::OK);
-    char *argV[] = {(const char*)"/bin/python3", (const char*)"/home/mara/camera.py", file1, file2, 0};
+    char *argV[] = {"/bin/python3", "/home/mara/camera.py", file1, file2, 0};
     if(false == this->isRecording()) {
         if(0 != posix_spawn(&m_pid, "/bin/python3", NULL, NULL, argV, environ)) {
             m_pid = -1;

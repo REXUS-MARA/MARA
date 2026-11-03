@@ -6,14 +6,14 @@ import time
 import sys
 
 #config
-scale = 5
-delay = 0.2
+scale = 2
+delay = 0.0
 
 #global vars and inits
 f = []
 screen = pygame.display.set_mode((320*scale, 240*scale))
 pygame.display.set_caption("Image")
-file = open("file1.dat", "br")
+file = open("thermaldata.dat", "br")
 #file = open("thermography-E6D72BF90909.csv", "br")
 font = ImageFont.truetype("tratex.ttf", scale*6)
 i = 0
@@ -75,6 +75,7 @@ while True:
 
     # get relative timestamp
     timestamp = struct.unpack("d", file.read(8))[0]
+    print(time.ctime(timestamp))
     if 0 == baseTime:
         baseTime = timestamp
     timestamp -= baseTime
@@ -90,7 +91,14 @@ while True:
     screen.blit(image, (0, 0))
     pygame.display.flip()
     print(timestamp-oldTime)
-    oldTime = timestamp
     f.append(img)
     i += 1
     time.sleep(delay)
+
+    # adjust to only get the latest run
+    if timestamp-oldTime > 10:
+        f.clear()
+        baseTime += timestamp
+        oldTime = 0
+        i=0
+    oldTime = timestamp
