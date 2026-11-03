@@ -28,7 +28,11 @@ thermalCamera ::~thermalCamera() {}
 
 void thermalCamera ::start_cmdHandler(FwOpcodeType opCode, U32 cmdSeq) {
     this->cmdResponse_out(opCode, cmdSeq, Fw::CmdResponse::OK);
-    char *argV[] = {"/bin/python3", "/home/mara/camera.py", file1, file2, 0};
+    // make the cpp compiler shut the hell up
+    char python[] = "/bin/python3";
+    char camerapath[] = "/home/mara/camera.py";
+    // like, what was wring with doing it the C way? smh my head
+    char *argV[] = {python, camerapath, file1, file2, 0};
     if(false == this->isRecording()) {
         if(0 != posix_spawn(&m_pid, "/bin/python3", NULL, NULL, argV, environ)) {
             m_pid = -1;
