@@ -17,6 +17,13 @@
     - name: Enable I2C
       command: raspi-config nonint do_i2c 0
 
+    - name: Disable bluetooth and wifi
+      blockinfile:
+        path: /boot/firmware/config.txt
+        block: |
+          dtoverlay=disable-wifi
+          dtoverlay=disable-bt
+
     - name: Install packages
       apt:
         name:
