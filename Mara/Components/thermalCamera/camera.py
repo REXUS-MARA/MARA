@@ -34,7 +34,6 @@ def on_frame(camera, camera_frame, file):
         )
     )
 
-    print(frame.data[0][0])
     # Append the frame to the CSV file.
     for f in file:
         f.write(frame.data)

@@ -54,7 +54,7 @@ class thermalCamera final : public thermalCameraComponentBase {
     bool isRecording() const { return m_pid > 0; }
     pid_t m_pid = -1;
     char file1[27] = "/home/mara/thermaldata.dat";
-    char file2[28] = "/home/mara/thermaldata2.dat";
+    char file2[30] = "/mnt/sdcard/thermalbackup.dat";
 
 };
 
