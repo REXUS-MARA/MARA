@@ -107,6 +107,7 @@ class INA228 final : public INA228ComponentBase {
     Drv::I2cStatus read_register(U8 registerAddress, I32* value);
     Drv::I2cStatus write_register(U8 registerAddress, U16 value);
     Drv::I2cStatus read(INAData* data);
+    Drv::I2cStatus configure(U8 address);
 
 };
 }  // namespace Mara

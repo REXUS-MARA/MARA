@@ -57,6 +57,7 @@ void INA228 ::Mara_INAStateMachine_action_checkReset(SmId smId, Mara_INAStateMac
         this->log_WARNING_HI_I2cError(this->m_address, status);
         this->INAStateMachine_sendSignal_error();
     } else {
+        this->log_ACTIVITY_HI_initReport(this->m_address);
         this->INAStateMachine_sendSignal_success();
     }
 }

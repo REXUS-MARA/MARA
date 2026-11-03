@@ -40,3 +40,4 @@ DataProducts.dpCat.BUILD_CATALOG
 DataProducts.dpCat.START_XMIT_CATALOG, WAIT
 In this order
 First one will build the in RAM data catalog, the second one will wait for the first one to finish,
+and then send stuff back home

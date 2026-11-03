@@ -92,4 +92,13 @@ Drv::I2cStatus INA228::read(INAData* data) {
     return status;
 }
 
+Drv::I2cStatus INA228::configure(U8 address) {
+    /*
+     Configure the address of the sensor
+    */
+    this->m_address = address;
+    Drv::I2cStatus status = Drv::I2cStatus::I2C_OK;
+    return status;
+}
+
 }
