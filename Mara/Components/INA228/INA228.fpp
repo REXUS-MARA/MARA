@@ -11,6 +11,9 @@
             @ Sync port, grandfathered in from LTR-303
             sync input port run: Svc.Sched
 
+            @ port for periodic telemetry reading
+            sync input port telemetryReport: Svc.Sched
+
             @ Telemetry reading for current/voltage data
             telemetry Reading: INAData
 
@@ -33,6 +36,11 @@
                 voltage: F32
                 current: F32
             ) severity warning high format "read: {} V, {} A"
+
+            event telemetryReport(
+                voltage: F32
+                current: F32
+            ) severity activity low format "Averaged data: {} V, {} A"
 
             @ Command to force a RESET
             async command RESET()
