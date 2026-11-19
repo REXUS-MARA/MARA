@@ -23,6 +23,8 @@ Fw::MallocAllocator mallocator;
 // For our current needs, I set up a clock signal of 100Hz (you can change that in the Main.cpp file)
 // That will get spili into sub signals - 1Hz (100 / 100), 20hz (100/5), 1/4Hz, 100Hz (100/1)
 Svc::RateGroupDriver::DividerSet rateGroupDivisorsSet{{{100, 0}, {5, 0}, {400, 0}, {1, 0}}};
+// Sub-signals: 1Hz (500/500), 25Hz (500/20), 1/4Hz (500/2000), 250Hz (500/2)
+//Svc::RateGroupDriver::DividerSet rateGroupDivisorsSet{{{500, 0}, {20, 0}, {2000, 0}, {2, 0}}};
 
 // Rate groups may supply a context token to each of the attached children whose purpose is set by the project. The
 // reference topology sets each token to zero as these contexts are unused in this project.
@@ -46,6 +48,9 @@ enum TopologyConstants {
  * desired, but is extracted here for clarity.
  */
 void configureTopology() {
+    drillMotor.configure(Mara::DrillMotor_Direction::CW);
+
+    
     // Rate group driver needs a divisor list
     rateGroupDriver.configure(rateGroupDivisorsSet);
 

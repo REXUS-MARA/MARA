@@ -19,7 +19,7 @@ class MAX31855Manager final : public MAX31855ManagerComponentBase {
     ~MAX31855Manager();
 
   private:
-    static constexpr FwSizeType RECORD_COUNT = 100;
+    static constexpr FwSizeType RECORD_COUNT = 50;
 
     void run_handler(FwIndexType portNum, U32 context) override;
 

@@ -87,6 +87,12 @@ void Orchestrator ::testPlatformMoveTo_cmdHandler(FwOpcodeType opCode, U32 cmdSe
     this->cmdResponse_out(opCode, cmdSeq, Fw::CmdResponse::OK);
 }
 
+void Orchestrator ::platformMoveDone_handler(FwIndexType portNum) {
+    (void)portNum;
+    this->log_ACTIVITY_HI_PlatformArrived();
+    this->OrchestratorStateMachine_sendSignal_platformArrived();
+}
+
 void Orchestrator ::testPlatformStop_cmdHandler(FwOpcodeType opCode, U32 cmdSeq) {
     if (!this->acceptTestCommand(opCode, cmdSeq)) {
         return;
@@ -138,16 +144,12 @@ void Orchestrator ::Mara_OrchestratorStateMachine_action_doStartDrill(SmId smId,
 
 void Orchestrator ::Mara_OrchestratorStateMachine_action_drillOn(SmId smId,
                                                                  Mara_OrchestratorStateMachine::Signal signal) {
-    if (this->isConnected_DrillON_OutputPort(0)) {
-        this->DrillON_out(0);
-    }
+    this->setDrill(true);
 }
 
 void Orchestrator ::Mara_OrchestratorStateMachine_action_drillOff(SmId smId,
                                                                   Mara_OrchestratorStateMachine::Signal signal) {
-    if (this->isConnected_DrillOFF_OutputPort(0)) {
-        this->DrillOFF_out(0);
-    }
+    this->setDrill(false);
 }
 
 void Orchestrator ::Mara_OrchestratorStateMachine_action_cameraOn(SmId smId,
@@ -256,6 +258,13 @@ void Orchestrator ::Mara_OrchestratorStateMachine_action_notifyExitTEST(SmId smI
     this->log_ACTIVITY_HI_ExitTest();
 }
 
+
+void Orchestrator ::Mara_OrchestratorStateMachine_action_notifyEnterIDLE(
+    SmId smId,
+    Mara::OrchestratorStateMachineStateMachineBase::Signal signal) {
+    this->log_ACTIVITY_HI_EnteredIdle();
+}
+
 void Orchestrator ::Mara_OrchestratorStateMachine_action_notifyEnterFlight(
     SmId smId,
     Mara_OrchestratorStateMachine::Signal signal) {
@@ -281,6 +290,30 @@ void Orchestrator ::Mara_OrchestratorStateMachine_action_notifyAdvance(SmId smId
 void Orchestrator ::Mara_OrchestratorStateMachine_action_notifyRetract(SmId smId,
                                                                        Mara_OrchestratorStateMachine::Signal signal) {
     this->log_ACTIVITY_HI_PhaseRetract(m_retractSeconds);
+}
+
+void Orchestrator ::Mara_OrchestratorStateMachine_action_notifyAdvanceReached(
+    SmId smId,
+    Mara_OrchestratorStateMachine::Signal signal) {
+    this->log_ACTIVITY_HI_AdvanceReached(m_phaseSeconds);
+}
+
+void Orchestrator ::Mara_OrchestratorStateMachine_action_notifyAdvanceTimedOut(
+    SmId smId,
+    Mara_OrchestratorStateMachine::Signal signal) {
+    this->log_WARNING_HI_AdvanceTimedOut(m_advanceSeconds);
+}
+
+void Orchestrator ::Mara_OrchestratorStateMachine_action_notifyRetractReached(
+    SmId smId,
+    Mara_OrchestratorStateMachine::Signal signal) {
+    this->log_ACTIVITY_HI_RetractReached(m_phaseSeconds);
+}
+
+void Orchestrator ::Mara_OrchestratorStateMachine_action_notifyRetractTimedOut(
+    SmId smId,
+    Mara_OrchestratorStateMachine::Signal signal) {
+    this->log_WARNING_HI_RetractTimedOut(m_retractSeconds);
 }
 
 void Orchestrator ::Mara_OrchestratorStateMachine_action_notifyDone(SmId smId,
@@ -324,6 +357,18 @@ bool Orchestrator ::Mara_OrchestratorStateMachine_guard_retractDone(
 // Helpers
 // ----------------------------------------------------------------------
 
+
+void Orchestrator ::setDrill(bool enable) {
+    if (!this->isConnected_drillSet_OutputPort(0)) {
+        // Unconnected would otherwise fail silently, with the platform feeding a stopped drill
+        this->log_WARNING_HI_DrillSetFailed(enable);
+        return;
+    }
+    if (this->drillSet_out(0, enable) != Fw::Success::SUCCESS) {
+        this->log_WARNING_HI_DrillSetFailed(enable);
+    }
+}
+
 bool Orchestrator ::acceptTestCommand(FwOpcodeType opCode, U32 cmdSeq) {
     if (this->OrchestratorStateMachine_getState() == Mara_OrchestratorStateMachine::State::TEST) {
         return true;
@@ -332,5 +377,6 @@ bool Orchestrator ::acceptTestCommand(FwOpcodeType opCode, U32 cmdSeq) {
     this->cmdResponse_out(opCode, cmdSeq, Fw::CmdResponse::EXECUTION_ERROR);
     return false;
 }
+
 
 }  // namespace Mara

@@ -77,7 +77,7 @@ struct TopologyState {
 static constexpr int EODSGpioPin {7};
 static constexpr int LOGpioPin {17};
 static constexpr int SOEGpioPin {27};
-static constexpr int DrillMotorOnGpioPin {1};
+static constexpr int DrillMotorOnGpioPin {5};
 static constexpr int DrillMotorDirGpioPin {12};
 static constexpr int DrillMotorStatusGpioPin {16}; 
 

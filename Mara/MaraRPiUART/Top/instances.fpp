@@ -46,6 +46,7 @@ module Mara {
     stack size Default.STACK_SIZE \
     priority 40
 
+
   instance cmdSeq: Svc.CmdSequencer base id 0x10005000 \
     queue size Default.QUEUE_SIZE \
     stack size Default.STACK_SIZE \

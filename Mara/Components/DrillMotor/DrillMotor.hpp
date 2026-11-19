@@ -21,13 +21,14 @@ class DrillMotor final : public DrillMotorComponentBase {
     // ----------------------------------------------------------------------
     // Component construction and destruction
     // ----------------------------------------------------------------------
-
     //! Construct DrillMotor object
     DrillMotor(const char* const compName  //!< The component name
     );
  
     //! Destroy DrillMotor object
     ~DrillMotor();
+
+    void configure(DrillMotor_Direction direction);
 
   
   private:
@@ -45,6 +46,12 @@ class DrillMotor final : public DrillMotorComponentBase {
     //! Handler implementation for READ_STATUS
     void READ_STATUS_cmdHandler(FwOpcodeType opCode, U32 cmdSeq) override;
  
+    //! Orchestrator control: motor on/off
+    Fw::Success motorSetIn_handler(FwIndexType portNum,  //!< The port number
+                                   bool enable               //!< true = on
+                                   ) override;
+ 
+
     void tachPulseIn_handler(FwIndexType portNum,           //!< The port number
                               Os::RawTime& cycleStart  //!< Timestamp of the edge
                               ) override;
@@ -55,9 +62,19 @@ class DrillMotor final : public DrillMotorComponentBase {
                           U32 context           //!< The call order
                           ) override;
  
+
+    //! Write the motor pin and update state, telemetry and events
+    Fw::Success setMotor(bool on);
+
+    Fw::Success setDirection(DrillMotor_Direction direction);
+
     void updateRpm();
 
     void recordRpmSample(F32 rpm);
+
+    //! Send the current container even if it is not full
+    void flushContainer();
+
 
     static constexpr U32 PULSES_PER_REV = 21;
 
@@ -66,9 +83,15 @@ class DrillMotor final : public DrillMotorComponentBase {
     static constexpr F64 MAX_VALID_WINDOW_SEC = 10.0;
 
     static constexpr FwSizeType RECORD_COUNT = 10;
+
+    static constexpr U32 SPINDOWN_RECORD_WINDOWS = 5;
  
     bool m_motorOn{false};
     DrillMotor_Direction m_direction{DrillMotor_Direction::CW};
+
+    //! Spin-down windows still to record after the motor was turned off
+    U32 m_spinDownWindowsLeft{0};
+
 
     std::atomic<U32> m_pulseCount{0};
 

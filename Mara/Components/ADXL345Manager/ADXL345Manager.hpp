@@ -20,7 +20,7 @@ class ADXL345Manager final : public ADXL345ManagerComponentBase {
     ~ADXL345Manager();
 
   private:
-    static constexpr FwSizeType RECORD_COUNT = 100;
+    static constexpr FwSizeType RECORD_COUNT = 200;
     FwSizeType m_count;
     DpContainer m_container;
     bool m_containerValid;

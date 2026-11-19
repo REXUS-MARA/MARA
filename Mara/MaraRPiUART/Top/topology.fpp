@@ -182,6 +182,9 @@ module Mara {
       gpioWatcher.EODSPinRead      -> EODSgpioDriver.gpioRead
       gpioWatcher.LOPinRead        -> LOgpioDriver.gpioRead
       gpioWatcher.SOEPinRead       -> SOEgpioDriver.gpioRead
+      gpioWatcher.productGetOut ->  DataProducts.dpMgr.productGetIn
+      gpioWatcher.productSendOut -> DataProducts.dpMgr.productSendIn
+      
 
       orchestrator.OpticalCameraON -> opticalCamera.Camera_ON
       orchestrator.OpticalCameraOFF -> opticalCamera.Camera_OFF
@@ -247,7 +250,12 @@ module Mara {
         tc2.spiWriteRead -> spiDriver2.SpiWriteRead
         tc2.productGetOut -> DataProducts.dpMgr.productGetIn
         tc2.productSendOut -> DataProducts.dpMgr.productSendIn
-    }    
+    }  
+
+    connections orchestrator {
+      orchestrator.drillSet -> drillMotor.motorSetIn
+      platformMotor.moveDone -> orchestrator.platformMoveDone
+    }  
     
     connections DrillMotor {
         drillMotor.motorPinWrite     -> drillMotorOnDriver.gpioWrite

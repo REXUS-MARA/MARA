@@ -85,6 +85,24 @@ class Orchestrator final : public OrchestratorComponentBase {
                                        U32 cmdSeq,           //!< The command sequence number
                                        I32 position) override;
 
+
+    void platformMoveDone_handler(FwIndexType portNum  //!< The port number
+                              ) override;
+                              
+    void Mara_OrchestratorStateMachine_action_notifyAdvanceReached(SmId smId,
+                                                              Mara_OrchestratorStateMachine::Signal signal) override;
+
+    //! Implementation for action notifyAdvanceTimedOut of state machine Mara_OrchestratorStateMachine
+    void Mara_OrchestratorStateMachine_action_notifyAdvanceTimedOut(SmId smId,
+                                                               Mara_OrchestratorStateMachine::Signal signal) override;                          
+  
+    //! Implementation for action notifyRetractReached of state machine Mara_OrchestratorStateMachine
+    void Mara_OrchestratorStateMachine_action_notifyRetractReached(SmId smId,
+                                                              Mara_OrchestratorStateMachine::Signal signal) override;
+
+    //! Implementation for action notifyRetractTimedOut of state machine Mara_OrchestratorStateMachine
+    void Mara_OrchestratorStateMachine_action_notifyRetractTimedOut(SmId smId,
+                                                               Mara_OrchestratorStateMachine::Signal signal) override;
     //! Handler implementation for command testPlatformStop
     //!
     //! TEST mode: halt the platform where it is
@@ -241,6 +259,10 @@ class Orchestrator final : public OrchestratorComponentBase {
         Mara_OrchestratorStateMachine::Signal signal  //!< The signal
         ) override;
 
+    void Mara_OrchestratorStateMachine_action_notifyEnterIDLE(
+        SmId smId,
+        Mara::OrchestratorStateMachineStateMachineBase::Signal signal) override;
+
     //! Implementation for action notifyEnterFlight of state machine Mara_OrchestratorStateMachine
     void Mara_OrchestratorStateMachine_action_notifyEnterFlight(
         SmId smId,                                    //!< The state machine id
@@ -321,6 +343,8 @@ class Orchestrator final : public OrchestratorComponentBase {
     //! Test commands only act in TEST. Otherwise logs TestCommandIgnored and responds EXECUTION_ERROR.
     //! \return true if the command may proceed
     bool acceptTestCommand(FwOpcodeType opCode, U32 cmdSeq);
+
+    void setDrill(bool enable);
 
   private:
     // ----------------------------------------------------------------------
