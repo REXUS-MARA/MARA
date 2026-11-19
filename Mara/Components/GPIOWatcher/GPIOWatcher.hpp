@@ -25,6 +25,9 @@ class GPIOWatcher final : public GPIOWatcherComponentBase {
     //! Destroy GPIOWatcher object
     ~GPIOWatcher();
 
+    using GpioPin = GPIOWatcher_GpioPin;
+    using PinFlipRecord = GPIOWatcher_PinFlipRecord;
+
   private:
     // ----------------------------------------------------------------------
     // Handler implementations for typed input ports
@@ -46,6 +49,10 @@ class GPIOWatcher final : public GPIOWatcherComponentBase {
     bool m_SOE_signal_emitted{false};
     int m_EODS_counter{0};
     bool m_EODS_signal_emitted{false};
+    bool recordFirstFlip(GpioPin pin, const Fw::Time& flipTime);
+    bool m_EODS_flip_recorded = false;
+    bool m_LO_flip_recorded = false;
+    bool m_SOE_flip_recorded = false;
 };
 
 }  // namespace Mara

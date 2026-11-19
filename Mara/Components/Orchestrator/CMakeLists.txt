@@ -20,8 +20,8 @@ register_fprime_library(
         "${CMAKE_CURRENT_LIST_DIR}/OrchestratorStateMachine.fpp"
     SOURCES
         "${CMAKE_CURRENT_LIST_DIR}/Orchestrator.cpp"
-#   DEPENDS
-#       MyPackage_MyOtherModule
+    DEPENDS
+      Mara_Components_DrillMotor
 )
 
 ### Unit Tests ###

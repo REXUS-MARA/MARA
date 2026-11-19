@@ -23,6 +23,61 @@ DrillMotor ::DrillMotor(const char* const compName) : DrillMotorComponentBase(co
  
 DrillMotor ::~DrillMotor() {}
 
+void DrillMotor ::configure(DrillMotor_Direction direction) {
+    //Force low if reset might accidentaly leave the drill on
+    (void)this->setMotor(false);
+    (void)this->setDirection(direction);
+}
+
+Fw::Success DrillMotor ::setMotor(bool on) {
+    FW_ASSERT(this->isConnected_motorPinWrite_OutputPort(0));
+ 
+    const Drv::GpioStatus status =
+        this->motorPinWrite_out(0, on ? Fw::Logic::HIGH : Fw::Logic::LOW);
+ 
+    if (status != Drv::GpioStatus::OP_OK) {
+        this->log_WARNING_HI_GpioError(Fw::String(on ? "MOTOR_ON" : "MOTOR_OFF"),
+                                       static_cast<I32>(status.e));
+        return Fw::Success::FAILURE;
+    }
+ 
+    if (on) {
+        this->m_spinDownWindowsLeft = 0;
+        this->log_ACTIVITY_HI_MotorOn();
+    } else {
+        // Keep recording for a few windows to capture the spin-down,
+        // but only if the motor was actually running.
+        if (this->m_motorOn) {
+            this->m_spinDownWindowsLeft = SPINDOWN_RECORD_WINDOWS;
+        }
+        this->log_ACTIVITY_HI_MotorOff();
+    }
+ 
+    this->m_motorOn = on;
+    this->tlmWrite_MotorState(on);
+    return Fw::Success::SUCCESS;
+}
+
+Fw::Success DrillMotor ::setDirection(DrillMotor_Direction direction) {
+    FW_ASSERT(this->isConnected_directionPinWrite_OutputPort(0));
+ 
+    const Fw::Logic pinValue =
+        (direction == DrillMotor_Direction::CW) ? Fw::Logic::HIGH : Fw::Logic::LOW;
+ 
+    const Drv::GpioStatus status = this->directionPinWrite_out(0, pinValue);
+ 
+    if (status != Drv::GpioStatus::OP_OK) {
+        this->log_WARNING_HI_GpioError(Fw::String("SET_DIRECTION"), static_cast<I32>(status.e));
+        return Fw::Success::FAILURE;
+    }
+ 
+    this->m_direction = direction;
+    this->tlmWrite_MotorDirection(direction);
+    this->log_ACTIVITY_HI_DirectionChanged(direction);
+    return Fw::Success::SUCCESS;
+}
+
+
 void DrillMotor ::updateRpm() {
     const Fw::Time now = this->getTime();
  
@@ -63,7 +118,16 @@ void DrillMotor ::updateRpm() {
  
     this->m_rpm.store(rpm);
     this->tlmWrite_MotorRpm(rpm);
-    this->recordRpmSample(rpm);
+    if (this->m_motorOn) {
+        this->recordRpmSample(rpm);
+    } else if (this->m_spinDownWindowsLeft > 0) {
+        this->recordRpmSample(rpm);
+        this->m_spinDownWindowsLeft -= 1;
+        if (this->m_spinDownWindowsLeft == 0) {
+            this->flushContainer();
+        }
+    }
+
 }
  
 void DrillMotor ::recordRpmSample(F32 rpm) {
@@ -79,6 +143,7 @@ void DrillMotor ::recordRpmSample(F32 rpm) {
  
         this->m_containerValid = true;
         this->m_container.setTimeTag(this->getTime());
+        this->m_count = 0;
         this->log_WARNING_HI_DpMemoryFailure_ThrottleClear();
     }
  
@@ -97,72 +162,46 @@ void DrillMotor ::recordRpmSample(F32 rpm) {
  
     // Once the container is full, send it and start fresh next time
     if (this->m_count == RECORD_COUNT) {
-        this->dpSend(this->m_container);
-        this->m_count = 0;
-        this->m_containerValid = false;
+       this->flushContainer();
     }
 }
  
+void DrillMotor ::flushContainer() {
+    if (not this->m_containerValid or this->m_count == 0) {
+        return;
+    }
+ 
+    this->dpSend(this->m_container);
+    this->m_count = 0;
+    this->m_containerValid = false;
+}
+
 
 // ----------------------------------------------------------------------
 // Handler implementations for commands
 // ----------------------------------------------------------------------
  
 void DrillMotor ::MOTOR_ON_cmdHandler(FwOpcodeType opCode, U32 cmdSeq) {
-    FW_ASSERT(this->isConnected_motorPinWrite_OutputPort(0));
- 
-    Drv::GpioStatus status = this->motorPinWrite_out(0, Fw::Logic::HIGH);
- 
-    if (status != Drv::GpioStatus::OP_OK) {
-        this->log_WARNING_HI_GpioError(Fw::String("MOTOR_ON"), static_cast<I32>(status.e));
-        this->cmdResponse_out(opCode, cmdSeq, Fw::CmdResponse::EXECUTION_ERROR);
-        return;
-    }
- 
-    m_motorOn = true;
-    this->tlmWrite_MotorState(true);
-    this->log_ACTIVITY_HI_MotorOn();
-    this->cmdResponse_out(opCode, cmdSeq, Fw::CmdResponse::OK);
+const bool ok = (this->setMotor(true) == Fw::Success::SUCCESS);
+    this->cmdResponse_out(opCode, cmdSeq,
+                          ok ? Fw::CmdResponse::OK : Fw::CmdResponse::EXECUTION_ERROR);
 }
 
+
 void DrillMotor ::MOTOR_OFF_cmdHandler(FwOpcodeType opCode, U32 cmdSeq) {
-    FW_ASSERT(this->isConnected_motorPinWrite_OutputPort(0));
- 
-    Drv::GpioStatus status = this->motorPinWrite_out(0, Fw::Logic::LOW);
- 
-    if (status != Drv::GpioStatus::OP_OK) {
-        this->log_WARNING_HI_GpioError(Fw::String("MOTOR_OFF"), static_cast<I32>(status.e));
-        this->cmdResponse_out(opCode, cmdSeq, Fw::CmdResponse::EXECUTION_ERROR);
-        return;
-    }
- 
-    m_motorOn = false;
-    this->tlmWrite_MotorState(false);
-    this->log_ACTIVITY_HI_MotorOff();
-    this->cmdResponse_out(opCode, cmdSeq, Fw::CmdResponse::OK);
+    const bool ok = (this->setMotor(false) == Fw::Success::SUCCESS);
+    this->cmdResponse_out(opCode, cmdSeq,
+                          ok ? Fw::CmdResponse::OK : Fw::CmdResponse::EXECUTION_ERROR);
 }
 
 void DrillMotor ::SET_DIRECTION_cmdHandler(FwOpcodeType opCode,
-                                            U32 cmdSeq,
-                                            DrillMotor_Direction direction) {
-    FW_ASSERT(this->isConnected_directionPinWrite_OutputPort(0));
- 
-    const Fw::Logic pinValue =
-        (direction == DrillMotor_Direction::CW) ? Fw::Logic::HIGH : Fw::Logic::LOW;
- 
-    Drv::GpioStatus status = this->directionPinWrite_out(0, pinValue);
- 
-    if (status != Drv::GpioStatus::OP_OK) {
-        this->log_WARNING_HI_GpioError(Fw::String("SET_DIRECTION"), static_cast<I32>(status.e));
-        this->cmdResponse_out(opCode, cmdSeq, Fw::CmdResponse::EXECUTION_ERROR);
-        return;
-    }
- 
-    m_direction = direction;
-    this->tlmWrite_MotorDirection(direction);
-    this->log_ACTIVITY_HI_DirectionChanged(direction);
-    this->cmdResponse_out(opCode, cmdSeq, Fw::CmdResponse::OK);
+                                           U32 cmdSeq,
+                                           DrillMotor_Direction direction) {
+    const bool ok = (this->setDirection(direction) == Fw::Success::SUCCESS);
+    this->cmdResponse_out(opCode, cmdSeq,
+                          ok ? Fw::CmdResponse::OK : Fw::CmdResponse::EXECUTION_ERROR);
 }
+
 
 void DrillMotor ::READ_STATUS_cmdHandler(FwOpcodeType opCode, U32 cmdSeq) {
     this->log_ACTIVITY_LO_MotorRpmReported(this->m_rpm.load());
@@ -172,6 +211,10 @@ void DrillMotor ::READ_STATUS_cmdHandler(FwOpcodeType opCode, U32 cmdSeq) {
 // ----------------------------------------------------------------------
 // Handler implementations for typed input ports
 // ----------------------------------------------------------------------
+
+Fw::Success DrillMotor ::motorSetIn_handler(FwIndexType portNum, bool enable) {
+    return this->setMotor(enable);
+}
 
 void DrillMotor ::tachPulseIn_handler(FwIndexType portNum, Os::RawTime& cycleStart) {
     // Runs on the GPIO driver's interrupt thread: just count the edge

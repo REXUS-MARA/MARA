@@ -28,6 +28,9 @@ module Mara {
         @ 1 Hz tick from the rate group, drives the experiment timeline
         signal tick
 
+        @ PlatformMotor reports that the platform reached its commanded target
+        signal platformArrived
+
         @ test the main drill ON
         signal testDrillON
 
@@ -112,17 +115,23 @@ module Mara {
 
         action notifyEnterTEST
         action notifyExitTEST
+        action notifyEnterIDLE
         action notifyEnterFlight
         action notifyEnterExperiment
         action notifySpinUp
         action notifyAdvance
+        action notifyAdvanceReached
+        action notifyAdvanceTimedOut
         action notifyRetract
+        action notifyRetractReached
         action notifyDone
+        action notifyRetractTimedOut
         action notifyEnterAfterExperiment
         action notifyEnterSafe
 
         @ Initial state
         state IDLE {
+            entry do { notifyEnterIDLE }
             on LO enter FLIGHT
             on EnterTest enter TEST
         }
@@ -136,7 +145,7 @@ module Mara {
             on ExitTest enter IDLE
             on LO do { doTestLO }
             on SOE do { doTestSOE }
-            on EODS do { doTestEODS }
+            #on EODS do { doTestEODS }
             on testDrillON do { drillOn }
             on testDrillOFF do { drillOff }
             on testPlatformMoveTo do { doTestPlatformMoveTo }
@@ -181,14 +190,16 @@ module Mara {
                 @ Platform feeds the drill into the sample
                 state ADVANCE {
                     entry do { notifyAdvance, resetPhaseTimer, platformAdvance }
-                    on tick if advanceDone enter RETRACTING
+                    on platformArrived do { notifyAdvanceReached } enter RETRACTING
+                    on tick if advanceDone do { notifyAdvanceTimedOut } enter RETRACTING
                 }
             }
 
             @ Drill is off, platform is going down (commanded on DRILLING exit)
             state RETRACTING {
                 entry do { notifyRetract, resetPhaseTimer }
-                on tick if retractDone enter DONE
+                on platformArrived do { notifyRetractReached } enter DONE
+                on tick if retractDone do { notifyRetractTimedOut } enter DONE
             }
 
             @ Timeline finished. The drive holds the platform at its target by itself

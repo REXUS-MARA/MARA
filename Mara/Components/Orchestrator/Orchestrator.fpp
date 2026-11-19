@@ -34,6 +34,8 @@ module Mara {
         @ 1 Hz tick, drives the experiment timeline
         async input port schedIn: Svc.Sched drop
 
+        async input port platformMoveDone: Fw.Signal drop
+
         # ------------------------------------------------------------------
         # Experiment timeline parameters
         # ------------------------------------------------------------------
@@ -42,14 +44,14 @@ module Mara {
         param SPIN_UP_SECONDS: U32 default 3
 
         @ Seconds the platform advances (drills) before the drill stops and the platform retracts
-        param ADVANCE_SECONDS: U32 default 60
+        param ADVANCE_SECONDS: U32 default 90
 
         @ Seconds allowed for the retract before the timeline is marked DONE
-        param RETRACT_SECONDS: U32 default 60
+        param RETRACT_SECONDS: U32 default 90
 
         @ Platform target for drilling, in encoder counts.
         @ TODO: set after commissioning. Also limited by PlatformMotor MAX_POSITION.
-        param DRILL_POSITION: I32 default 0
+        param DRILL_POSITION: I32 default 226415
 
         # ------------------------------------------------------------------
         # Events
@@ -93,13 +95,46 @@ module Mara {
             severity activity high \
             format "Experiment: platform advancing to {} counts for {} s"
 
+        event AdvanceReached(seconds: U32) \
+            severity activity high \
+            format "Experiment: platform at max after {} s"
+        @ ADVANCE_SECONDS passed before the platform reached DRILL_POSITION
+        event AdvanceTimedOut(seconds: U32) \
+            severity warning high \
+            format "Experiment: platform did not reach drill position within {} s, retracting anyway"
+
+
         event PhaseRetract(seconds: U32) \
             severity activity high \
             format "Experiment: drill OFF, platform retracting, allowing {} s"
+         
+         @ The platform is back at 0 during RETRACTING
+        event RetractReached(seconds: U32) \
+            severity activity high \
+            format "Experiment: platform back at 0 after {} s"
+
+        @ RETRACT_SECONDS passed before the platform reported it was back at 0
+        event RetractTimedOut(seconds: U32) \
+            severity warning high \
+            format "Experiment: platform not back at 0 within {} s, timeline marked done anyway"
 
         event PhaseDone \
             severity activity high \
             format "Experiment: drilling timeline done"
+
+        event EnteredIdle() \
+        severity activity high \
+        format "IDLE: radio silence, waiting for LO"
+
+        event PlatformArrived \
+        severity activity high \
+        format "Platform arrived"
+
+        @ The drill could not be switched (port not connected or DrillMotor reported failure)
+        event DrillSetFailed(enable: bool) \
+            severity warning high \
+            format "Drill set to {} failed"
+        
 
         # ------------------------------------------------------------------
         # Telemetry
@@ -118,6 +153,7 @@ module Mara {
         @ Drill control. Not connected yet: there is no drill component.
         output port DrillON: Fw.Signal
         output port DrillOFF: Fw.Signal
+        output port drillSet: DrillMotorSet
 
         output port PlatformEnable: Fw.Signal
         output port PlatformMoveTo: PlatformMoveTo

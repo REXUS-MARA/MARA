@@ -33,7 +33,7 @@ module Mara {
         param set port prmSetOut
 
         @ Camera device node
-        param DEVICE: string size 128 default "/dev/v4l/by-id/usb-XXXX-video-index0"
+        param DEVICE: string size 128 default "/dev/cam"
 
         @ Capture resolution, as ffmpeg expects it
         param VIDEO_SIZE: string size 16 default "1920x1080"
@@ -42,10 +42,10 @@ module Mara {
         param FRAMERATE: U32 default 30
 
         @ Output directory on SD card 1
-        param PRIMARY_DIR: string size 128 default "/mnt/sd1/camera"
+        param PRIMARY_DIR: string size 128 default "/home/mara/mara/opticalCamera"
 
         @ Output directory on SD card 2
-        param BACKUP_DIR: string size 128 default "/mnt/sd2/camera"
+        param BACKUP_DIR: string size 128 default "/mnt/sdcard/opticalCamera"
 
         @ ffmpeg stops by itself after this many seconds
         param MAX_SECONDS: U32 default 900

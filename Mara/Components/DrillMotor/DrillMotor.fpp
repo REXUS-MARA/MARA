@@ -1,5 +1,7 @@
 module Mara {
     
+  port DrillMotorSet(enable: bool) -> Fw.Success
+
   struct MotorRpmSample {
       time_stamp: Fw.TimeValue
       rpm: F32
@@ -29,22 +31,27 @@ module Mara {
     sync input port tachPulseIn: Svc.Cycle
 
     # ------------------------------------------------------------------
+    # Orchestrator control
+    # ------------------------------------------------------------------
+    guarded input port motorSetIn: Mara.DrillMotorSet
+
+    # ------------------------------------------------------------------
     # Commands
     # ------------------------------------------------------------------
 
     @ Turn the motor on (330 rpm)
-    sync command MOTOR_ON()
+    guarded command MOTOR_ON()
 
     @ Turn the motor off
-    sync command MOTOR_OFF()
+    guarded command MOTOR_OFF()
 
     @ Set rotation direction
-    sync command SET_DIRECTION(
+    guarded command SET_DIRECTION(
       direction: Direction
     )
 
     @ Read the status GPIO pin and report via telemetry/event
-    sync command READ_STATUS()
+    guarded command READ_STATUS()
 
     # ------------------------------------------------------------------
     # Telemetry
