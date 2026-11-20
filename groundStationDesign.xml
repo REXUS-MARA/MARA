@@ -1,13 +1,16 @@
+
+<!-- The normal command box -->
 <dashboard-box>
     <dashboard-box title="Control Panel" border-color="gainsboro">
         <command-input/>
     </dashboard-box>
 </dashboard-box>
 
+<!-- The extra box for showing signals that are important to see -->
 <dashboard-box >
     <dashboard-row>
         <dashboard-box title="Signals">
-            <channel-table items-shown=""/> <!-- Check GPIOWatcher -->
+            <channel-table items-shown=""/> <-- Should have LO, SOE, maybe also which Mode and state if possible -->
         </dashboard-box>
     </dashboard-row>
 </dashboard-box>
