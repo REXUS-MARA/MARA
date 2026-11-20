@@ -1,0 +1,13 @@
+<dashboard-box>
+    <dashboard-box title="Control Panel" border-color="gainsboro">
+        <command-input/>
+    </dashboard-box>
+</dashboard-box>
+
+<dashboard-box >
+    <dashboard-row>
+        <dashboard-box title="Signals">
+            <channel-table items-shown=""/> <!-- Check GPIOWatcher -->
+        </dashboard-box>
+    </dashboard-row>
+</dashboard-box>
