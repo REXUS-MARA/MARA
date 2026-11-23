@@ -203,6 +203,7 @@ void DrillMotor ::SET_DIRECTION_cmdHandler(FwOpcodeType opCode,
 }
 
 
+
 void DrillMotor ::READ_STATUS_cmdHandler(FwOpcodeType opCode, U32 cmdSeq) {
     this->log_ACTIVITY_LO_MotorRpmReported(this->m_rpm.load());
     this->cmdResponse_out(opCode, cmdSeq, Fw::CmdResponse::OK);
@@ -211,6 +212,10 @@ void DrillMotor ::READ_STATUS_cmdHandler(FwOpcodeType opCode, U32 cmdSeq) {
 // ----------------------------------------------------------------------
 // Handler implementations for typed input ports
 // ----------------------------------------------------------------------
+
+void DrillMotor ::telemetryReport_handler(FwIndexType portNum, U32 context) {
+    this->log_ACTIVITY_LO_MotorRpmReported(this->m_rpm.load());
+}
 
 Fw::Success DrillMotor ::motorSetIn_handler(FwIndexType portNum, bool enable) {
     return this->setMotor(enable);
@@ -225,7 +230,7 @@ void DrillMotor ::tachPulseIn_handler(FwIndexType portNum, Os::RawTime& cycleSta
 void DrillMotor ::schedIn_handler(FwIndexType portNum, U32 context) {
     this->updateRpm();
 }
- 
+
 
 
 }  // namespace Mara

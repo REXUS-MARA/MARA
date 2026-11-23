@@ -165,6 +165,7 @@ module Mara {
       rateGroup3.RateGroupMemberOut[6] -> ina228platform.telemetryReport
       rateGroup3.RateGroupMemberOut[7] -> bmp280Manager.telemetryReport
       rateGroup3.RateGroupMemberOut[8] -> adxl345Manager.telemetryReport
+      rateGroup3.RateGroupMemberOut[9] -> drillMotor.telemetryReport
 
       # Rate group 4
       rateGroupDriver.CycleOut[Ports_RateGroups.rateGroup4] -> rateGroup4.CycleIn
