@@ -41,6 +41,16 @@ void Bmp280Manager ::run_handler(FwIndexType portNum, U32 context) {
     this->dispatchCurrentMessages();
 }
 
+void Bmp280Manager ::telemetryReport_handler(FwIndexType portNum, U32 context) {
+    this->pressureAverage /= this->readings;
+    this->temperatureAverage /= this->readings;
+    this->log_ACTIVITY_LO_telemetryReport(this->pressureAverage, this->temperatureAverage);
+    this->pressureAverage = 0;
+    this->temperatureAverage = 0;
+    this->readings = 0;
+
+}
+
 // ----------------------------------------------------------------------
 // Handler implementations for commands
 // ----------------------------------------------------------------------
@@ -145,6 +155,10 @@ void Bmp280Manager ::Mara_I2CSensorStateMachine_action_doRead(SmId smId, Mara_I2
     this->tlmWrite_Reading(data);
     this->tlmWrite_Status(status);
     this->recordReading(data, raw, status);
+    //send data to be averaged
+    this->pressureAverage += data.get_pressure();
+    this->temperatureAverage += data.get_temperature();
+    this->readings++;
 }
 
 // ----------------------------------------------------------------------

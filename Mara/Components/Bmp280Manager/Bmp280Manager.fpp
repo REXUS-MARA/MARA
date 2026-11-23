@@ -9,6 +9,9 @@ module Mara {
         @ Rate group tick: advances the sensor state machine
         sync input port run: Svc.Sched
 
+        @ port for periodic telemetry reading
+        sync input port telemetryReport: Svc.Sched
+
         @ Port for I2C register reads
         output port busWriteRead: Drv.I2cWriteRead
 
@@ -71,6 +74,11 @@ module Mara {
         event DpMemoryFailure(
             allocationSize: FwSizeType
         ) severity warning high format "Memory allocation of size {} for BMP280 data product failed" throttle 2
+
+        event telemetryReport(
+            pressure: F32
+            temperature: F32
+        ) severity activity low format "Averaged data: {} Pa, {} Cel"
 
         # ==============================================================
         # Parameters
