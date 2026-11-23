@@ -49,23 +49,23 @@ module Mara {
         event I2cError(
             address: U8
             status: Drv.I2cStatus
-        ) severity warning high format "BMP280 I2C error on address 0x{x} with status {}" throttle 5
+        ) severity warning high format "BMP280 I2C error on address 0x{x} with status {}" throttle 2 every { seconds = 1}
 
         event ChipIdMismatch(
             chipId: U8
-        ) severity warning high format "BMP280 unexpected chip ID 0x{x} (expected 0x58)" throttle 5
+        ) severity warning high format "BMP280 unexpected chip ID 0x{x} (expected 0x58)" throttle 2 every { seconds = 1}
 
         event BoschError(
             code: I8
-        ) severity warning high format "BMP280 Bosch API error {}" throttle 5
+        ) severity warning high format "BMP280 Bosch API error {}" throttle 2 every { seconds = 1}
 
         event BadReading(
             code: I8
-        ) severity warning low format "BMP280 raw reading out of ADC range (Bosch code {})" throttle 5
+        ) severity warning low format "BMP280 raw reading out of ADC range (Bosch code {})" throttle 2 every { seconds = 1}
 
         event OutOfSpec(
             code: I8
-        ) severity warning low format "BMP280 reading clamped to the sensor range (Bosch code {}); raw ADC values are kept in the data product" throttle 2
+        ) severity warning low format "BMP280 reading clamped to the sensor range (Bosch code {}); raw ADC values are kept in the data product" throttle 2 every { seconds = 1}
 
         event Configured(
             measurementTimeUs: U32
@@ -73,7 +73,7 @@ module Mara {
 
         event DpMemoryFailure(
             allocationSize: FwSizeType
-        ) severity warning high format "Memory allocation of size {} for BMP280 data product failed" throttle 2
+        ) severity warning high format "Memory allocation of size {} for BMP280 data product failed" throttle 2 every { seconds = 1}
 
         event telemetryReport(
             pressure: F32
