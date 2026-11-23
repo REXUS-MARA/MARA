@@ -26,6 +26,7 @@ class ADXL345Manager final : public ADXL345ManagerComponentBase {
     bool m_containerValid;
 
     void run_handler(FwIndexType portNum, U32 context) override;
+    void telemetryReport_handler(FwIndexType portNum, U32 context) override;
     void ADXL345_SET_RANGE_cmdHandler(FwOpcodeType opCode, U32 cmdSeq, U8 range) override;
     void ADXL345_SET_RATE_cmdHandler(FwOpcodeType opCode, U32 cmdSeq, U8 rate) override;
 
@@ -45,6 +46,8 @@ class ADXL345Manager final : public ADXL345ManagerComponentBase {
     bool m_initialized = false;
     U8 m_range = 0;
     U8 m_rate = 0x0A;  //!< BW_RATE register value (power-on default 100 Hz)
+    AccelData accelData;
+
 };
 
 }  // namespace Mara

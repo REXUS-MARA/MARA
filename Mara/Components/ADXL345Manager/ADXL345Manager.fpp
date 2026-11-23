@@ -9,6 +9,9 @@ module Mara {
         @ Port for receiving calls from the rate group (periodic reads)
         sync input port run: Svc.Sched
 
+        @ port for perodic telemetry reading
+        sync input port telemetryReport: Svc.Sched
+
         @ I2C port for communicating with the ADXL345
         output port i2cReadWrite: Drv.I2cWriteRead
 
@@ -75,6 +78,12 @@ module Mara {
             severity warning high \
             format "Memory allocation of size {} for ADXL345 data product failed" \
             throttle 2
+
+        event telemetryReading(
+            accelX: F32
+            accelY: F32
+            accelZ: F32
+        ) severity activity low format "Instant reading: {}, {}, {}"
 
         # ==============================================================
         # Parameters

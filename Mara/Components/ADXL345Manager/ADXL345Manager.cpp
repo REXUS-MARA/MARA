@@ -176,6 +176,10 @@ F32 ADXL345Manager::getScaleFactor() {
 // Schedule port handler
 // ----------------------------------------------------------------------
 
+void ADXL345Manager::telemetryReport_handler(FwIndexType portNum, U32 context) {
+    this->log_ACTIVITY_LO_telemetryReading(this->accelData.get_accelX(), this->accelData.get_accelX(), this->accelData.get_accelX());
+}
+
 void ADXL345Manager::run_handler(
     FwIndexType portNum,
     U32 context
@@ -207,14 +211,13 @@ void ADXL345Manager::run_handler(
 
     // Convert raw LSB counts to g values
     F32 scaleFactor = this->getScaleFactor();
-    AccelData accelData;
-    accelData.set_accelX(static_cast<F32>(rawX) * scaleFactor);
-    accelData.set_accelY(static_cast<F32>(rawY) * scaleFactor);
-    accelData.set_accelZ(static_cast<F32>(rawZ) * scaleFactor);
-    this->tlmWrite_accelX(accelData.get_accelX());
-    this->tlmWrite_accelY(accelData.get_accelY());
-    this->tlmWrite_accelZ(accelData.get_accelZ());
-    this->tlmWrite_acceleration(accelData);
+    this->accelData.set_accelX(static_cast<F32>(rawX) * scaleFactor);
+    this->accelData.set_accelY(static_cast<F32>(rawY) * scaleFactor);
+    this->accelData.set_accelZ(static_cast<F32>(rawZ) * scaleFactor);
+    this->tlmWrite_accelX(this->accelData.get_accelX());
+    this->tlmWrite_accelY(this->accelData.get_accelY());
+    this->tlmWrite_accelZ(this->accelData.get_accelZ());
+    this->tlmWrite_acceleration(this->accelData);
     
     if (not this->m_containerValid) {
         
