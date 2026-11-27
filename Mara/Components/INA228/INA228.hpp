@@ -111,6 +111,9 @@ class INA228 final : public INA228ComponentBase {
     float currentAverage;
     U32 readings;
 
+    // for overcurrent alert
+    U8 alertReadings;
+
  public:
     Drv::I2cStatus reset();
     Drv::I2cStatus check_reset();

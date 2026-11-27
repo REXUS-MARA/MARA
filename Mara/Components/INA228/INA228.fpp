@@ -14,6 +14,9 @@
             @ port for periodic telemetry reading
             sync input port telemetryReport: Svc.Sched
 
+            @ output port for overcurrent alert
+            output port overcurrentAlert: Fw.Signal
+
             @ Telemetry reading for current/voltage data
             telemetry Reading: INAData
 
