@@ -20,6 +20,13 @@ module Mara {
         event EODSSpike severity activity high format "Detected a spike on the EODS line"
         event EODSDetected severity activity high format "Detected EODS signal."
 
+        @ Shows the state of signals for the ground station
+        enum SignalState { NOT_DETECTED, DETECTED }
+
+        telemetry LOState:   SignalState
+        telemetry SOEState:  SignalState
+        telemetry EODSState: SignalState
+
 
         @ Which GPIO line a record refers to
         enum GpioPin { EODS, LO, SOE }

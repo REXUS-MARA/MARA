@@ -49,6 +49,7 @@ class GPIOWatcher final : public GPIOWatcherComponentBase {
     bool m_SOE_signal_emitted{false};
     int m_EODS_counter{0};
     bool m_EODS_signal_emitted{false};
+    bool m_tlmInitialized{false};
     bool recordFirstFlip(GpioPin pin, const Fw::Time& flipTime);
     bool m_EODS_flip_recorded = false;
     bool m_LO_flip_recorded = false;
