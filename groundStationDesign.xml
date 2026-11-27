@@ -2,12 +2,14 @@
 <dashboard-box >
     <dashboard-row>
         <dashboard-box title="Signals GPIO">
-            <filter-text="gpioWatcher"/>
-            <channel-table items-shown="gpioWatcher.LOState,gpioWatcher.SOEState,gpioWatcher.EODSState"/> 
+            <channel-table 
+            filter-text="gpioWatcher"
+            items-shown="gpioWatcher.LOState,gpioWatcher.SOEState,gpioWatcher.EODSState"/> 
         </dashboard-box>
     </dashboard-row>
         <dashboard-box title="Signals Orchestrator">
-            <filter-text="orchestrator"/>
-            <channel-table items-shown="orchestrator.Mode,orchestrator.PhaseSeconds"/> 
+            <channel-table 
+            filter-text="orchestrator"
+            items-shown="orchestrator.Mode,orchestrator.PhaseSeconds"/> 
         </dashboard-box>
 </dashboard-box>
