@@ -139,9 +139,13 @@ module Mara {
         # ------------------------------------------------------------------
         # Telemetry
         # ------------------------------------------------------------------
+        enum Mode { IDLE, TEST, FLIGHT, EXPERIMENT, AFTER_EXPERIMENT, SAFE }
 
         @ Seconds since the current experiment phase began
         telemetry PhaseSeconds: U32
+
+        @ Current  mode
+        telemetry Mode: Mode
 
         # ------------------------------------------------------------------
         # Hardware ports

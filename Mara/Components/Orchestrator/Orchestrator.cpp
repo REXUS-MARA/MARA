@@ -33,6 +33,10 @@ void Orchestrator ::SOEHigh_handler(FwIndexType portNum) {
 }
 
 void Orchestrator ::schedIn_handler(FwIndexType portNum, U32 context) {
+    if (!m_tlmInitialized) {
+        this->tlmWrite_Mode(Orchestrator_Mode::IDLE);
+        m_tlmInitialized = true;
+    }
     m_phaseSeconds++;
     this->tlmWrite_PhaseSeconds(m_phaseSeconds);
     // States that don't handle tick ignore it
@@ -250,6 +254,8 @@ void Orchestrator ::Mara_OrchestratorStateMachine_action_resetPhaseTimer(SmId sm
 
 void Orchestrator ::Mara_OrchestratorStateMachine_action_notifyEnterTEST(SmId smId,
                                                                          Mara_OrchestratorStateMachine::Signal signal) {
+                                                                            // notifyEnterIDLE
+    this->tlmWrite_Mode(Orchestrator_Mode::TEST);
     this->log_ACTIVITY_HI_EnterTest();
 }
 
@@ -262,18 +268,21 @@ void Orchestrator ::Mara_OrchestratorStateMachine_action_notifyExitTEST(SmId smI
 void Orchestrator ::Mara_OrchestratorStateMachine_action_notifyEnterIDLE(
     SmId smId,
     Mara::OrchestratorStateMachineStateMachineBase::Signal signal) {
+    this->tlmWrite_Mode(Orchestrator_Mode::IDLE);
     this->log_ACTIVITY_HI_EnteredIdle();
 }
 
 void Orchestrator ::Mara_OrchestratorStateMachine_action_notifyEnterFlight(
     SmId smId,
     Mara_OrchestratorStateMachine::Signal signal) {
+    this->tlmWrite_Mode(Orchestrator_Mode::FLIGHT);    
     this->log_ACTIVITY_HI_EnterFlight();
 }
 
 void Orchestrator ::Mara_OrchestratorStateMachine_action_notifyEnterExperiment(
     SmId smId,
     Mara_OrchestratorStateMachine::Signal signal) {
+    this->tlmWrite_Mode(Orchestrator_Mode::EXPERIMENT);
     this->log_ACTIVITY_HI_EnterExperiment();
 }
 
@@ -324,11 +333,13 @@ void Orchestrator ::Mara_OrchestratorStateMachine_action_notifyDone(SmId smId,
 void Orchestrator ::Mara_OrchestratorStateMachine_action_notifyEnterAfterExperiment(
     SmId smId,
     Mara_OrchestratorStateMachine::Signal signal) {
+    this->tlmWrite_Mode(Orchestrator_Mode::AFTER_EXPERIMENT);
     this->log_ACTIVITY_HI_EnterAfterExperiment();
 }
 
 void Orchestrator ::Mara_OrchestratorStateMachine_action_notifyEnterSafe(SmId smId,
                                                                          Mara_OrchestratorStateMachine::Signal signal) {
+    this->tlmWrite_Mode(Orchestrator_Mode::SAFE);
     this->log_ACTIVITY_HI_EnterSafe();
 }
 

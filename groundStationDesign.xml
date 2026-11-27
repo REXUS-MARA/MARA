@@ -7,6 +7,7 @@
         </dashboard-box>
     </dashboard-row>
         <dashboard-box title="Signals Orchestrator">
-            <channel-table items-shown=""/> <-- Test mode and maybe Phase -->
+            <filter-text="orchestrator"/>
+            <channel-table items-shown="orchestrator.Mode,orchestrator.PhaseSeconds"/> 
         </dashboard-box>
 </dashboard-box>

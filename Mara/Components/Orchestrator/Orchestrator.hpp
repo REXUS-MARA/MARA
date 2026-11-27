@@ -352,6 +352,7 @@ class Orchestrator final : public OrchestratorComponentBase {
     // ----------------------------------------------------------------------
 
     U32 m_phaseSeconds = 0;  //!< Seconds since the current experiment phase began
+    bool m_tlmInitialized = false;
 
     // Timeline parameters, loaded on entry to EXPERIMENT so a running timeline can't change
     U32 m_spinUpSeconds = 0;
