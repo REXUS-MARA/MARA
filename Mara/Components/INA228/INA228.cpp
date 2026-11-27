@@ -26,6 +26,15 @@ void INA228 ::run_handler(FwIndexType portNum, U32 context) {
     this->INAStateMachine_sendSignal_tick();
 }
 
+void INA228 ::telemetryReport_handler(FwIndexType portNum, U32 context) {
+    this->voltageAverage /= this->readings;
+    this->currentAverage /= this->readings;
+    this->log_ACTIVITY_LO_telemetryReport(this->voltageAverage, this->currentAverage);
+    this->voltageAverage = 0;
+    this->currentAverage = 0;
+    this->readings = 0;
+}
+
 // ----------------------------------------------------------------------
 // Handler implementations for commands
 // ----------------------------------------------------------------------
@@ -81,6 +90,10 @@ void INA228 ::Mara_INAStateMachine_action_doRead(SmId smId, Mara_INAStateMachine
         this->log_WARNING_HI_I2cError(this->m_address, status);
         this->INAStateMachine_sendSignal_error();
     } else {
+        // send data to be averaged
+        this->voltageAverage += INAData.get_voltage();
+        this->currentAverage += INAData.get_current();
+        this->readings++;
         this->tlmWrite_Reading(INAData);
         // and now, we can also deal with our data products
         // i mostly copied that form this example - https://github.com/nasa/fprime-examples/blob/devel/FlightExamples/DataProduct/Producer/Producer.cpp

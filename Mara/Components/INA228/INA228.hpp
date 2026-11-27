@@ -38,6 +38,12 @@ class INA228 final : public INA228ComponentBase {
     void run_handler(FwIndexType portNum,  //!< The port number
                      U32 context           //!< The call order
                      ) override;
+    //! Handler implementation for telemetryReport
+    //!
+    //! port for periodic telemetry reading
+    void telemetryReport_handler(FwIndexType portNum,  //!< The port number
+                                 U32 context           //!< The call order
+                                 ) override;
 
   private:
     // ----------------------------------------------------------------------
@@ -99,6 +105,11 @@ class INA228 final : public INA228ComponentBase {
     FwSizeType m_count;       //!< Count of serialized records
     DpContainer m_container;  //!< Data product container (currently allocated)
     bool m_containerValid;    //!< Whether the container is valid
+
+    // for telemetry averaging
+    float voltageAverage;
+    float currentAverage;
+    U32 readings;
 
  public:
     Drv::I2cStatus reset();

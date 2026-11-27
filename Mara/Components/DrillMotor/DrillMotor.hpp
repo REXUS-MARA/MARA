@@ -61,6 +61,10 @@ class DrillMotor final : public DrillMotorComponentBase {
     void schedIn_handler(FwIndexType portNum,  //!< The port number
                           U32 context           //!< The call order
                           ) override;
+
+    void telemetryReport_handler(FwIndexType portNum,  //!< The port number
+                          U32 context           //!< The call order
+                          ) override;
  
 
     //! Write the motor pin and update state, telemetry and events

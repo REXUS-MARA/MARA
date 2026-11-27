@@ -58,6 +58,11 @@ class Bmp280Manager final : public Bmp280ManagerComponentBase {
                      U32 context           //!< The call order
                      ) override;
 
+
+    void telemetryReport_handler(FwIndexType portNum,
+                                 U32 context
+                                 ) override;
+
   private:
     // ----------------------------------------------------------------------
     // Handler implementations for commands
@@ -69,6 +74,7 @@ class Bmp280Manager final : public Bmp280ManagerComponentBase {
     void RESET_cmdHandler(FwOpcodeType opCode,  //!< The opcode
                           U32 cmdSeq            //!< The command sequence number
                           ) override;
+
 
   private:
     // ----------------------------------------------------------------------
@@ -165,6 +171,11 @@ class Bmp280Manager final : public Bmp280ManagerComponentBase {
     DpContainer m_container;           //!< Data product container (currently allocated)
     bool m_containerValid;             //!< Whether m_container is allocated
     FwSizeType m_count;                //!< Readings serialized into m_container
+
+    // for telemetry averaging
+    float pressureAverage;
+    float temperatureAverage;
+    U32 readings;
 };
 
 }  // namespace Mara

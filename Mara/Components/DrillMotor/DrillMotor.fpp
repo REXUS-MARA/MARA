@@ -30,6 +30,9 @@ module Mara {
     @ Read pin interupts for RPM
     sync input port tachPulseIn: Svc.Cycle
 
+    @ input port for periodic status reading
+    sync input port telemetryReport: Svc.Sched
+
     # ------------------------------------------------------------------
     # Orchestrator control
     # ------------------------------------------------------------------
@@ -99,7 +102,7 @@ module Mara {
       errorCode: I32
     ) \
       severity warning high \
-      format "GPIO operation '{}' failed (code {})"
+      format "GPIO operation '{}' failed (code {})" throttle 2 every { seconds = 1}
 
  @ Could not allocate memory for a data product container
     event DpMemoryFailure(
@@ -107,7 +110,7 @@ module Mara {
       ) \
       severity warning high \
       format "Could not get {} bytes for the status pin data product container" \
-      throttle 3
+      throttle 2 every { seconds = 1}
 
       @ Container holding a batch of status pin samples
     # ------------------------------------------------------------

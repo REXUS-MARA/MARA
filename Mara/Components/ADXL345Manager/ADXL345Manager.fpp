@@ -9,6 +9,9 @@ module Mara {
         @ Port for receiving calls from the rate group (periodic reads)
         sync input port run: Svc.Sched
 
+        @ port for perodic telemetry reading
+        sync input port telemetryReport: Svc.Sched
+
         @ I2C port for communicating with the ADXL345
         output port i2cReadWrite: Drv.I2cWriteRead
 
@@ -51,30 +54,36 @@ module Mara {
         @ Sensor initialized successfully
         event ADXL345_INITIALIZED \
             severity activity high \
-            format "ADXL345 initialized successfully"
+            format "ADXL345 initialized successfully" throttle 2 every { seconds = 1}
 
         @ Sensor initialization failed
         event ADXL345_INIT_FAILED(
             errStatus: I32
         ) severity warning high \
-            format "ADXL345 initialization failed with status {}"
+            format "ADXL345 initialization failed with status {}" throttle 2 every { seconds = 1}
 
         @ I2C read/write error
         event ADXL345_I2C_ERROR(
             errStatus: I32
         ) severity warning high \
-            format "ADXL345 I2C error: status {}"
+            format "ADXL345 I2C error: status {}" throttle 2 every { seconds = 1}
 
         @ Device ID mismatch
         event ADXL345_BAD_DEVICE_ID(
             deviceId: U8
         ) severity warning high \
-            format "ADXL345 unexpected device ID: 0x{x}"
+            format "ADXL345 unexpected device ID: 0x{x}" throttle 2 every { seconds = 1}
         
         event DpMemoryFailure(allocationSize: FwSizeType) \
             severity warning high \
             format "Memory allocation of size {} for ADXL345 data product failed" \
-            throttle 2
+            throttle 2 every { seconds = 1}
+
+        event telemetryReading(
+            accelX: F32
+            accelY: F32
+            accelZ: F32
+        ) severity activity low format "Instant reading: {}, {}, {}"
 
         # ==============================================================
         # Parameters
