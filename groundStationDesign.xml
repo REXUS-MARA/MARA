@@ -9,8 +9,11 @@
 <!-- The extra box for showing signals that are important to see -->
 <dashboard-box >
     <dashboard-row>
-        <dashboard-box title="Signals">
-            <channel-table items-shown=""/> <-- Should have LO, SOE, maybe also which Mode and state if possible -->
+        <dashboard-box title="Signals GPIO">
+            <channel-table items-shown="gpioWatcher.LOState,gpioWatcher.SOEState,gpioWatcher.EODSState"/> <--  LO, SOE and EODS signals from GPIO watcher -->
         </dashboard-box>
     </dashboard-row>
+        <dashboard-box title="Signals Orchestrator">
+            <channel-table items-shown="orchestrator.LOState,orchestrator.SOEState,orchestrator.EODSState,orchestrator.Phase"/> <-- Should have LO, SOE, maybe also which Mode and state if possible -->
+        </dashboard-box>
 </dashboard-box>
