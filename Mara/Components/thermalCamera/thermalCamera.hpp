@@ -27,6 +27,25 @@ class thermalCamera final : public thermalCameraComponentBase {
 
   private:
     // ----------------------------------------------------------------------
+    // Handler implementations for typed input ports
+    // ----------------------------------------------------------------------
+
+    //! Handler implementation for cameraOff
+    void cameraOff_handler(FwIndexType portNum  //!< The port number
+                           ) override;
+
+    //! Handler implementation for cameraOn
+    //!
+    //! control that thang from orc aswell
+    void cameraOn_handler(FwIndexType portNum  //!< The port number
+                          ) override;
+
+    //! Handler implementation for checkCamera
+    void checkCamera_handler(FwIndexType portNum  //!< The port number
+                             ) override;
+
+  private:
+    // ----------------------------------------------------------------------
     // Handler implementations for commands
     // ----------------------------------------------------------------------
 
@@ -55,6 +74,11 @@ class thermalCamera final : public thermalCameraComponentBase {
     pid_t m_pid = -1;
     char file1[27] = "/home/mara/thermaldata.dat";
     char file2[30] = "/mnt/sdcard/thermalbackup.dat";
+
+    // internal command shazz
+    void startThatShit();
+    void stop();
+    void check();
 
 };
 
