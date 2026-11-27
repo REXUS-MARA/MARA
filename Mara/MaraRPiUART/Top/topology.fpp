@@ -141,7 +141,7 @@ module Mara {
       rateGroup1.RateGroupMemberOut[7] -> orchestrator.schedIn
       rateGroup1.RateGroupMemberOut[8] -> tc1.run
       rateGroup1.RateGroupMemberOut[9] -> tc2.run
-      
+
 
       # Rate group 2
       rateGroupDriver.CycleOut[Ports_RateGroups.rateGroup2] -> rateGroup2.CycleIn
@@ -161,6 +161,11 @@ module Mara {
       rateGroup3.RateGroupMemberOut[2] -> DataProducts.dpBufferManager.schedIn
       rateGroup3.RateGroupMemberOut[3] -> DataProducts.dpWriter.schedIn
       rateGroup3.RateGroupMemberOut[4] -> DataProducts.dpMgr.schedIn
+      rateGroup3.RateGroupMemberOut[5] -> ina228drill.telemetryReport
+      rateGroup3.RateGroupMemberOut[6] -> ina228platform.telemetryReport
+      rateGroup3.RateGroupMemberOut[7] -> bmp280Manager.telemetryReport
+      rateGroup3.RateGroupMemberOut[8] -> adxl345Manager.telemetryReport
+      rateGroup3.RateGroupMemberOut[9] -> drillMotor.telemetryReport
 
       # Rate group 4
       rateGroupDriver.CycleOut[Ports_RateGroups.rateGroup4] -> rateGroup4.CycleIn

@@ -59,38 +59,38 @@ module Mara {
 
         event RecordingStarted(seg: U32) \
         severity activity high \
-        format "Recording segment {} started"
+        format "Recording segment {} started" throttle 2 every { seconds = 1}
 
         event RecordingStopped(seg: U32) \
         severity activity high \
-        format "Recording segment {} stopped"
+        format "Recording segment {} stopped" throttle 2 every { seconds = 1}
 
         @ fork() failed
         event SpawnFailed(err: I32) \
         severity warning high \
-        format "Failed to start ffmpeg, errno {}"
+        format "Failed to start ffmpeg, errno {}" throttle 2 every { seconds = 1}
 
         @ ffmpeg exited on its own with an error
         event RecorderExitedEarly(seg: U32, status: I32) \
         severity warning high \
-        format "ffmpeg for segment {} exited unexpectedly, raw status {}"
+        format "ffmpeg for segment {} exited unexpectedly, raw status {}" throttle 2 every { seconds = 1}
 
         @ ffmpeg did not stop within STOP_TIMEOUT_SECONDS of SIGINT and was killed.
         @ The last part of the segment may not be finalised.
         event RecorderKilled(seg: U32, timeoutSeconds: U32) \
         severity warning high \
-        format "ffmpeg for segment {} did not stop within {} s and was killed"
+        format "ffmpeg for segment {} did not stop within {} s and was killed" throttle 2 every { seconds = 1}
 
         @ ffmpeg could not be reaped even after SIGKILL (e.g. stuck in the USB driver).
         @ It is no longer tracked; a new ON starts a new process.
         event RecorderUnresponsive(seg: U32) \
         severity warning high \
-        format "ffmpeg for segment {} is unresponsive even to SIGKILL; abandoned"
+        format "ffmpeg for segment {} is unresponsive even to SIGKILL; abandoned" throttle 2 every { seconds = 1}
 
         @ Output file stopped growing while ffmpeg is still running
         event RecorderStalled(seg: U32, bytes: U64) \
         severity warning high \
-        format "Segment {} stalled at {} bytes"
+        format "Segment {} stalled at {} bytes" throttle 2 every { seconds = 1}
 
 
     }

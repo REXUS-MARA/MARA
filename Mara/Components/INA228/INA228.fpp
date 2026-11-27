@@ -11,6 +11,9 @@
             @ Sync port, grandfathered in from LTR-303
             sync input port run: Svc.Sched
 
+            @ port for periodic telemetry reading
+            sync input port telemetryReport: Svc.Sched
+
             @ Telemetry reading for current/voltage data
             telemetry Reading: INAData
 
@@ -18,21 +21,17 @@
             event I2cError(
                 address: U32,
                 status: Drv.I2cStatus
-            ) severity warning high format "I2C error on address {} with status {}" throttle 5
+            ) severity warning high format "I2C error on address {} with status {}" throttle 2 every { seconds = 1}
 
             event initReport(
                 address: U8,
             ) severity activity high \
             format "INA on address {} initialized"
 
-            event debug(
-                message: U32
-            ) severity warning high format "message {}"
-
-            event debugRead(
+            event telemetryReport(
                 voltage: F32
                 current: F32
-            ) severity warning high format "read: {} V, {} A"
+            ) severity activity low format "Averaged data: {} V, {} A"
 
             @ Command to force a RESET
             async command RESET()
