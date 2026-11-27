@@ -14,6 +14,6 @@
         </dashboard-box>
     </dashboard-row>
         <dashboard-box title="Signals Orchestrator">
-            <channel-table items-shown="orchestrator.LOState,orchestrator.SOEState,orchestrator.EODSState,orchestrator.Phase"/> <-- Should have LO, SOE, maybe also which Mode and state if possible -->
+            <channel-table items-shown=""/> <-- Test mode and maybe Phase -->
         </dashboard-box>
 </dashboard-box>
