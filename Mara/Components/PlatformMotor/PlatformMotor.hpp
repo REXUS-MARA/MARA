@@ -8,6 +8,7 @@
 #define Mara_PlatformMotor_HPP
 
 #include "Mara/Components/PlatformMotor/PlatformMotorComponentAc.hpp"
+#include "Fw/Types/String.hpp"
 
 #include <initializer_list>
 #include <array>
@@ -26,6 +27,9 @@ class PlatformMotor final : public PlatformMotorComponentBase {
 
     //! Destroy PlatformMotor object
     ~PlatformMotor();
+
+    //! Directory where position is stored
+    void configure(const char* pathA, const char* pathB);
 
   private:
     // ----------------------------------------------------------------------
@@ -103,7 +107,21 @@ class PlatformMotor final : public PlatformMotorComponentBase {
     //! The drive rejected an SDO request
     void sdoAbortReceived_internalInterfaceHandler(U16 index, U32 abortCode) override;
  
+ //! Actual position read back from the drive
+    void positionReceived_internalInterfaceHandler(I32 drivePosition) override;
  
+    //! The drive sent its boot-up message
+    void driveBooted_internalInterfaceHandler() override;
+ 
+  private:
+    // ----------------------------------------------------------------------
+    // Handler implementations for commands
+    // ----------------------------------------------------------------------
+ 
+    //! Handler implementation for command SET_POSITION
+    void SET_POSITION_cmdHandler(FwOpcodeType opCode,  //!< The opcode
+                                 U32 cmdSeq,           //!< The command sequence number
+                                 I32 position) override;
 
     //! One value to write into the drive's object dictionary
     struct SdoWrite {
@@ -156,6 +174,30 @@ class PlatformMotor final : public PlatformMotorComponentBase {
  
     //! Current time in seconds
     F64 nowSeconds();
+
+    void tryRestorePosition();
+ 
+    //! Write the current platform position and offset to the next of the two position files
+    void savePosition();
+ 
+    //! Read both position files and return the newest valid record
+    //! \return true if one was valid
+    bool loadPosition(I32& platformPosition, I32& offset);
+ 
+    I32 m_offset = 0;              //!< platform position = drive position + m_offset
+    bool m_positionKnown = false;  //!< The platform position is known (restored or set); moves are allowed
+    bool m_restorePending = true;  //!< Waiting for the first drive replies to restore the stored position
+    bool m_uartReady = false;      //!< The serial port to the adapter is open
+    bool m_haveStatus = false;     //!< A status word has arrived since start-up
+    bool m_haveDrivePos = false;   //!< A drive position has arrived since start-up
+    U16 m_lastStatus = 0;          //!< Last status word
+    I32 m_drivePos = 0;            //!< Last drive position (drive counts)
+    I32 m_platformPos = 0;         //!< Last platform position (drive position + offset)
+    I32 m_savedPos = 0;            //!< Platform position in the last saved record
+    U32 m_saveSeq = 0;             //!< Sequence number of the last saved record
+    bool m_sawMoving = false;      //!< A status poll showed the current move running
+    Fw::String m_pathA;            //!< Position file A
+    Fw::String m_pathB;            //!< Position file B
  
     I32 m_target = 0;  //!< Last commanded target; 0 is the power-up position
  
