@@ -11,6 +11,11 @@ module Mara {
         @ command to check filesize
         async command check()
 
+        @ control that thang from orc aswell
+        async input port cameraOn: Fw.Signal
+        async input port cameraOff: Fw.Signal
+        async input port checkCamera: Fw.Signal
+
         @ Port for requesting the current time
         time get port timeCaller
 
