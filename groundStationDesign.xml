@@ -1,16 +1,9 @@
 
-<!-- The normal command box -->
-<dashboard-box>
-    <dashboard-box title="Control Panel" border-color="gainsboro">
-        <command-input/>
-    </dashboard-box>
-</dashboard-box>
-
-<!-- The extra box for showing signals that are important to see -->
 <dashboard-box >
     <dashboard-row>
         <dashboard-box title="Signals GPIO">
-            <channel-table items-shown="gpioWatcher.LOState,gpioWatcher.SOEState,gpioWatcher.EODSState"/> <--  LO, SOE and EODS signals from GPIO watcher -->
+            <filter-text="gpioWatcher"/>
+            <channel-table items-shown="gpioWatcher.LOState,gpioWatcher.SOEState,gpioWatcher.EODSState"/> 
         </dashboard-box>
     </dashboard-row>
         <dashboard-box title="Signals Orchestrator">
