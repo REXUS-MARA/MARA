@@ -20,18 +20,20 @@ register_fprime_library(
         "${CMAKE_CURRENT_LIST_DIR}/OrchestratorStateMachine.fpp"
     SOURCES
         "${CMAKE_CURRENT_LIST_DIR}/Orchestrator.cpp"
-#   DEPENDS
-#       MyPackage_MyOtherModule
+    DEPENDS
+      Mara_Components_DrillMotor
 )
 
 ### Unit Tests ###
-# register_fprime_ut(
-#     AUTOCODER_INPUTS
-#         "${CMAKE_CURRENT_LIST_DIR}/Orchestrator.fpp"
-#     SOURCES
-#         "${CMAKE_CURRENT_LIST_DIR}/test/ut/OrchestratorTestMain.cpp"
-#         "${CMAKE_CURRENT_LIST_DIR}/test/ut/OrchestratorTester.cpp"
-#     DEPENDS
-#         STest # For rules-based testing
-#     UT_AUTO_HELPERS
-# )
+register_fprime_ut(
+    AUTOCODER_INPUTS
+        "${CMAKE_CURRENT_LIST_DIR}/Orchestrator.fpp"
+        "${CMAKE_CURRENT_LIST_DIR}/OrchestratorStateMachine.fpp"
+    SOURCES
+        "${CMAKE_CURRENT_LIST_DIR}/test/ut/OrchestratorTestMain.cpp"
+        "${CMAKE_CURRENT_LIST_DIR}/test/ut/OrchestratorTester.cpp"
+        "${CMAKE_CURRENT_LIST_DIR}/test/ut/OrchestratorRules.cpp"
+    DEPENDS
+        STest # For rules-based testing
+    UT_AUTO_HELPERS
+)

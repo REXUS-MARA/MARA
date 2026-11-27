@@ -46,6 +46,7 @@ module Mara {
     stack size Default.STACK_SIZE \
     priority 40
 
+
   instance cmdSeq: Svc.CmdSequencer base id 0x10005000 \
     queue size Default.QUEUE_SIZE \
     stack size Default.STACK_SIZE \
@@ -55,9 +56,29 @@ module Mara {
     queue size Default.QUEUE_SIZE \
     stack size Default.STACK_SIZE \
     priority 38
+
+  instance opticalCamera: Mara.OpticalCamera base id 0x10007000 \
+    queue size Default.QUEUE_SIZE \
+    stack size Default.STACK_SIZE \
+    priority 37
+
+  instance platformMotor: Mara.PlatformMotor base id 0x10008000 \
+    queue size Default.QUEUE_SIZE \
+    stack size Default.STACK_SIZE \
+    priority 36
+
+  instance ThermalCamera: Mara.thermalCamera base id 0x10009000 \
+    queue size Default.QUEUE_SIZE \
+    stack size Default.STACK_SIZE \
+    priority 35
+
   # ----------------------------------------------------------------------
   # Queued component instances
   # ----------------------------------------------------------------------
+
+  @ BMP280 pressure/temperature sensor on I2C-1
+  instance bmp280Manager: Mara.Bmp280Manager base id 0x10047000 \
+    queue size Default.QUEUE_SIZE
 
   # ----------------------------------------------------------------------
   # Passive component instances
@@ -85,4 +106,40 @@ module Mara {
 
   instance EODSgpioDriver: Drv.LinuxGpioDriver base id 0x10040000
 
+  instance drillMotorOnDriver: Drv.LinuxGpioDriver base id 0x10043000
+
+  instance drillMotorDirDriver: Drv.LinuxGpioDriver base id 0x10044000
+
+  instance drillMotorStatusDriver: Drv.LinuxGpioDriver base id 0x10045000
+
+  instance drillMotor: Mara.DrillMotor base id 0x10046000
+
+  @ UART to the Waveshare USB-CAN-A adapter for the platform motor drive
+  instance motorUart: Mara.ReconnectingUartDriver base id 0x10041000
+
+  @ Receive buffers for motorUart
+  instance motorBufferManager: Svc.BufferManager base id 0x10042000
+
+  @ maybe this should be like the others? idk
+  instance ina228supply: Mara.INA228 base id 0x10048000 \
+    queue size Default.QUEUE_SIZE \
+    stack size Default.STACK_SIZE \
+    priority 35
+
+  instance ina228drill: Mara.INA228 base id 0x10053000 \
+    queue size Default.QUEUE_SIZE \
+    stack size Default.STACK_SIZE \
+    priority 35
+
+  instance ina228platform: Mara.INA228 base id 0x10054000 \
+    queue size Default.QUEUE_SIZE \
+    stack size Default.STACK_SIZE \
+    priority 35
+
+
+  instance tc1: Mara.MAX31855Manager base id 0x10049000
+  instance tc2: Mara.MAX31855Manager base id 0x10050000
+  
+  instance spiDriver1: Drv.LinuxSpiDriver base id 0x10051000
+  instance spiDriver2: Drv.LinuxSpiDriver base id 0x10052000
 }

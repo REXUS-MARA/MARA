@@ -23,6 +23,8 @@ Fw::MallocAllocator mallocator;
 // For our current needs, I set up a clock signal of 100Hz (you can change that in the Main.cpp file)
 // That will get spili into sub signals - 1Hz (100 / 100), 20hz (100/5), 1/4Hz, 100Hz (100/1)
 Svc::RateGroupDriver::DividerSet rateGroupDivisorsSet{{{100, 0}, {5, 0}, {400, 0}, {1, 0}}};
+// Sub-signals: 1Hz (500/500), 25Hz (500/20), 1/4Hz (500/2000), 250Hz (500/2)
+//Svc::RateGroupDriver::DividerSet rateGroupDivisorsSet{{{500, 0}, {20, 0}, {2000, 0}, {2, 0}}};
 
 // Rate groups may supply a context token to each of the attached children whose purpose is set by the project. The
 // reference topology sets each token to zero as these contexts are unused in this project.
@@ -33,6 +35,9 @@ U32 rateGroup4Context[Svc::ActiveRateGroup::CONNECTION_COUNT_MAX] = {};
 
 enum TopologyConstants {
     COMM_PRIORITY = 34,
+    MOTOR_UART_PRIORITY = 35,
+    MOTOR_BUFFER_SIZE = 64,   // largest UART read for motorUart; drive replies are 13-byte frames
+    MOTOR_BUFFER_COUNT = 10,
 };
 
 /**
@@ -43,6 +48,9 @@ enum TopologyConstants {
  * desired, but is extracted here for clarity.
  */
 void configureTopology() {
+    drillMotor.configure(Mara::DrillMotor_Direction::CW);
+
+    
     // Rate group driver needs a divisor list
     rateGroupDriver.configure(rateGroupDivisorsSet);
 
@@ -55,6 +63,28 @@ void configureTopology() {
     // Command sequencer needs to allocate memory to hold contents of command sequences
     cmdSeq.allocateBuffer(0, mallocator, 5 * 1024);
 
+    spiDriver1.open(0, 0, Drv::SPI_FREQUENCY_1MHZ, Drv::SPI_MODE_CPOL_LOW_CPHA_LOW);
+    spiDriver2.open(0, 0, Drv::SPI_FREQUENCY_1MHZ, Drv::SPI_MODE_CPOL_LOW_CPHA_LOW);
+
+
+    //configure INA addresses
+    ina228supply.configure(0x40);
+    ina228drill.configure(0x41);
+    ina228platform.configure(0x44);
+
+    // Receive buffers for the platform motor UART
+    Svc::BufferManager::BufferBins motorBins{};
+    motorBins.bins[0].bufferSize = MOTOR_BUFFER_SIZE;
+    motorBins.bins[0].numBuffers = MOTOR_BUFFER_COUNT;
+    motorBufferManager.setup(MotorBufferManagerId, 0, mallocator, motorBins);
+
+    // Platform motor: Waveshare USB-CAN-A at 2 Mbps. Only stores the settings; the driver's read task
+    // opens the adapter and keeps retrying, so the software runs without it and picks up a hot-plug.
+    // 2 Mbps only exists on Linux.
+#ifdef TGT_OS_TYPE_LINUX
+    motorUart.configure(MotorUartDevice, ReconnectingUartDriver::BAUD_2000K, ReconnectingUartDriver::NO_FLOW,
+                        ReconnectingUartDriver::PARITY_NONE, MOTOR_BUFFER_SIZE);
+#endif
 
     if (not I2CDriver.open("/dev/i2c-1")) {
         Fw::Logger::log("[ERROR] I2C driver open failed\n");
@@ -80,6 +110,24 @@ void configureTopology() {
     if (SOEstatus != Os::File::Status::OP_OK) {
         Fw::Logger::log("[ERROR] Failed to open GPIO pin for SOE line\n");
     }
+
+    Os::File::Status DrillMotorOnStatus =
+        drillMotorOnDriver.open("/dev/gpiochip4", DrillMotorOnGpioPin, Drv::LinuxGpioDriver::GpioConfiguration::GPIO_OUTPUT);
+    if (DrillMotorOnStatus != Os::File::Status::OP_OK) {
+        Fw::Logger::log("[ERROR] Failed to open GPIO pin for drill motor on/rpm line\n");
+    }
+
+    Os::File::Status DrillMotorDirStatus =
+        drillMotorDirDriver.open("/dev/gpiochip4", DrillMotorDirGpioPin, Drv::LinuxGpioDriver::GpioConfiguration::GPIO_OUTPUT);
+    if (DrillMotorDirStatus != Os::File::Status::OP_OK) {
+        Fw::Logger::log("[ERROR] Failed to open GPIO pin for drill motor direction line\n");
+    }
+
+    Os::File::Status DrillMotorStatusStatus =
+        drillMotorStatusDriver.open("/dev/gpiochip4", DrillMotorStatusGpioPin, Drv::LinuxGpioDriver::GpioConfiguration::GPIO_INTERRUPT_RISING_EDGE);
+    if (DrillMotorStatusStatus != Os::File::Status::OP_OK) {
+        Fw::Logger::log("[ERROR] Failed to open GPIO pin for drill motor status line\n");
+    }
 }
 
 void setupTopology(const TopologyState& state) {
@@ -99,6 +147,10 @@ void setupTopology(const TopologyState& state) {
     loadParameters();
     // Autocoded task kick-off (active components). Function provided by autocoder.
     startTasks(state);
+    Drv::GpioStatus tachStartStatus = drillMotorStatusDriver.start();
+    if (tachStartStatus != Drv::GpioStatus::OP_OK) {
+        Fw::Logger::log("[ERROR] Failed to start drill motor tach interrupt thread\n");
+    }
     if (state.uartDevice != nullptr) {
         Os::TaskString name("ReceiveTask");
         // Uplink is configured for receive so a socket task is started
@@ -109,6 +161,13 @@ void setupTopology(const TopologyState& state) {
             printf("Failed to open UART device %s at baud rate %" PRIu32 "\n", state.uartDevice, state.baudRate);
         }
     }
+    
+    // Platform motor UART read task: connects to the adapter whenever it is present
+#ifdef TGT_OS_TYPE_LINUX
+    if (motorUart.start(MOTOR_UART_PRIORITY, Default::STACK_SIZE) != Os::Task::OP_OK) {
+        Fw::Logger::log("[ERROR] Failed to start platform motor UART task\n");
+    }
+#endif
 }
 
 void startRateGroups(const Fw::TimeInterval& interval) {
@@ -126,14 +185,19 @@ void stopRateGroups() {
 void teardownTopology(const TopologyState& state) {
     // Autocoded (active component) task clean-up. Functions provided by topology autocoder.
     stopTasks(state);
+    drillMotorStatusDriver.stop();
     freeThreads(state);
+    drillMotorStatusDriver.join();
 
     // Other task clean-up.
     comDriver.quitReadThread();
     (void)comDriver.join();
+    motorUart.quitReadThread();
+    (void)motorUart.join();
 
     // Resource deallocation
     cmdSeq.deallocateBuffer(mallocator);
+    motorBufferManager.cleanup();
 
     tearDownComponents(state);
 }

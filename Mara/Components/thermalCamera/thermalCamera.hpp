@@ -1,0 +1,87 @@
+// ======================================================================
+// \title  thermalCamera.hpp
+// \author aurahs
+// \brief  hpp file for thermalCamera component implementation class
+// ======================================================================
+
+#ifndef Mara_thermalCamera_HPP
+#define Mara_thermalCamera_HPP
+
+#include <sys/types.h>
+#include "Mara/Components/thermalCamera/thermalCameraComponentAc.hpp"
+
+namespace Mara {
+
+class thermalCamera final : public thermalCameraComponentBase {
+  public:
+    // ----------------------------------------------------------------------
+    // Component construction and destruction
+    // ----------------------------------------------------------------------
+
+    //! Construct thermalCamera object
+    thermalCamera(const char* const compName  //!< The component name
+    );
+
+    //! Destroy thermalCamera object
+    ~thermalCamera();
+
+  private:
+    // ----------------------------------------------------------------------
+    // Handler implementations for typed input ports
+    // ----------------------------------------------------------------------
+
+    //! Handler implementation for cameraOff
+    void cameraOff_handler(FwIndexType portNum  //!< The port number
+                           ) override;
+
+    //! Handler implementation for cameraOn
+    //!
+    //! control that thang from orc aswell
+    void cameraOn_handler(FwIndexType portNum  //!< The port number
+                          ) override;
+
+    //! Handler implementation for checkCamera
+    void checkCamera_handler(FwIndexType portNum  //!< The port number
+                             ) override;
+
+  private:
+    // ----------------------------------------------------------------------
+    // Handler implementations for commands
+    // ----------------------------------------------------------------------
+
+    //! Handler implementation for command start
+    //!
+    //! command to start camera
+    void start_cmdHandler(FwOpcodeType opCode,  //!< The opcode
+                          U32 cmdSeq            //!< The command sequence number
+                          ) override;
+
+    //! Handler implementation for command stop
+    //!
+    //! command to start camera
+    void stop_cmdHandler(FwOpcodeType opCode,  //!< The opcode
+                         U32 cmdSeq            //!< The command sequence number
+                         ) override;
+
+    //! Handler implementation for command check
+    //!
+    //! command to check filesize
+    void check_cmdHandler(FwOpcodeType opCode,  //!< The opcode
+                          U32 cmdSeq            //!< The command sequence number
+                          ) override;
+
+    bool isRecording() const { return m_pid > 0; }
+    pid_t m_pid = -1;
+    char file1[27] = "/home/mara/thermaldata.dat";
+    char file2[30] = "/mnt/sdcard/thermalbackup.dat";
+
+    // internal command shazz
+    void startThatShit();
+    void stop();
+    void check();
+
+};
+
+}  // namespace Mara
+
+#endif

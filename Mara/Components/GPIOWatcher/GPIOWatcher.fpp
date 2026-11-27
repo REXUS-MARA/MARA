@@ -28,6 +28,32 @@ module Mara {
         telemetry EODSState: SignalState
 
 
+        @ Which GPIO line a record refers to
+        enum GpioPin { EODS, LO, SOE }
+
+        @ One pin's first detected flip
+        struct PinFlipRecord {
+            pin: GpioPin
+            seconds: U32
+            useconds: U32
+        }
+
+        # Data product ports (synchronous get, works for a passive component)
+        product get port productGetOut
+        product send port productSendOut
+
+        @ Record holding a pin flip
+        product record PinFlip: PinFlipRecord id 0
+
+        @ Container for first-flip records
+        product container PinFlips id 0 default priority 10
+
+        @ Could not get a data product buffer
+        event PinFlipDpUnavailable(pin: GpioPin) \
+        severity warning low \
+        format "No DP buffer available to record first flip of {}" \
+        throttle 5
+
         @ Preferably this would be connected to a rate group fast enough
         @ To do debouncing quick
         @ It's not a requirement though

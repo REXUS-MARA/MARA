@@ -33,7 +33,7 @@ module DataProductsConfig {
     
     # Directory and file paths
     module Paths {
-        constant dpDir    = "./DpCat"                
+        constant dpDir    = "/home/mara/mara/DpCat"        
         constant dpState  = "./DpCat/DpState.dat"  
     }
 }

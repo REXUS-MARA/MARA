@@ -1,0 +1,9 @@
+; MARA pad check: camera and platform from TEST mode, ending back in IDLE.
+; Times are relative to the previous command. The platform target (500 counts) must be a
+; small, safe move inside MIN/MAX_POSITION; adjust it after commissioning.
+R00:00:00 Mara.orchestrator.enterTestMode
+R00:00:01 Mara.orchestrator.testOpticalCameraON
+R00:00:02 Mara.orchestrator.testPlatformMoveTo 500
+R00:00:05 Mara.orchestrator.testPlatformMoveTo 0
+R00:00:05 Mara.orchestrator.testOpticalCameraOFF
+R00:00:01 Mara.orchestrator.exitTestMode

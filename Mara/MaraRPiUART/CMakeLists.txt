@@ -12,6 +12,7 @@
 ###
 
 add_fprime_subdirectory("${CMAKE_CURRENT_LIST_DIR}/FppConfigOverrides/DataProductsConfigOverride/")
+add_fprime_subdirectory("${CMAKE_CURRENT_LIST_DIR}/FppConfigOverrides/CdhCoreFatalHandlerConfigOverride/")
 add_fprime_subdirectory("${CMAKE_CURRENT_LIST_DIR}/Top/")
 
 # Add custom components to this specific deployment here

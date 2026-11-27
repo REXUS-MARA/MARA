@@ -67,6 +67,16 @@ Drv::I2cStatus ADXL345Manager::initialize_helper(){
 
     m_range = range & 0x03;
 
+    // The rate survives a software restart, so read it instead of assuming the power-on default
+    U8 rate = 0;
+    Fw::Buffer rateBuffer(&rate, sizeof(rate));
+    status = this->readRegisters(ADXL345_REG_BW_RATE, rateBuffer);
+    if (status != Drv::I2cStatus::I2C_OK) {
+        this->log_WARNING_HI_ADXL345_INIT_FAILED(static_cast<I32>(status));
+        return status;
+    }
+    m_rate = rate;
+
     status = this->writeRegister(ADXL345_REG_DATA_FORMAT, m_range);
 
     if (status != Drv::I2cStatus::I2C_OK) {
@@ -102,6 +112,14 @@ Drv::I2cStatus ADXL345Manager::readRegisters(U8 startReg, Fw::Buffer& readBuffer
     return this->i2cReadWrite_out(0, this->getI2cAddr(), writeBuffer, readBuffer);
 }
 
+void ADXL345Manager::closeContainer() {
+    if (this->m_containerValid) {
+        this->dpSend(this->m_container);
+        this->m_count = 0;
+        this->m_containerValid = false;
+    }
+}
+
 // ----------------------------------------------------------------------
 // Command Handlers
 // ----------------------------------------------------------------------
@@ -111,13 +129,17 @@ void ADXL345Manager::ADXL345_SET_RANGE_cmdHandler(
     U32 cmdSeq,
     U8 range
 ) {
-    m_range = range & 0x03;
-    Drv::I2cStatus status = this->writeRegister(ADXL345_REG_DATA_FORMAT, m_range);
+    const U8 newRange = range & 0x03;
+    Drv::I2cStatus status = this->writeRegister(ADXL345_REG_DATA_FORMAT, newRange);
     if (status != Drv::I2cStatus::I2C_OK) {
         this->log_WARNING_HI_ADXL345_I2C_ERROR(static_cast<I32>(status));
         this->cmdResponse_out(opCode, cmdSeq, Fw::CmdResponse::EXECUTION_ERROR);
         return;
     }
+    if (newRange != m_range) {
+        this->closeContainer();
+    }
+    m_range = newRange;
     this->cmdResponse_out(opCode, cmdSeq, Fw::CmdResponse::OK);
 }
 
@@ -132,6 +154,10 @@ void ADXL345Manager::ADXL345_SET_RATE_cmdHandler(
         this->cmdResponse_out(opCode, cmdSeq, Fw::CmdResponse::EXECUTION_ERROR);
         return;
     }
+    if (rate != m_rate) {
+        this->closeContainer();
+    }
+    m_rate = rate;
     this->cmdResponse_out(opCode, cmdSeq, Fw::CmdResponse::OK);
 }
 
@@ -149,6 +175,10 @@ F32 ADXL345Manager::getScaleFactor() {
 // ----------------------------------------------------------------------
 // Schedule port handler
 // ----------------------------------------------------------------------
+
+void ADXL345Manager::telemetryReport_handler(FwIndexType portNum, U32 context) {
+    this->log_ACTIVITY_LO_telemetryReading(this->accelData.get_accelX(), this->accelData.get_accelX(), this->accelData.get_accelX());
+}
 
 void ADXL345Manager::run_handler(
     FwIndexType portNum,
@@ -181,18 +211,19 @@ void ADXL345Manager::run_handler(
 
     // Convert raw LSB counts to g values
     F32 scaleFactor = this->getScaleFactor();
-    AccelData accelData;
-    accelData.set_accelX(static_cast<F32>(rawX) * scaleFactor);
-    accelData.set_accelY(static_cast<F32>(rawY) * scaleFactor);
-    accelData.set_accelZ(static_cast<F32>(rawZ) * scaleFactor);
-    this->tlmWrite_accelX(accelData.get_accelX());
-    this->tlmWrite_accelY(accelData.get_accelY());
-    this->tlmWrite_accelZ(accelData.get_accelZ());
-    this->tlmWrite_acceleration(accelData);
+    this->accelData.set_accelX(static_cast<F32>(rawX) * scaleFactor);
+    this->accelData.set_accelY(static_cast<F32>(rawY) * scaleFactor);
+    this->accelData.set_accelZ(static_cast<F32>(rawZ) * scaleFactor);
+    this->tlmWrite_accelX(this->accelData.get_accelX());
+    this->tlmWrite_accelY(this->accelData.get_accelY());
+    this->tlmWrite_accelZ(this->accelData.get_accelZ());
+    this->tlmWrite_acceleration(this->accelData);
     
     if (not this->m_containerValid) {
         
-        const FwSizeType containerSize = RECORD_COUNT * (AccelDataTimed::SERIALIZED_SIZE + sizeof(FwDpIdType));
+        // Configuration record followed by RECORD_COUNT readings
+        const FwSizeType containerSize = (ADXL345Config::SERIALIZED_SIZE + sizeof(FwDpIdType)) +
+                                         RECORD_COUNT * (AccelDataTimed::SERIALIZED_SIZE + sizeof(FwDpIdType));
 
         // Initialize the data product container
         Fw::Success dp_status = dpGet_AccelContainer(containerSize, this->m_container);
@@ -200,8 +231,13 @@ void ADXL345Manager::run_handler(
             this->log_WARNING_HI_DpMemoryFailure(containerSize);
         } else {
             this->m_containerValid = true;
+            this->m_count = 0;
             this->m_container.setTimeTag(this->getTime());
             this->log_WARNING_HI_DpMemoryFailure_ThrottleClear();
+            // Every container starts with the configuration its readings were taken with
+            Fw::SerializeStatus config_status =
+                this->m_container.serializeRecord_ConfigRecord(ADXL345Config(m_range, m_rate));
+            FW_ASSERT(config_status == Fw::SerializeStatus::FW_SERIALIZE_OK);
         }
     }
 
