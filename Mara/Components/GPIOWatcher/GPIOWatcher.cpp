@@ -22,6 +22,13 @@ GPIOWatcher ::~GPIOWatcher() {}
 // ----------------------------------------------------------------------
 
 void GPIOWatcher ::schedIn_handler(FwIndexType portNum, U32 context) {
+    if (!m_tlmInitialized) {
+        this->tlmWrite_LOState(GPIOWatcher_SignalState::NOT_DETECTED);
+        this->tlmWrite_SOEState(GPIOWatcher_SignalState::NOT_DETECTED);
+        this->tlmWrite_EODSState(GPIOWatcher_SignalState::NOT_DETECTED);
+        m_tlmInitialized = true;
+    }
+
     // Active-low: the pin idles HIGH, and a sustained LOW means the signal was received.
     const Fw::Time checkTime = this->getTime();
     auto check_pins = [&](   std::function<bool(FwIndexType)> prerequisite,
@@ -29,6 +36,7 @@ void GPIOWatcher ::schedIn_handler(FwIndexType portNum, U32 context) {
                             std::function<void()> log_spike,
                             std::function<void()> log_signal,
                             std::function<void(FwIndexType)> emit_signal,
+                            std::function<void(GPIOWatcher_SignalState)> write_state,
                             int & state_counter,
                             bool & signal_emmited,
                             GpioPin pin,
@@ -42,6 +50,7 @@ void GPIOWatcher ::schedIn_handler(FwIndexType portNum, U32 context) {
             if(state_counter >= m_consecutive_highs_threshold){
                 log_signal();
                 emit_signal(0);
+                write_state(GPIOWatcher_SignalState::DETECTED); 
                 if(not flip_recorded){
                     flip_recorded = recordFirstFlip(pin, checkTime);
                 }
@@ -52,6 +61,10 @@ void GPIOWatcher ::schedIn_handler(FwIndexType portNum, U32 context) {
             if(state_counter > 0 and state_counter < m_consecutive_highs_threshold){
                 log_spike();
             }
+            if(signal_emmited){                             
+                write_state(GPIOWatcher_SignalState::NOT_DETECTED);
+            }
+
             state_counter = 0;
             signal_emmited = false;
         }
@@ -67,6 +80,7 @@ void GPIOWatcher ::schedIn_handler(FwIndexType portNum, U32 context) {
                 [this]<typename ...Ts>(Ts&& ...ts) {return log_ACTIVITY_HI_EODSSpike(std::forward<Ts>(ts)...);},
                 [this]<typename ...Ts>(Ts&& ...ts) {return log_ACTIVITY_HI_EODSDetected(std::forward<Ts>(ts)...);},
                 [this]<typename ...Ts>(Ts&& ...ts) {return EODSHigh_out(std::forward<Ts>(ts)...);},
+                [this]<typename ...Ts>(Ts&& ...ts) {return tlmWrite_EODSState(std::forward<Ts>(ts)...);},
                 m_EODS_counter, 
                 m_EODS_signal_emitted,
                 GpioPin::EODS,
@@ -77,6 +91,7 @@ void GPIOWatcher ::schedIn_handler(FwIndexType portNum, U32 context) {
                 [this]<typename ...Ts>(Ts&& ...ts) {return log_ACTIVITY_HI_LOSpike(std::forward<Ts>(ts)...);},
                 [this]<typename ...Ts>(Ts&& ...ts) {return log_ACTIVITY_HI_LODetected(std::forward<Ts>(ts)...);},
                 [this]<typename ...Ts>(Ts&& ...ts) {return LOHigh_out(std::forward<Ts>(ts)...);},
+                [this]<typename ...Ts>(Ts&& ...ts) {return tlmWrite_LOState(std::forward<Ts>(ts)...);},
                 m_LO_counter,
                 m_LO_signal_emitted,
                 GpioPin::LO,
@@ -87,6 +102,7 @@ void GPIOWatcher ::schedIn_handler(FwIndexType portNum, U32 context) {
                 [this]<typename ...Ts>(Ts&& ...ts) {return log_ACTIVITY_HI_SOESpike(std::forward<Ts>(ts)...);},
                 [this]<typename ...Ts>(Ts&& ...ts) {return log_ACTIVITY_HI_SOEDetected(std::forward<Ts>(ts)...);},
                 [this]<typename ...Ts>(Ts&& ...ts) {return SOEHigh_out(std::forward<Ts>(ts)...);},
+                [this]<typename ...Ts>(Ts&& ...ts) {return tlmWrite_SOEState(std::forward<Ts>(ts)...);},
                 m_SOE_counter,
                 m_SOE_signal_emitted,
                 GpioPin::SOE,
