@@ -25,6 +25,8 @@
                 address: U32,
                 status: Drv.I2cStatus
             ) severity warning high format "I2C error on address {} with status {}" throttle 2 every { seconds = 1}
+            event overcurrent() \
+            severity warning high format "OVERCURRENT"
 
             event initReport(
                 address: U8,

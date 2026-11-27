@@ -98,6 +98,7 @@ void INA228 ::Mara_INAStateMachine_action_doRead(SmId smId, Mara_INAStateMachine
         if (INAData.get_current() >= INA::MAX_CURRENT) {
             this->alertReadings++;
             if (this->alertReadings >= INA::MAX_READINGS) {
+                this->log_WARNING_HI_overcurrent();
                 this->overcurrentAlert_out(0);
             }
         } else if (this->alertReadings != 0) {
