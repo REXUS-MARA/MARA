@@ -14,6 +14,9 @@
             @ port for periodic telemetry reading
             sync input port telemetryReport: Svc.Sched
 
+            @ output port for overcurrent alert
+            output port overcurrentAlert: Fw.Signal
+
             @ Telemetry reading for current/voltage data
             telemetry Reading: INAData
 
@@ -22,6 +25,8 @@
                 address: U32,
                 status: Drv.I2cStatus
             ) severity warning high format "I2C error on address {} with status {}" throttle 2 every { seconds = 1}
+            event overcurrent() \
+            severity warning high format "OVERCURRENT"
 
             event initReport(
                 address: U8,

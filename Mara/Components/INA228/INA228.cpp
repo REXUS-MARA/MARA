@@ -94,6 +94,16 @@ void INA228 ::Mara_INAStateMachine_action_doRead(SmId smId, Mara_INAStateMachine
         this->voltageAverage += INAData.get_voltage();
         this->currentAverage += INAData.get_current();
         this->readings++;
+        // check overcurrent
+        if (INAData.get_current() >= INA::MAX_CURRENT) {
+            this->alertReadings++;
+            if (this->alertReadings >= INA::MAX_READINGS) {
+                this->log_WARNING_HI_overcurrent();
+                this->overcurrentAlert_out(0);
+            }
+        } else if (this->alertReadings != 0) {
+            this->alertReadings--;
+        }
         this->tlmWrite_Reading(INAData);
         // and now, we can also deal with our data products
         // i mostly copied that form this example - https://github.com/nasa/fprime-examples/blob/devel/FlightExamples/DataProduct/Producer/Producer.cpp

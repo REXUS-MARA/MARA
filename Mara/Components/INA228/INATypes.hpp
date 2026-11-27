@@ -26,6 +26,9 @@ static constexpr U8 DATASIZE = 3; // all data read is 24 bits (3 bytes)
 static constexpr U16 SHUNT_CAL_VAL = 3750; // refer to the datasheet
 // maximum expectied current for above value is 10 A, meaning that LSB is 1.907*10**-5
 
+static constexpr F32 MAX_CURRENT = 2.58; // maximum current before we start limiting
+static constexpr U8 MAX_READINGS = 3; // maximum rolling readings above before we alert
+
 static constexpr F32 VOLTAGE_LSB = 0.0001953125;
 static constexpr F32 CURRENT_LSB = 0.0000190734;
 

@@ -14,6 +14,7 @@ Drv::I2cStatus INA228::reset() {
      Reset the device
     */
     Drv::I2cStatus status = this->write_register(INA::CONFIG, (U16) NULL);
+    this->alertReadings = 0;
     return status;
 }
 
