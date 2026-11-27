@@ -45,6 +45,14 @@ module Mara {
         @ The drive rejected an SDO request
         internal port sdoAbortReceived(index: U16, abortCode: U32) drop
 
+        @ Actual position (0x6064) read back from the drive, in the drive's own counts
+        internal port positionReceived(drivePosition: I32) drop
+        
+        @ The drive sent its CANopen boot-up message: it has just been powered up or reset
+        internal port driveBooted drop
+
+        async command SET_POSITION(position: I32)
+
         @ Health ping
         async input port pingIn: Svc.Ping drop
 
@@ -82,6 +90,10 @@ module Mara {
         @ counts per (1 ms sample)^2 * 65536. 3297 = 10 mm/s^2. 0 keeps the value stored in the drive.
         param ACCELERATION: U32 default 3297
 
+        @ During a move, the position is saved to disk each time it has changed by this many
+        @ counts. 500 = 0.1 mm, which is also the most that can be lost if power fails mid-move.
+        param POSITION_SAVE_THRESHOLD: U32 default 500
+
         @ Test cycle advance target, in encoder counts. 251890 = 50 mm.
         param CYCLE_DISTANCE: I32 default 251890
 
@@ -95,7 +107,8 @@ module Mara {
         @ A platform command could not be sent; the rest of that command was skipped
         event SendFailed(status: Drv.ByteStreamStatus) \
             severity warning high \
-            format "Platform command not sent, CAN adapter unavailable: {}"
+            format "Platform command not sent, CAN adapter unavailable: {}"\
+            throttle 5
 
         @ MIN_POSITION and MAX_POSITION are both 0, so every move is clamped to 0
         event LimitsUnset \
@@ -162,7 +175,41 @@ module Mara {
         event SdoAborted(index: U16, abortCode: U32) \
             severity warning high \
             format "Platform drive rejected object 0x{x}, abort code 0x{x}"
+        
+        
+        @ The stored position was restored after a restart. driveRestarted: the drive had lost power
+        @ too, so its counter restarted at 0 and the stored platform position was used.
+        event PositionRestored(position: I32, driveRestarted: bool) \
+            severity activity high \
+            format "Platform position restored: {} counts (drive restarted: {})"
 
+        @ No valid stored position. Moves are refused until SET_POSITION is sent.
+        event PositionUnknown \
+            severity warning high \
+            format "Platform position unknown: place it at the base and send SET_POSITION 0" \
+            throttle 5
+
+        @ SET_POSITION was applied
+        event PositionSet(position: I32) \
+            severity activity high \
+            format "Platform position set to {} counts"
+
+        @ SET_POSITION was refused (no position reading from the drive yet, or a move is running)
+        event SetPositionRefused \
+            severity warning low \
+            format "SET_POSITION refused: drive not answering yet, or platform moving"
+
+        @ The drive restarted while the software kept running. The platform position is kept;
+        @ nothing moves until it is commanded.
+        event DriveRestarted(position: I32) \
+            severity warning high \
+            format "Platform drive restarted, position kept at {} counts"
+
+        @ The position file could not be written
+        event PositionSaveFailed \
+            severity warning high \
+            format "Platform position could not be saved to disk" \
+            throttle 5
 
         @ NODE_ID is not a valid CANopen node ID (1 to 127); the command was not sent
         event NodeIdInvalid(nodeId: U8) \
@@ -178,6 +225,9 @@ module Mara {
 
          @ Last status word read from the drive
         telemetry StatusWord: U16 format "0x{x}"
+
+        @ Actual platform position in encoder counts (0 = base)
+        telemetry ActualPosition: I32
 
         ###############################################################################
         # Standard AC Ports: Required for Channels, Events, Commands, and Parameters  #

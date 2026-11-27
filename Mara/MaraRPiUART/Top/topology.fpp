@@ -151,6 +151,8 @@ module Mara {
       rateGroup2.RateGroupMemberOut[4] -> ina228platform.run
       rateGroup2.RateGroupMemberOut[5] -> ina228supply.run
       rateGroup2.RateGroupMemberOut[2] -> bmp280Manager.run
+      rateGroup2.RateGroupMemberOut[6] -> platformMotor.schedIn
+
 
 
 

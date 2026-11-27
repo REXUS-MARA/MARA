@@ -198,16 +198,35 @@ module Mara {
             @ Drill is off, platform is going down (commanded on DRILLING exit)
             state RETRACTING {
                 entry do { notifyRetract, resetPhaseTimer }
-                on platformArrived do { notifyRetractReached } enter DONE
-                on tick if retractDone do { notifyRetractTimedOut } enter DONE
+                on platformArrived do { notifyRetractReached } enter SHOW_HOLE
+                on tick if retractDone do { notifyRetractTimedOut } enter SHOW_HOLE
             }
 
-            @ Timeline finished. The drive holds the platform at its target by itself
-            @ (no halt here, so a slow retract is never cut short). Cameras keep recording.
-            state DONE {
-                entry do { notifyDone }
+            state SHOW_HOLE {
+                exit do { drillOff }
+                initial enter SHOW_SPIN_UP
+
+                state SHOW_SPIN_UP {
+                    entry do { notifySpinUp, resetPhaseTimer, drillOn }
+                    on tick if spinUpDone enter SHOW_ADVANCE
+                }
+
+                state SHOW_ADVANCE {
+                    entry do { notifyAdvance, resetPhaseTimer, platformAdvance }
+                    on platformArrived do { notifyAdvanceReached} enter DONE
+                    on tick if advanceDone do { notifyAdvanceTimedOut} enter DONE
+                }
             }
+
+           
+
         }
+
+        state DONE {
+            entry do {notifyDone, resetPhaseTimer}
+            on tick if advanceDone do {notifyEnterAfterExperiment} enter AFTER_EXPERIMENT
+        }
+
 
         @ End of data storage: close the recordings
         state AFTER_EXPERIMENT {
@@ -217,7 +236,8 @@ module Mara {
 
         @ In this state, just hunker down
         state SAFE {
-            entry do { notifyEnterSafe }
+            entry do { notifyEnterSafe, drillOff, platformRetract}
+            
         }
     }
 }
